@@ -1,12 +1,6 @@
 # AGENTS.md
 
-This is a monorepo containing a collection of Cloudflare Workers for personal use. Each top-level directory represents a worker. All workers share the following commands:
-
-```
-pnpm run dryrun # Tests deployment
-pnpm run typecheck # Check for type errors
-pnpm run typegen # Re-generate types after Wrangler bindings are modified
-```
+This is a monorepo containing a collection of Cloudflare Workers for personal use. Each top-level directory represents a worker. Note that all workers share identical commands in `package.json`.
 
 For project-specific context, see `AGENTS.md` within each directory.
 
