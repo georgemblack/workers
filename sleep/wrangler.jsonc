@@ -8,25 +8,23 @@
     "bindings": [
       {
         "name": "HEALTH_STORE",
-        "class_name": "HealthStore"
-      }
-    ]
+        "class_name": "HealthStore",
+      },
+    ],
   },
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": [
-        "HealthStore"
-      ]
-    }
+      "new_sqlite_classes": ["HealthStore"],
+    },
   ],
   "assets": {
     "binding": "ASSETS",
-    "directory": "./public"
+    "directory": "./public",
   },
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
   "preview_urls": false,
-  "workers_dev": true
+  "workers_dev": true,
 }

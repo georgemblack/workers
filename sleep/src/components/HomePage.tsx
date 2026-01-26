@@ -33,6 +33,10 @@ function interruption(count: number) {
     <span class="bad">five interruptions</span>,
   ];
 
+  if (count >= labels.length) {
+    return <span class="bad">{count} interruptions 😵</span>;
+  }
+
   return labels[count];
 }
 
