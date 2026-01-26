@@ -1,2 +1,3 @@
-# workers
-A collection of one-off Cloudflare Workers
+# Workers
+
+This is a monorepo that contains a collection of Cloudflare Workers for personal use.

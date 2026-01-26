@@ -1,0 +1,36 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sleep",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-27",
+  "account_id": "bc4564dd499c0a9b8a7bb79c9bd5ea6d",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "HEALTH_STORE",
+        "class_name": "HealthStore",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["HealthStore"],
+    },
+  ],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./public",
+  },
+  "routes": [
+    {
+      "pattern": "sleep.george.black",
+      "custom_domain": true,
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+  "preview_urls": false,
+  "workers_dev": false,
+}

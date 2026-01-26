@@ -1,0 +1,21 @@
+{
+  "name": "sleep",
+  "type": "module",
+  "scripts": {
+    "format": "prettier . --write",
+    "dryrun": "wrangler deploy --dry-run",
+    "typegen": "wrangler types --env-interface CloudflareBindings",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.11.3"
+  },
+  "devDependencies": {
+    "prettier": "3.8.1",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.58.0"
+  },
+  "volta": {
+    "node": "22.22.0"
+  }
+}
