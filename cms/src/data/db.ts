@@ -2,12 +2,10 @@ import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
 import {
   createPostInputSchema,
-  CreatePostInput,
   ContentBlock,
   Post,
   PostListItem,
   updatePostInputSchema,
-  UpdatePostInput,
 } from "./types";
 
 export const getPost = createServerFn({ method: "GET" })
