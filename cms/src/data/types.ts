@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-type PostStatus = "DRAFT" | "PUBLISHED" | "IDEA" | "HIDDEN";
+export type PostStatus = "DRAFT" | "PUBLISHED" | "IDEA" | "HIDDEN";
 
 export interface HeadingBlock {
   type: "heading";
@@ -47,6 +47,7 @@ export interface PostListItem {
   id: string;
   title: string;
   published: string;
+  status: PostStatus;
 }
 
 // Zod schemas for DB inputs

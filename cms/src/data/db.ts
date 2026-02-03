@@ -30,7 +30,7 @@ export const getPost = createServerFn({ method: "GET" })
 export const listPosts = createServerFn({ method: "GET" }).handler(
   async (): Promise<PostListItem[]> => {
     const result = await env.WEB_DB.prepare(
-      "SELECT id, title, published FROM posts WHERE deleted = 0 ORDER BY published DESC",
+      "SELECT id, title, published, status FROM posts WHERE deleted = 0 ORDER BY published DESC",
     ).all<PostListItem>();
     return result.results;
   },
