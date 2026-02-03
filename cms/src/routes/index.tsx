@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createPost, listPosts } from "@/data/db";
+import { createPost, deletePost, listPosts } from "@/data/db";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -76,6 +76,7 @@ function App() {
   const posts = Route.useLoaderData();
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleCreateRandomPost = async () => {
     setIsCreating(true);
@@ -85,6 +86,19 @@ function App() {
       await router.invalidate();
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleDelete = async (postId: string, postTitle: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${postTitle}"?`)) {
+      return;
+    }
+    setDeletingId(postId);
+    try {
+      await deletePost({ data: postId });
+      await router.invalidate();
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -106,11 +120,14 @@ function App() {
         ) : (
           <ul className="space-y-4">
             {posts.map((post) => (
-              <li key={post.id}>
+              <li
+                key={post.id}
+                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+              >
                 <Link
                   to="/posts/$postId"
                   params={{ postId: post.id }}
-                  className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                  className="flex-1 min-w-0"
                 >
                   <h2 className="text-xl font-semibold text-gray-800">
                     {post.title}
@@ -123,6 +140,13 @@ function App() {
                     })}
                   </p>
                 </Link>
+                <button
+                  onClick={() => handleDelete(post.id, post.title)}
+                  disabled={deletingId === post.id}
+                  className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {deletingId === post.id ? "Deleting..." : "Delete"}
+                </button>
               </li>
             ))}
           </ul>

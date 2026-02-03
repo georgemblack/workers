@@ -12,7 +12,7 @@ export const getPost = createServerFn({ method: "GET" })
   .inputValidator((id: string) => id)
   .handler(async ({ data: id }): Promise<Post | null> => {
     const row = await env.WEB_DB.prepare(
-      "SELECT id, title, published, updated, slug, status, external_link, content FROM posts WHERE id = ?",
+      "SELECT id, title, published, updated, slug, status, external_link, content FROM posts WHERE id = ? AND deleted = 0",
     )
       .bind(id)
       .first<Omit<Post, "content"> & { content: string }>();
@@ -30,7 +30,7 @@ export const getPost = createServerFn({ method: "GET" })
 export const listPosts = createServerFn({ method: "GET" }).handler(
   async (): Promise<PostListItem[]> => {
     const result = await env.WEB_DB.prepare(
-      "SELECT id, title, published FROM posts ORDER BY published DESC",
+      "SELECT id, title, published FROM posts WHERE deleted = 0 ORDER BY published DESC",
     ).all<PostListItem>();
     return result.results;
   },
@@ -104,4 +104,13 @@ export const updatePost = createServerFn({ method: "POST" })
       .run();
 
     return newPost;
+  });
+
+export const deletePost = createServerFn({ method: "POST" })
+  .inputValidator((id: string) => id)
+  .handler(async ({ data: id }): Promise<boolean> => {
+    await env.WEB_DB.prepare("UPDATE posts SET deleted = 1 WHERE id = ?")
+      .bind(id)
+      .run();
+    return true;
   });
