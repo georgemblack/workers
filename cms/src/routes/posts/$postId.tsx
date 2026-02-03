@@ -585,9 +585,9 @@ function RouteComponent() {
   if (!post) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-2xl mx-auto">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Post Not Found
             </h1>
             <p className="text-gray-600 mb-4">
@@ -595,9 +595,9 @@ function RouteComponent() {
             </p>
             <Link
               to="/"
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
-              Back to posts
+              {EMOJI.back} Back to posts
             </Link>
           </div>
         </div>
@@ -760,7 +760,7 @@ function PostEditor({ post }: PostEditorProps) {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <Link
               to="/"
@@ -768,12 +768,12 @@ function PostEditor({ post }: PostEditorProps) {
             >
               {EMOJI.back}
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900">Edit Post</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Edit Post</h1>
           </div>
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors font-medium"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
           >
             {isSaving ? "Saving..." : "Save"}
           </button>
