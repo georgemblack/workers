@@ -22,17 +22,11 @@ function generateRandomPost() {
   const slug = `debug-post-${randomId}`;
   const now = new Date().toISOString();
 
-  const headingBlock: ContentBlock = {
-    type: "heading",
-    level: 2,
-    text: `Sample Heading for Post ${randomId}`,
-  };
-
-  const paragraphCount = 1 + Math.floor(Math.random() * 2);
-  const paragraphBlocks: ContentBlock[] = Array.from(
-    { length: paragraphCount },
+  const blockCount = 1 + Math.floor(Math.random() * 3);
+  const markdownBlocks: ContentBlock[] = Array.from(
+    { length: blockCount },
     () => ({
-      type: "paragraph" as const,
+      type: "markdown" as const,
       text: LOREM_PARAGRAPHS[
         Math.floor(Math.random() * LOREM_PARAGRAPHS.length)
       ],
@@ -46,7 +40,7 @@ function generateRandomPost() {
     updated: now,
     status: "draft" as const,
     external_link: null,
-    content: [headingBlock, ...paragraphBlocks],
+    content: markdownBlocks,
   };
 }
 

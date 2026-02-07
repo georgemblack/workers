@@ -2,15 +2,9 @@ import { z } from "zod";
 
 export type PostStatus = "draft" | "published" | "idea" | "hidden";
 
-export interface HeadingBlock {
-  type: "heading";
-  level: 1 | 2 | 3 | 4 | 5 | 6;
+export interface MarkdownBlock {
+  type: "markdown";
   text: string;
-}
-
-export interface ParagraphBlock {
-  type: "paragraph";
-  text: string; // Markdown
 }
 
 export interface ImageBlock {
@@ -26,11 +20,7 @@ export interface VideoBlock {
   caption?: string;
 }
 
-export type ContentBlock =
-  | HeadingBlock
-  | ParagraphBlock
-  | ImageBlock
-  | VideoBlock;
+export type ContentBlock = MarkdownBlock | ImageBlock | VideoBlock;
 
 export interface Post {
   id: string;
@@ -57,21 +47,8 @@ const slugString = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 const urlString = z.string().url().nullable();
 
 // Content Block Zod Schemas
-const headingBlockSchema = z.object({
-  type: z.literal("heading"),
-  level: z.union([
-    z.literal(1),
-    z.literal(2),
-    z.literal(3),
-    z.literal(4),
-    z.literal(5),
-    z.literal(6),
-  ]),
-  text: z.string(),
-});
-
-const paragraphBlockSchema = z.object({
-  type: z.literal("paragraph"),
+const markdownBlockSchema = z.object({
+  type: z.literal("markdown"),
   text: z.string(),
 });
 
@@ -89,8 +66,7 @@ const videoBlockSchema = z.object({
 });
 
 const contentBlockSchema = z.discriminatedUnion("type", [
-  headingBlockSchema,
-  paragraphBlockSchema,
+  markdownBlockSchema,
   imageBlockSchema,
   videoBlockSchema,
 ]);

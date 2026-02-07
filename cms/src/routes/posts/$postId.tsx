@@ -1,4 +1,4 @@
-import { useState, useId } from "react";
+import { useState } from "react";
 import { getPost, updatePost } from "@/data/db";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -18,11 +18,18 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  Banner,
+  Button,
+  Input,
+  InputArea,
+  Select,
+  Text,
+} from "@cloudflare/kumo";
 import type {
   Post,
   ContentBlock,
-  HeadingBlock,
-  ParagraphBlock,
+  MarkdownBlock,
   ImageBlock,
   VideoBlock,
 } from "@/data/types";
@@ -56,8 +63,7 @@ function removeIdsFromBlocks(blocks: BlockWithId[]): ContentBlock[] {
 const EMOJI = {
   grip: "\u2630", // Trigram for heaven (hamburger menu style)
   trash: "\uD83D\uDDD1\uFE0F", // Wastebasket
-  heading: "\uD83C\uDD77", // H button
-  paragraph: "\uD83D\uDCDD", // Memo
+  markdown: "\uD83D\uDCDD", // Memo
   image: "\uD83D\uDDBC\uFE0F", // Framed picture
   video: "\uD83C\uDFA5", // Movie camera
   back: "\u2B05\uFE0F", // Left arrow
@@ -65,81 +71,25 @@ const EMOJI = {
 };
 
 // Block Editor Components
-interface HeadingBlockEditorProps {
-  block: HeadingBlock;
-  onChange: (block: HeadingBlock) => void;
+interface MarkdownBlockEditorProps {
+  block: MarkdownBlock;
+  onChange: (block: MarkdownBlock) => void;
 }
 
-function HeadingBlockEditor({ block, onChange }: HeadingBlockEditorProps) {
-  const textId = useId();
-  const levelId = useId();
-
+function MarkdownBlockEditor({ block, onChange }: MarkdownBlockEditorProps) {
   return (
-    <div>
-      <div>
-        <span>{EMOJI.heading}</span>
-        <span>Heading</span>
-      </div>
-      <div>
-        <div>
-          <label htmlFor={textId}>Text</label>
-          <input
-            id={textId}
-            type="text"
-            value={block.text}
-            onChange={(e) => onChange({ ...block, text: e.target.value })}
-            placeholder="Heading text..."
-          />
-        </div>
-        <div>
-          <label htmlFor={levelId}>Level</label>
-          <select
-            id={levelId}
-            value={block.level}
-            onChange={(e) =>
-              onChange({
-                ...block,
-                level: parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5 | 6,
-              })
-            }
-          >
-            <option value={1}>H1</option>
-            <option value={2}>H2</option>
-            <option value={3}>H3</option>
-            <option value={4}>H4</option>
-            <option value={5}>H5</option>
-            <option value={6}>H6</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface ParagraphBlockEditorProps {
-  block: ParagraphBlock;
-  onChange: (block: ParagraphBlock) => void;
-}
-
-function ParagraphBlockEditor({ block, onChange }: ParagraphBlockEditorProps) {
-  const textId = useId();
-
-  return (
-    <div>
-      <div>
-        <span>{EMOJI.paragraph}</span>
-        <span>Paragraph</span>
-      </div>
-      <div>
-        <label htmlFor={textId}>Content (Markdown)</label>
-        <textarea
-          id={textId}
-          value={block.text}
-          onChange={(e) => onChange({ ...block, text: e.target.value })}
-          rows={6}
-          placeholder="Write your paragraph content in Markdown..."
-        />
-      </div>
+    <div className="flex flex-col gap-3">
+      <Text variant="secondary" size="sm" bold>
+        Markdown
+      </Text>
+      <InputArea
+        label="Content (Markdown)"
+        size="sm"
+        value={block.text}
+        onChange={(e) => onChange({ ...block, text: e.target.value })}
+        rows={6}
+        placeholder="Write your content in Markdown..."
+      />
     </div>
   );
 }
@@ -150,53 +100,43 @@ interface ImageBlockEditorProps {
 }
 
 function ImageBlockEditor({ block, onChange }: ImageBlockEditorProps) {
-  const pathId = useId();
-  const altId = useId();
-  const captionId = useId();
-
   return (
-    <div>
-      <div>
-        <span>{EMOJI.image}</span>
-        <span>Image</span>
-      </div>
-      <div>
-        <div>
-          <label htmlFor={pathId}>Path</label>
-          <input
-            id={pathId}
-            type="text"
+    <div className="flex flex-col gap-3">
+      <Text variant="secondary" size="sm" bold>
+        Image
+      </Text>
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <Input
+            label="Path"
+            size="sm"
             value={block.path}
             onChange={(e) => onChange({ ...block, path: e.target.value })}
             placeholder="/images/example.jpg"
           />
         </div>
-        <div>
-          <label htmlFor={altId}>Alt Text</label>
-          <input
-            id={altId}
-            type="text"
+        <div className="flex-1">
+          <Input
+            label="Alt Text"
+            size="sm"
             value={block.alt}
             onChange={(e) => onChange({ ...block, alt: e.target.value })}
             placeholder="Descriptive alt text..."
           />
         </div>
       </div>
-      <div>
-        <label htmlFor={captionId}>Caption (optional)</label>
-        <input
-          id={captionId}
-          type="text"
-          value={block.caption ?? ""}
-          onChange={(e) =>
-            onChange({
-              ...block,
-              caption: e.target.value || undefined,
-            })
-          }
-          placeholder="Image caption..."
-        />
-      </div>
+      <Input
+        label="Caption (optional)"
+        size="sm"
+        value={block.caption ?? ""}
+        onChange={(e) =>
+          onChange({
+            ...block,
+            caption: e.target.value || undefined,
+          })
+        }
+        placeholder="Image caption..."
+      />
     </div>
   );
 }
@@ -207,40 +147,30 @@ interface VideoBlockEditorProps {
 }
 
 function VideoBlockEditor({ block, onChange }: VideoBlockEditorProps) {
-  const pathId = useId();
-  const captionId = useId();
-
   return (
-    <div>
-      <div>
-        <span>{EMOJI.video}</span>
-        <span>Video</span>
-      </div>
-      <div>
-        <label htmlFor={pathId}>Path</label>
-        <input
-          id={pathId}
-          type="text"
-          value={block.path}
-          onChange={(e) => onChange({ ...block, path: e.target.value })}
-          placeholder="/videos/example.mp4"
-        />
-      </div>
-      <div>
-        <label htmlFor={captionId}>Caption (optional)</label>
-        <input
-          id={captionId}
-          type="text"
-          value={block.caption ?? ""}
-          onChange={(e) =>
-            onChange({
-              ...block,
-              caption: e.target.value || undefined,
-            })
-          }
-          placeholder="Video caption..."
-        />
-      </div>
+    <div className="flex flex-col gap-3">
+      <Text variant="secondary" size="sm" bold>
+        Video
+      </Text>
+      <Input
+        label="Path"
+        size="sm"
+        value={block.path}
+        onChange={(e) => onChange({ ...block, path: e.target.value })}
+        placeholder="/videos/example.mp4"
+      />
+      <Input
+        label="Caption (optional)"
+        size="sm"
+        value={block.caption ?? ""}
+        onChange={(e) =>
+          onChange({
+            ...block,
+            caption: e.target.value || undefined,
+          })
+        }
+        placeholder="Video caption..."
+      />
     </div>
   );
 }
@@ -257,10 +187,8 @@ function BlockEditor({ block, onChange }: BlockEditorProps) {
   };
 
   switch (block.type) {
-    case "heading":
-      return <HeadingBlockEditor block={block} onChange={handleChange} />;
-    case "paragraph":
-      return <ParagraphBlockEditor block={block} onChange={handleChange} />;
+    case "markdown":
+      return <MarkdownBlockEditor block={block} onChange={handleChange} />;
     case "image":
       return <ImageBlockEditor block={block} onChange={handleChange} />;
     case "video":
@@ -299,21 +227,28 @@ function SortableBlockItem({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div>
+      <div className="flex items-start gap-2 rounded border border-transparent p-3 hover:border-gray-200">
         <button
           type="button"
+          className="mt-1 cursor-grab text-gray-400 hover:text-gray-600"
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder"
         >
           {EMOJI.grip}
         </button>
-        <div>
+        <div className="flex-1">
           <BlockEditor block={block} onChange={onChange} />
         </div>
-        <button type="button" onClick={onDelete} aria-label="Delete block">
+        <Button
+          variant="secondary-destructive"
+          shape="square"
+          size="sm"
+          onClick={onDelete}
+          aria-label="Delete block"
+        >
           {EMOJI.trash}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -326,28 +261,34 @@ interface AddBlockRowProps {
 
 function AddBlockRow({ onAdd }: AddBlockRowProps) {
   return (
-    <div>
-      <span>Add block:</span>
-      <button
-        type="button"
-        onClick={() => onAdd("heading")}
-        title="Add Heading"
+    <div className="flex items-center gap-2 pt-2">
+      <Text variant="secondary" size="sm">
+        Add block:
+      </Text>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("markdown")}
+        aria-label="Add Markdown"
       >
-        {EMOJI.heading}
-      </button>
-      <button
-        type="button"
-        onClick={() => onAdd("paragraph")}
-        title="Add Paragraph"
+        {EMOJI.markdown} Markdown
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("image")}
+        aria-label="Add Image"
       >
-        {EMOJI.paragraph}
-      </button>
-      <button type="button" onClick={() => onAdd("image")} title="Add Image">
-        {EMOJI.image}
-      </button>
-      <button type="button" onClick={() => onAdd("video")} title="Add Video">
-        {EMOJI.video}
-      </button>
+        {EMOJI.image} Image
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("video")}
+        aria-label="Add Video"
+      >
+        {EMOJI.video} Video
+      </Button>
     </div>
   );
 }
@@ -360,14 +301,19 @@ interface ErrorAlertProps {
 
 function ErrorAlert({ message, onDismiss }: ErrorAlertProps) {
   return (
-    <div>
-      <div>
-        <h3>Error saving post</h3>
-        <p>{message}</p>
+    <div className="flex items-center gap-2">
+      <div className="flex-1">
+        <Banner variant="error">Error saving post: {message}</Banner>
       </div>
-      <button type="button" onClick={onDismiss} aria-label="Dismiss">
+      <Button
+        variant="secondary"
+        shape="square"
+        size="sm"
+        onClick={onDismiss}
+        aria-label="Dismiss"
+      >
         {EMOJI.close}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -390,12 +336,6 @@ function MetadataSection({
   externalLink,
   onChange,
 }: MetadataSectionProps) {
-  const titleId = useId();
-  const publishedId = useId();
-  const slugId = useId();
-  const statusId = useId();
-  const externalLinkId = useId();
-
   // Convert ISO string to datetime-local format
   const toDatetimeLocal = (isoString: string): string => {
     const date = new Date(isoString);
@@ -410,61 +350,58 @@ function MetadataSection({
   };
 
   return (
-    <div>
-      <h2>Post Metadata</h2>
-      <div>
-        <div>
-          <label htmlFor={titleId}>Title</label>
-          <input
-            id={titleId}
-            type="text"
-            value={title}
-            onChange={(e) => onChange("title", e.target.value)}
-            placeholder="Post title..."
-          />
+    <div className="flex flex-col gap-4">
+      <Text variant="heading3" as="h2">
+        Post Metadata
+      </Text>
+      <div className="flex flex-col gap-4">
+        <Input
+          label="Title"
+          size="sm"
+          value={title}
+          onChange={(e) => onChange("title", e.target.value)}
+          placeholder="Post title..."
+        />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <Input
+              label="Published Date"
+              size="sm"
+              type="datetime-local"
+              value={toDatetimeLocal(published)}
+              onChange={(e) =>
+                onChange("published", toISOString(e.target.value))
+              }
+            />
+          </div>
+          <div className="w-36">
+            <Select
+              label="Status"
+              value={status}
+              onValueChange={(value) => onChange("status", String(value))}
+            >
+              <Select.Option value="draft">Draft</Select.Option>
+              <Select.Option value="published">Published</Select.Option>
+              <Select.Option value="idea">Idea</Select.Option>
+              <Select.Option value="hidden">Hidden</Select.Option>
+            </Select>
+          </div>
         </div>
-        <div>
-          <label htmlFor={publishedId}>Published Date</label>
-          <input
-            id={publishedId}
-            type="datetime-local"
-            value={toDatetimeLocal(published)}
-            onChange={(e) => onChange("published", toISOString(e.target.value))}
-          />
-        </div>
-        <div>
-          <label htmlFor={slugId}>Slug</label>
-          <input
-            id={slugId}
-            type="text"
-            value={slug}
-            onChange={(e) => onChange("slug", e.target.value)}
-            placeholder="post-slug"
-          />
-        </div>
-        <div>
-          <label htmlFor={statusId}>Status</label>
-          <select
-            id={statusId}
-            value={status}
-            onChange={(e) => onChange("status", e.target.value)}
-          >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="idea">Idea</option>
-            <option value="hidden">Hidden</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor={externalLinkId}>External Link (optional)</label>
-          <input
-            id={externalLinkId}
-            type="url"
-            value={externalLink ?? ""}
-            onChange={(e) => onChange("externalLink", e.target.value || null)}
-            placeholder="https://example.com"
-          />
-        </div>
+        <Input
+          label="Slug"
+          size="sm"
+          value={slug}
+          onChange={(e) => onChange("slug", e.target.value)}
+          placeholder="post-slug"
+        />
+        <Input
+          label="External Link (optional)"
+          size="sm"
+          type="url"
+          value={externalLink ?? ""}
+          onChange={(e) => onChange("externalLink", e.target.value || null)}
+          placeholder="https://example.com"
+        />
       </div>
     </div>
   );
@@ -476,14 +413,16 @@ function RouteComponent() {
 
   if (!post) {
     return (
-      <div>
-        <div>
-          <div>
-            <h1>Post Not Found</h1>
-            <p>The post you're looking for doesn't exist.</p>
-            <Link to="/">{EMOJI.back} Back to posts</Link>
-          </div>
-        </div>
+      <div className="flex flex-col items-center gap-4 py-16">
+        <Text variant="heading2" as="h1">
+          Post Not Found
+        </Text>
+        <Text variant="secondary">
+          The post you&apos;re looking for doesn&apos;t exist.
+        </Text>
+        <Link to="/" className="text-blue-500 hover:underline">
+          {EMOJI.back} Back to posts
+        </Link>
       </div>
     );
   }
@@ -557,18 +496,10 @@ function PostEditor({ post }: PostEditorProps) {
     let newBlock: BlockWithId;
 
     switch (type) {
-      case "heading":
+      case "markdown":
         newBlock = {
           _id: generateBlockId(),
-          type: "heading",
-          level: 2,
-          text: "",
-        };
-        break;
-      case "paragraph":
-        newBlock = {
-          _id: generateBlockId(),
-          type: "paragraph",
+          type: "markdown",
           text: "",
         };
         break;
@@ -640,76 +571,74 @@ function PostEditor({ post }: PostEditorProps) {
   };
 
   return (
-    <div>
-      <div>
-        {/* Header */}
-        <div>
-          <div>
-            <Link to="/">{EMOJI.back}</Link>
-            <h1>Edit Post</h1>
-          </div>
-          <button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save"}
-          </button>
+    <div className="flex flex-col gap-6 pb-12">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-gray-500 hover:text-gray-700">
+            {EMOJI.back}
+          </Link>
+          <Text variant="heading2" as="h1">
+            Edit Post
+          </Text>
         </div>
+        <Button variant="primary" onClick={handleSave} loading={isSaving}>
+          Save
+        </Button>
+      </div>
 
-        {/* Success Message */}
-        {successMessage && (
-          <div>
-            <p>{successMessage}</p>
-          </div>
-        )}
+      {/* Success Message */}
+      {successMessage && <Banner>{successMessage}</Banner>}
 
-        {/* Error Alert */}
-        {error && (
-          <ErrorAlert message={error} onDismiss={() => setError(null)} />
-        )}
+      {/* Error Alert */}
+      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
-        {/* Metadata Section */}
-        <MetadataSection
-          title={title}
-          published={published}
-          slug={slug}
-          status={status}
-          externalLink={externalLink}
-          onChange={handleMetadataChange}
-        />
+      {/* Metadata Section */}
+      <MetadataSection
+        title={title}
+        published={published}
+        slug={slug}
+        status={status}
+        externalLink={externalLink}
+        onChange={handleMetadataChange}
+      />
 
-        {/* Content Blocks Section */}
-        <div>
-          <h2>Content Blocks</h2>
+      {/* Content Blocks Section */}
+      <div className="flex flex-col gap-4">
+        <Text variant="heading3" as="h2">
+          Content Blocks
+        </Text>
 
-          {blocks.length === 0 ? (
-            <div>No content blocks yet. Add one below.</div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+        {blocks.length === 0 ? (
+          <Text variant="secondary">No content blocks yet. Add one below.</Text>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={blocks.map((b) => b._id)}
+              strategy={verticalListSortingStrategy}
             >
-              <SortableContext
-                items={blocks.map((b) => b._id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div>
-                  {blocks.map((block, index) => (
-                    <SortableBlockItem
-                      key={block._id}
-                      block={block}
-                      onChange={(updatedBlock) =>
-                        handleBlockChange(index, updatedBlock)
-                      }
-                      onDelete={() => handleBlockDelete(index)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
+              <div className="flex flex-col gap-2">
+                {blocks.map((block, index) => (
+                  <SortableBlockItem
+                    key={block._id}
+                    block={block}
+                    onChange={(updatedBlock) =>
+                      handleBlockChange(index, updatedBlock)
+                    }
+                    onDelete={() => handleBlockDelete(index)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
 
-          {/* Add Block Row */}
-          <AddBlockRow onAdd={handleAddBlock} />
-        </div>
+        {/* Add Block Row */}
+        <AddBlockRow onAdd={handleAddBlock} />
       </div>
     </div>
   );

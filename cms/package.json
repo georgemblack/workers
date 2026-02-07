@@ -8,6 +8,7 @@
     "serve": "vite preview",
     "test": "vitest run",
     "deploy": "pnpm run build && wrangler deploy",
+    "dryrun": "pnpm run build && wrangler deploy --dry-run",
     "preview": "pnpm run build && vite preview",
     "format": "prettier . --write",
     "typegen": "wrangler types",

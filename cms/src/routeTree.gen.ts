@@ -21,9 +21,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DebugIndexRoute = DebugIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DebugRoute,
+  id: '/debug/',
+  path: '/debug/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PostsPostIdRoute = PostsPostIdRouteImport.update({
   id: '/posts/$postId',
@@ -85,6 +85,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PostsPostIdRoute: typeof PostsPostIdRoute
+  DebugIndexRoute: typeof DebugIndexRoute
   ApiPostsPostIdRoute: typeof ApiPostsPostIdRoute
   ApiPostsIndexRoute: typeof ApiPostsIndexRoute
 }
@@ -100,10 +101,10 @@ declare module '@tanstack/react-router' {
     }
     '/debug/': {
       id: '/debug/'
-      path: '/'
+      path: '/debug'
       fullPath: '/debug/'
       preLoaderRoute: typeof DebugIndexRouteImport
-      parentRoute: typeof DebugRoute
+      parentRoute: typeof rootRouteImport
     }
     '/posts/$postId': {
       id: '/posts/$postId'
@@ -132,6 +133,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PostsPostIdRoute: PostsPostIdRoute,
+  DebugIndexRoute: DebugIndexRoute,
   ApiPostsPostIdRoute: ApiPostsPostIdRoute,
   ApiPostsIndexRoute: ApiPostsIndexRoute,
 }
