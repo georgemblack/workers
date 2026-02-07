@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type PostStatus = "DRAFT" | "PUBLISHED" | "IDEA" | "HIDDEN";
+export type PostStatus = "draft" | "published" | "idea" | "hidden";
 
 export interface HeadingBlock {
   type: "heading";
@@ -51,7 +51,7 @@ export interface PostListItem {
 }
 
 // Zod schemas for DB inputs
-const postStatusSchema = z.enum(["DRAFT", "PUBLISHED", "IDEA", "HIDDEN"]);
+const postStatusSchema = z.enum(["draft", "published", "idea", "hidden"]);
 const iso8601String = z.iso.datetime();
 const slugString = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 const urlString = z.string().url().nullable();

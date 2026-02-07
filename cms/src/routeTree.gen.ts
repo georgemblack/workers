@@ -8,102 +8,124 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root";
-import { Route as IndexRouteImport } from "./routes/index";
-import { Route as PostsPostIdRouteImport } from "./routes/posts/$postId";
-import { Route as ApiPostsIndexRouteImport } from "./routes/api/posts/index";
-import { Route as ApiPostsPostIdRouteImport } from "./routes/api/posts/$postId";
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as DebugIndexRouteImport } from './routes/debug/index'
+import { Route as PostsPostIdRouteImport } from './routes/posts/$postId'
+import { Route as ApiPostsIndexRouteImport } from './routes/api/posts/index'
+import { Route as ApiPostsPostIdRouteImport } from './routes/api/posts/$postId'
 
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
+const DebugIndexRoute = DebugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DebugRoute,
+} as any)
 const PostsPostIdRoute = PostsPostIdRouteImport.update({
-  id: "/posts/$postId",
-  path: "/posts/$postId",
+  id: '/posts/$postId',
+  path: '/posts/$postId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiPostsIndexRoute = ApiPostsIndexRouteImport.update({
-  id: "/api/posts/",
-  path: "/api/posts/",
+  id: '/api/posts/',
+  path: '/api/posts/',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 const ApiPostsPostIdRoute = ApiPostsPostIdRouteImport.update({
-  id: "/api/posts/$postId",
-  path: "/api/posts/$postId",
+  id: '/api/posts/$postId',
+  path: '/api/posts/$postId',
   getParentRoute: () => rootRouteImport,
-} as any);
+} as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute;
-  "/posts/$postId": typeof PostsPostIdRoute;
-  "/api/posts/$postId": typeof ApiPostsPostIdRoute;
-  "/api/posts/": typeof ApiPostsIndexRoute;
+  '/': typeof IndexRoute
+  '/posts/$postId': typeof PostsPostIdRoute
+  '/debug/': typeof DebugIndexRoute
+  '/api/posts/$postId': typeof ApiPostsPostIdRoute
+  '/api/posts/': typeof ApiPostsIndexRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute;
-  "/posts/$postId": typeof PostsPostIdRoute;
-  "/api/posts/$postId": typeof ApiPostsPostIdRoute;
-  "/api/posts": typeof ApiPostsIndexRoute;
+  '/': typeof IndexRoute
+  '/posts/$postId': typeof PostsPostIdRoute
+  '/debug': typeof DebugIndexRoute
+  '/api/posts/$postId': typeof ApiPostsPostIdRoute
+  '/api/posts': typeof ApiPostsIndexRoute
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport;
-  "/": typeof IndexRoute;
-  "/posts/$postId": typeof PostsPostIdRoute;
-  "/api/posts/$postId": typeof ApiPostsPostIdRoute;
-  "/api/posts/": typeof ApiPostsIndexRoute;
+  __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/posts/$postId': typeof PostsPostIdRoute
+  '/debug/': typeof DebugIndexRoute
+  '/api/posts/$postId': typeof ApiPostsPostIdRoute
+  '/api/posts/': typeof ApiPostsIndexRoute
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/posts/$postId" | "/api/posts/$postId" | "/api/posts/";
-  fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/posts/$postId" | "/api/posts/$postId" | "/api/posts";
+  fileRoutesByFullPath: FileRoutesByFullPath
+  fullPaths:
+    | '/'
+    | '/posts/$postId'
+    | '/debug/'
+    | '/api/posts/$postId'
+    | '/api/posts/'
+  fileRoutesByTo: FileRoutesByTo
+  to: '/' | '/posts/$postId' | '/debug' | '/api/posts/$postId' | '/api/posts'
   id:
-    | "__root__"
-    | "/"
-    | "/posts/$postId"
-    | "/api/posts/$postId"
-    | "/api/posts/";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/posts/$postId'
+    | '/debug/'
+    | '/api/posts/$postId'
+    | '/api/posts/'
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute;
-  PostsPostIdRoute: typeof PostsPostIdRoute;
-  ApiPostsPostIdRoute: typeof ApiPostsPostIdRoute;
-  ApiPostsIndexRoute: typeof ApiPostsIndexRoute;
+  IndexRoute: typeof IndexRoute
+  PostsPostIdRoute: typeof PostsPostIdRoute
+  ApiPostsPostIdRoute: typeof ApiPostsPostIdRoute
+  ApiPostsIndexRoute: typeof ApiPostsIndexRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/posts/$postId": {
-      id: "/posts/$postId";
-      path: "/posts/$postId";
-      fullPath: "/posts/$postId";
-      preLoaderRoute: typeof PostsPostIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/posts/": {
-      id: "/api/posts/";
-      path: "/api/posts";
-      fullPath: "/api/posts/";
-      preLoaderRoute: typeof ApiPostsIndexRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
-    "/api/posts/$postId": {
-      id: "/api/posts/$postId";
-      path: "/api/posts/$postId";
-      fullPath: "/api/posts/$postId";
-      preLoaderRoute: typeof ApiPostsPostIdRouteImport;
-      parentRoute: typeof rootRouteImport;
-    };
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/debug/': {
+      id: '/debug/'
+      path: '/'
+      fullPath: '/debug/'
+      preLoaderRoute: typeof DebugIndexRouteImport
+      parentRoute: typeof DebugRoute
+    }
+    '/posts/$postId': {
+      id: '/posts/$postId'
+      path: '/posts/$postId'
+      fullPath: '/posts/$postId'
+      preLoaderRoute: typeof PostsPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/posts/': {
+      id: '/api/posts/'
+      path: '/api/posts'
+      fullPath: '/api/posts/'
+      preLoaderRoute: typeof ApiPostsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/posts/$postId': {
+      id: '/api/posts/$postId'
+      path: '/api/posts/$postId'
+      fullPath: '/api/posts/$postId'
+      preLoaderRoute: typeof ApiPostsPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -112,16 +134,16 @@ const rootRouteChildren: RootRouteChildren = {
   PostsPostIdRoute: PostsPostIdRoute,
   ApiPostsPostIdRoute: ApiPostsPostIdRoute,
   ApiPostsIndexRoute: ApiPostsIndexRoute,
-};
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx";
-import type { createStart } from "@tanstack/react-start";
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
-    ssr: true;
-    router: Awaited<ReturnType<typeof getRouter>>;
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
   }
 }

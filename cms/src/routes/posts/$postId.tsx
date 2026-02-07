@@ -33,7 +33,7 @@ export const Route = createFileRoute("/posts/$postId")({
   loader: async ({ params }) => await getPost({ data: params.postId }),
 });
 
-type PostStatus = "DRAFT" | "PUBLISHED" | "IDEA" | "HIDDEN";
+type PostStatus = "draft" | "published" | "idea" | "hidden";
 
 type BlockWithId = ContentBlock & { _id: string };
 
@@ -75,35 +75,24 @@ function HeadingBlockEditor({ block, onChange }: HeadingBlockEditorProps) {
   const levelId = useId();
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
+    <div>
+      <div>
         <span>{EMOJI.heading}</span>
         <span>Heading</span>
       </div>
-      <div className="flex gap-3">
-        <div className="flex-1">
-          <label
-            htmlFor={textId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Text
-          </label>
+      <div>
+        <div>
+          <label htmlFor={textId}>Text</label>
           <input
             id={textId}
             type="text"
             value={block.text}
             onChange={(e) => onChange({ ...block, text: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Heading text..."
           />
         </div>
-        <div className="w-24">
-          <label
-            htmlFor={levelId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Level
-          </label>
+        <div>
+          <label htmlFor={levelId}>Level</label>
           <select
             id={levelId}
             value={block.level}
@@ -113,7 +102,6 @@ function HeadingBlockEditor({ block, onChange }: HeadingBlockEditorProps) {
                 level: parseInt(e.target.value) as 1 | 2 | 3 | 4 | 5 | 6,
               })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value={1}>H1</option>
             <option value={2}>H2</option>
@@ -137,24 +125,18 @@ function ParagraphBlockEditor({ block, onChange }: ParagraphBlockEditorProps) {
   const textId = useId();
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
+    <div>
+      <div>
         <span>{EMOJI.paragraph}</span>
         <span>Paragraph</span>
       </div>
       <div>
-        <label
-          htmlFor={textId}
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Content (Markdown)
-        </label>
+        <label htmlFor={textId}>Content (Markdown)</label>
         <textarea
           id={textId}
           value={block.text}
           onChange={(e) => onChange({ ...block, text: e.target.value })}
           rows={6}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
           placeholder="Write your paragraph content in Markdown..."
         />
       </div>
@@ -173,52 +155,35 @@ function ImageBlockEditor({ block, onChange }: ImageBlockEditorProps) {
   const captionId = useId();
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
+    <div>
+      <div>
         <span>{EMOJI.image}</span>
         <span>Image</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div>
         <div>
-          <label
-            htmlFor={pathId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Path
-          </label>
+          <label htmlFor={pathId}>Path</label>
           <input
             id={pathId}
             type="text"
             value={block.path}
             onChange={(e) => onChange({ ...block, path: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="/images/example.jpg"
           />
         </div>
         <div>
-          <label
-            htmlFor={altId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Alt Text
-          </label>
+          <label htmlFor={altId}>Alt Text</label>
           <input
             id={altId}
             type="text"
             value={block.alt}
             onChange={(e) => onChange({ ...block, alt: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Descriptive alt text..."
           />
         </div>
       </div>
       <div>
-        <label
-          htmlFor={captionId}
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Caption (optional)
-        </label>
+        <label htmlFor={captionId}>Caption (optional)</label>
         <input
           id={captionId}
           type="text"
@@ -229,7 +194,6 @@ function ImageBlockEditor({ block, onChange }: ImageBlockEditorProps) {
               caption: e.target.value || undefined,
             })
           }
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Image caption..."
         />
       </div>
@@ -247,34 +211,23 @@ function VideoBlockEditor({ block, onChange }: VideoBlockEditorProps) {
   const captionId = useId();
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
+    <div>
+      <div>
         <span>{EMOJI.video}</span>
         <span>Video</span>
       </div>
       <div>
-        <label
-          htmlFor={pathId}
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Path
-        </label>
+        <label htmlFor={pathId}>Path</label>
         <input
           id={pathId}
           type="text"
           value={block.path}
           onChange={(e) => onChange({ ...block, path: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="/videos/example.mp4"
         />
       </div>
       <div>
-        <label
-          htmlFor={captionId}
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Caption (optional)
-        </label>
+        <label htmlFor={captionId}>Caption (optional)</label>
         <input
           id={captionId}
           type="text"
@@ -285,7 +238,6 @@ function VideoBlockEditor({ block, onChange }: VideoBlockEditorProps) {
               caption: e.target.value || undefined,
             })
           }
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Video caption..."
         />
       </div>
@@ -314,7 +266,7 @@ function BlockEditor({ block, onChange }: BlockEditorProps) {
     case "video":
       return <VideoBlockEditor block={block} onChange={handleChange} />;
     default:
-      return <div className="text-red-500">Unknown block type</div>;
+      return <div>Unknown block type</div>;
   }
 }
 
@@ -342,35 +294,24 @@ function SortableBlockItem({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.5 : 1,
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`bg-white rounded-lg shadow border border-gray-200 ${
-        isDragging ? "opacity-50 shadow-lg" : ""
-      }`}
-    >
-      <div className="flex items-start gap-2 p-4">
+    <div ref={setNodeRef} style={style}>
+      <div>
         <button
           type="button"
-          className="mt-1 p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing rounded hover:bg-gray-100"
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder"
         >
           {EMOJI.grip}
         </button>
-        <div className="flex-1 min-w-0">
+        <div>
           <BlockEditor block={block} onChange={onChange} />
         </div>
-        <button
-          type="button"
-          onClick={onDelete}
-          className="mt-1 p-1 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"
-          aria-label="Delete block"
-        >
+        <button type="button" onClick={onDelete} aria-label="Delete block">
           {EMOJI.trash}
         </button>
       </div>
@@ -385,12 +326,11 @@ interface AddBlockRowProps {
 
 function AddBlockRow({ onAdd }: AddBlockRowProps) {
   return (
-    <div className="flex items-center justify-center gap-2 py-4">
-      <span className="text-sm text-gray-500 mr-2">Add block:</span>
+    <div>
+      <span>Add block:</span>
       <button
         type="button"
         onClick={() => onAdd("heading")}
-        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-xl"
         title="Add Heading"
       >
         {EMOJI.heading}
@@ -398,25 +338,14 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
       <button
         type="button"
         onClick={() => onAdd("paragraph")}
-        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-xl"
         title="Add Paragraph"
       >
         {EMOJI.paragraph}
       </button>
-      <button
-        type="button"
-        onClick={() => onAdd("image")}
-        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-xl"
-        title="Add Image"
-      >
+      <button type="button" onClick={() => onAdd("image")} title="Add Image">
         {EMOJI.image}
       </button>
-      <button
-        type="button"
-        onClick={() => onAdd("video")}
-        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors text-xl"
-        title="Add Video"
-      >
+      <button type="button" onClick={() => onAdd("video")} title="Add Video">
         {EMOJI.video}
       </button>
     </div>
@@ -431,17 +360,12 @@ interface ErrorAlertProps {
 
 function ErrorAlert({ message, onDismiss }: ErrorAlertProps) {
   return (
-    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-      <div className="flex-1">
-        <h3 className="text-sm font-medium text-red-800">Error saving post</h3>
-        <p className="text-sm text-red-700 mt-1">{message}</p>
+    <div>
+      <div>
+        <h3>Error saving post</h3>
+        <p>{message}</p>
       </div>
-      <button
-        type="button"
-        onClick={onDismiss}
-        className="text-red-500 hover:text-red-700"
-        aria-label="Dismiss"
-      >
+      <button type="button" onClick={onDismiss} aria-label="Dismiss">
         {EMOJI.close}
       </button>
     </div>
@@ -486,90 +410,58 @@ function MetadataSection({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
-        Post Metadata
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
-          <label
-            htmlFor={titleId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Title
-          </label>
+    <div>
+      <h2>Post Metadata</h2>
+      <div>
+        <div>
+          <label htmlFor={titleId}>Title</label>
           <input
             id={titleId}
             type="text"
             value={title}
             onChange={(e) => onChange("title", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Post title..."
           />
         </div>
         <div>
-          <label
-            htmlFor={publishedId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Published Date
-          </label>
+          <label htmlFor={publishedId}>Published Date</label>
           <input
             id={publishedId}
             type="datetime-local"
             value={toDatetimeLocal(published)}
             onChange={(e) => onChange("published", toISOString(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         <div>
-          <label
-            htmlFor={slugId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Slug
-          </label>
+          <label htmlFor={slugId}>Slug</label>
           <input
             id={slugId}
             type="text"
             value={slug}
             onChange={(e) => onChange("slug", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="post-slug"
           />
         </div>
         <div>
-          <label
-            htmlFor={statusId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Status
-          </label>
+          <label htmlFor={statusId}>Status</label>
           <select
             id={statusId}
             value={status}
             onChange={(e) => onChange("status", e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="IDEA">Idea</option>
-            <option value="HIDDEN">Hidden</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+            <option value="idea">Idea</option>
+            <option value="hidden">Hidden</option>
           </select>
         </div>
         <div>
-          <label
-            htmlFor={externalLinkId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            External Link (optional)
-          </label>
+          <label htmlFor={externalLinkId}>External Link (optional)</label>
           <input
             id={externalLinkId}
             type="url"
             value={externalLink ?? ""}
             onChange={(e) => onChange("externalLink", e.target.value || null)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="https://example.com"
           />
         </div>
@@ -584,21 +476,12 @@ function RouteComponent() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center py-12">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Post Not Found
-            </h1>
-            <p className="text-gray-600 mb-4">
-              The post you're looking for doesn't exist.
-            </p>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              {EMOJI.back} Back to posts
-            </Link>
+      <div>
+        <div>
+          <div>
+            <h1>Post Not Found</h1>
+            <p>The post you're looking for doesn't exist.</p>
+            <Link to="/">{EMOJI.back} Back to posts</Link>
           </div>
         </div>
       </div>
@@ -650,7 +533,7 @@ function PostEditor({ post }: PostEditorProps) {
         setSlug(value ?? "");
         break;
       case "status":
-        setStatus((value ?? "DRAFT") as PostStatus);
+        setStatus((value ?? "draft") as PostStatus);
         break;
       case "externalLink":
         setExternalLink(value);
@@ -757,32 +640,23 @@ function PostEditor({ post }: PostEditorProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div>
+      <div>
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/"
-              className="text-gray-600 hover:text-gray-900 transition-colors text-xl"
-            >
-              {EMOJI.back}
-            </Link>
-            <h1 className="text-3xl font-bold text-gray-900">Edit Post</h1>
+        <div>
+          <div>
+            <Link to="/">{EMOJI.back}</Link>
+            <h1>Edit Post</h1>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
-          >
+          <button onClick={handleSave} disabled={isSaving}>
             {isSaving ? "Saving..." : "Save"}
           </button>
         </div>
 
         {/* Success Message */}
         {successMessage && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm text-green-700">{successMessage}</p>
+          <div>
+            <p>{successMessage}</p>
           </div>
         )}
 
@@ -802,15 +676,11 @@ function PostEditor({ post }: PostEditorProps) {
         />
 
         {/* Content Blocks Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Content Blocks
-          </h2>
+        <div>
+          <h2>Content Blocks</h2>
 
           {blocks.length === 0 ? (
-            <div className="bg-white rounded-lg shadow border border-gray-200 p-8 text-center text-gray-500">
-              No content blocks yet. Add one below.
-            </div>
+            <div>No content blocks yet. Add one below.</div>
           ) : (
             <DndContext
               sensors={sensors}
@@ -821,7 +691,7 @@ function PostEditor({ post }: PostEditorProps) {
                 items={blocks.map((b) => b._id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="space-y-4">
+                <div>
                   {blocks.map((block, index) => (
                     <SortableBlockItem
                       key={block._id}

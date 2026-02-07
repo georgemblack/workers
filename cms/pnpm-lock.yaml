@@ -7,6 +7,9 @@ settings:
 importers:
   .:
     dependencies:
+      "@cloudflare/kumo":
+        specifier: ^1.1.0
+        version: 1.1.0(@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6)
       "@cloudflare/vite-plugin":
         specifier: ^1.13.8
         version: 1.22.1(vite@7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))(workerd@1.20260128.0)(wrangler@4.61.1)
@@ -20,7 +23,7 @@ importers:
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.4)
       "@tailwindcss/vite":
-        specifier: ^4.0.6
+        specifier: ^4.1.18
         version: 4.1.18(vite@7.3.1(@types/node@22.19.7)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
       "@tanstack/react-devtools":
         specifier: ^0.7.0
@@ -47,7 +50,7 @@ importers:
         specifier: ^19.2.0
         version: 19.2.4(react@19.2.4)
       tailwindcss:
-        specifier: ^4.0.6
+        specifier: ^4.1.18
         version: 4.1.18
       vite-tsconfig-paths:
         specifier: ^5.1.4
@@ -295,6 +298,48 @@ packages:
         integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==,
       }
     engines: { node: ">=6.9.0" }
+
+  "@base-ui/react@1.1.0":
+    resolution:
+      {
+        integrity: sha512-ikcJRNj1mOiF2HZ5jQHrXoVoHcNHdBU5ejJljcBl+VTLoYXR6FidjTN86GjO6hyshi6TZFuNvv0dEOgaOFv6Lw==,
+      }
+    engines: { node: ">=14.0.0" }
+    peerDependencies:
+      "@types/react": ^17 || ^18 || ^19
+      react: ^17 || ^18 || ^19
+      react-dom: ^17 || ^18 || ^19
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+
+  "@base-ui/utils@0.2.4":
+    resolution:
+      {
+        integrity: sha512-smZwpMhjO29v+jrZusBSc5T+IJ3vBb9cjIiBjtKcvWmRj9Z4DWGVR3efr1eHR56/bqY5a4qyY9ElkOY5ljo3ng==,
+      }
+    peerDependencies:
+      "@types/react": ^17 || ^18 || ^19
+      react: ^17 || ^18 || ^19
+      react-dom: ^17 || ^18 || ^19
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+
+  "@cloudflare/kumo@1.1.0":
+    resolution:
+      {
+        integrity: sha512-Qh6lqKuDSuBwjc2VJPQIeVBxvTHVfIRG2FtxLrLYFQmagkHCagiOppvxtoxULC0gTl17ybUpEzmZwHKW0ztdHg==,
+      }
+    hasBin: true
+    peerDependencies:
+      "@phosphor-icons/react": ^2.1.10
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+      zod: ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
 
   "@cloudflare/kv-asset-handler@0.4.2":
     resolution:
@@ -945,6 +990,33 @@ packages:
       "@noble/hashes":
         optional: true
 
+  "@floating-ui/core@1.7.4":
+    resolution:
+      {
+        integrity: sha512-C3HlIdsBxszvm5McXlB8PeOEWfBhcGBTZGkGlWc2U0KFY5IwG5OQEuQ8rq52DZmcHDlPLd+YFBK+cZcytwIFWg==,
+      }
+
+  "@floating-ui/dom@1.7.5":
+    resolution:
+      {
+        integrity: sha512-N0bD2kIPInNHUHehXhMke1rBGs1dwqvC9O9KYMyyjK7iXt7GAhnro7UlcuYcGdS/yYOlq0MAVgrow8IbWJwyqg==,
+      }
+
+  "@floating-ui/react-dom@2.1.7":
+    resolution:
+      {
+        integrity: sha512-0tLRojf/1Go2JgEVm+3Frg9A3IW8bJgKgdO0BN5RkF//ufuz2joZM63Npau2ff3J6lUVYgDSNzNkR+aH3IVfjg==,
+      }
+    peerDependencies:
+      react: ">=16.8.0"
+      react-dom: ">=16.8.0"
+
+  "@floating-ui/utils@0.2.10":
+    resolution:
+      {
+        integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==,
+      }
+
   "@img/colour@1.0.0":
     resolution:
       {
@@ -1237,6 +1309,16 @@ packages:
         integrity: sha512-hAX0pT/73190NLqBPPWSdBVGtbY6VOhWYK3qqHqtXQ1gK7kS2yz4+ivsN07hpJ6I3aeMtKP6J6npsEKOAzuTLA==,
       }
     engines: { node: ">=20.0" }
+
+  "@phosphor-icons/react@2.1.10":
+    resolution:
+      {
+        integrity: sha512-vt8Tvq8GLjheAZZYa+YG/pW7HDbov8El/MANW8pOAz4eGxrwhnbfrQZq0Cp4q8zBEu8NIhHdnr+r8thnfRSNYA==,
+      }
+    engines: { node: ">=10" }
+    peerDependencies:
+      react: ">= 16.8"
+      react-dom: ">= 16.8"
 
   "@poppinss/colors@4.1.6":
     resolution:
@@ -2455,10 +2537,10 @@ packages:
         integrity: sha512-5gvq20T6vfpekVtqrYQsSCFZ1wEg5+wW0/QaZMWkFr6BqD3NfKs0rLCx4rrVlSWJeZb5NBJgVLswK/w2MWU+Gw==,
       }
 
-  enhanced-resolve@5.18.4:
+  enhanced-resolve@5.19.0:
     resolution:
       {
-        integrity: sha512-LgQMM4WXU3QI+SYgEc2liRgznaD5ojbmY3sb8LxyguVkIg5FxdpTkvk72te2R38/TGKxH634oLxXRGY6d7AP+Q==,
+        integrity: sha512-phv3E1Xl4tQOShqSte26C7Fl84EwUdZsyOuSSk9qtAGyyQs2s3jJzComh+Abf4g187lUUAvH+H26omrqia2aGg==,
       }
     engines: { node: ">=10.13.0" }
 
@@ -3096,6 +3178,12 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
+  reselect@5.1.1:
+    resolution:
+      {
+        integrity: sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==,
+      }
+
   resolve-pkg-maps@1.0.0:
     resolution:
       {
@@ -3250,6 +3338,18 @@ packages:
     resolution:
       {
         integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==,
+      }
+
+  tabbable@6.4.0:
+    resolution:
+      {
+        integrity: sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg==,
+      }
+
+  tailwind-merge@3.4.0:
+    resolution:
+      {
+        integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==,
       }
 
   tailwindcss@4.1.18:
@@ -3861,6 +3961,44 @@ snapshots:
       "@babel/helper-string-parser": 7.27.1
       "@babel/helper-validator-identifier": 7.28.5
 
+  "@base-ui/react@1.1.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
+    dependencies:
+      "@babel/runtime": 7.28.6
+      "@base-ui/utils": 0.2.4(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      "@floating-ui/react-dom": 2.1.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      "@floating-ui/utils": 0.2.10
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      reselect: 5.1.1
+      tabbable: 6.4.0
+      use-sync-external-store: 1.6.0(react@19.2.4)
+    optionalDependencies:
+      "@types/react": 19.2.10
+
+  "@base-ui/utils@0.2.4(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
+    dependencies:
+      "@babel/runtime": 7.28.6
+      "@floating-ui/utils": 0.2.10
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      reselect: 5.1.1
+      use-sync-external-store: 1.6.0(react@19.2.4)
+    optionalDependencies:
+      "@types/react": 19.2.10
+
+  "@cloudflare/kumo@1.1.0(@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(zod@4.3.6)":
+    dependencies:
+      "@base-ui/react": 1.1.0(@types/react@19.2.10)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      "@phosphor-icons/react": 2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      clsx: 2.1.1
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      tailwind-merge: 3.4.0
+    optionalDependencies:
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - "@types/react"
+
   "@cloudflare/kv-asset-handler@0.4.2": {}
 
   "@cloudflare/unenv-preset@2.12.0(unenv@2.0.0-rc.24)(workerd@1.20260128.0)":
@@ -4111,6 +4249,23 @@ snapshots:
 
   "@exodus/bytes@1.10.0": {}
 
+  "@floating-ui/core@1.7.4":
+    dependencies:
+      "@floating-ui/utils": 0.2.10
+
+  "@floating-ui/dom@1.7.5":
+    dependencies:
+      "@floating-ui/core": 1.7.4
+      "@floating-ui/utils": 0.2.10
+
+  "@floating-ui/react-dom@2.1.7(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
+    dependencies:
+      "@floating-ui/dom": 1.7.5
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+
+  "@floating-ui/utils@0.2.10": {}
+
   "@img/colour@1.0.0": {}
 
   "@img/sharp-darwin-arm64@0.34.5":
@@ -4248,6 +4403,11 @@ snapshots:
 
   "@oozcitak/util@10.0.0": {}
 
+  "@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)":
+    dependencies:
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+
   "@poppinss/colors@4.1.6":
     dependencies:
       kleur: 4.1.5
@@ -4380,7 +4540,7 @@ snapshots:
   "@tailwindcss/node@4.1.18":
     dependencies:
       "@jridgewell/remapping": 2.3.5
-      enhanced-resolve: 5.18.4
+      enhanced-resolve: 5.19.0
       jiti: 2.6.1
       lightningcss: 1.30.2
       magic-string: 0.30.21
@@ -5051,7 +5211,7 @@ snapshots:
       iconv-lite: 0.6.3
       whatwg-encoding: 3.1.1
 
-  enhanced-resolve@5.18.4:
+  enhanced-resolve@5.19.0:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.3.0
@@ -5425,6 +5585,8 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
+  reselect@5.1.1: {}
+
   resolve-pkg-maps@1.0.0: {}
 
   rollup@4.57.1:
@@ -5538,6 +5700,10 @@ snapshots:
   supports-color@10.2.2: {}
 
   symbol-tree@3.2.4: {}
+
+  tabbable@6.4.0: {}
+
+  tailwind-merge@3.4.0: {}
 
   tailwindcss@4.1.18: {}
 
