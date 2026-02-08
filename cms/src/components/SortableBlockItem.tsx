@@ -74,7 +74,7 @@ export function SortableBlockItem({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div className="orange flex gap-2">
+      <div className="flex gap-2">
         <div className="flex-1">
           <BlockEditor block={block} onChange={onChange} />
         </div>
