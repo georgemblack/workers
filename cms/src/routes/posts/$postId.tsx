@@ -16,14 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  Banner,
-  Breadcrumbs,
-  Button,
-  Input,
-  Select,
-  Text,
-} from "@cloudflare/kumo";
+import { Breadcrumbs, Button, Input, Select, Text } from "@cloudflare/kumo";
 import type { Post, ContentBlock } from "@/data/types";
 import {
   SortableBlockItem,
@@ -96,31 +89,6 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
         aria-label="Add Video"
       >
         {EMOJI.video} Video
-      </Button>
-    </div>
-  );
-}
-
-// Error Alert
-interface ErrorAlertProps {
-  message: string;
-  onDismiss: () => void;
-}
-
-function ErrorAlert({ message, onDismiss }: ErrorAlertProps) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1">
-        <Banner variant="error">Error saving post: {message}</Banner>
-      </div>
-      <Button
-        variant="secondary"
-        shape="square"
-        size="sm"
-        onClick={onDismiss}
-        aria-label="Dismiss"
-      >
-        {EMOJI.close}
       </Button>
     </div>
   );
@@ -247,8 +215,7 @@ function PostEditor({ post }: PostEditorProps) {
 
   // UI state
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<"error" | null>(null);
 
   // Dirty state
   const isDirty =
@@ -369,8 +336,7 @@ function PostEditor({ post }: PostEditorProps) {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setError(null);
-    setSuccessMessage(null);
+    setStatusMessage(null);
 
     try {
       const result = await updatePost({
@@ -386,18 +352,14 @@ function PostEditor({ post }: PostEditorProps) {
       });
 
       if (result) {
-        setSuccessMessage("Post saved successfully!");
-        setTimeout(() => setSuccessMessage(null), 3000);
         await router.invalidate();
       } else {
-        setError("Failed to save post. The post may have been deleted.");
+        console.error("Failed to save post. The post may have been deleted.");
+        setStatusMessage("error");
       }
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred while saving.");
-      }
+      console.error("Error saving post:", err);
+      setStatusMessage("error");
     } finally {
       setIsSaving(false);
     }
@@ -412,7 +374,12 @@ function PostEditor({ post }: PostEditorProps) {
           <Breadcrumbs.Current>{title}</Breadcrumbs.Current>
         </Breadcrumbs>
         <div className="flex gap-4 items-center">
-          {isDirty && <Text variant="secondary">Unsaved changes</Text>}
+          {statusMessage === "error" && (
+            <Text variant="secondary">Error saving post</Text>
+          )}
+          {!statusMessage && isDirty && (
+            <Text variant="secondary">Unsaved changes</Text>
+          )}
           <Button
             variant="primary"
             onClick={handleSave}
@@ -423,9 +390,6 @@ function PostEditor({ post }: PostEditorProps) {
           </Button>
         </div>
       </div>
-
-      {successMessage && <Banner>{successMessage}</Banner>}
-      {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
       <MetadataSection
         title={title}
