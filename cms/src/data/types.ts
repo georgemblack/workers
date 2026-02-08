@@ -49,19 +49,19 @@ const urlString = z.string().url().nullable();
 // Content Block Zod Schemas
 const markdownBlockSchema = z.object({
   type: z.literal("markdown"),
-  text: z.string(),
+  text: z.string().min(1),
 });
 
 const imageBlockSchema = z.object({
   type: z.literal("image"),
-  path: z.string(),
-  alt: z.string(),
+  path: z.string().min(1),
+  alt: z.string().min(1),
   caption: z.string().optional(),
 });
 
 const videoBlockSchema = z.object({
   type: z.literal("video"),
-  path: z.string(),
+  path: z.string().min(1),
   caption: z.string().optional(),
 });
 
