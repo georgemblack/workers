@@ -14,15 +14,14 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Banner, Button, Input, Select, Text } from "@cloudflare/kumo";
 import type { Post, ContentBlock } from "@/data/types";
-import { MarkdownBlockEditor } from "@/components/blocks/MarkdownBlock";
-import { ImageBlockEditor } from "@/components/blocks/ImageBlock";
-import { VideoBlockEditor } from "@/components/blocks/VideoBlock";
+import {
+  SortableBlockItem,
+  type BlockWithId,
+} from "@/components/SortableBlockItem";
 
 export const Route = createFileRoute("/posts/$postId")({
   ssr: "data-only",
@@ -31,8 +30,6 @@ export const Route = createFileRoute("/posts/$postId")({
 });
 
 type PostStatus = "draft" | "published" | "idea" | "hidden";
-
-type BlockWithId = ContentBlock & { _id: string };
 
 function generateBlockId(): string {
   return crypto.randomUUID();
@@ -51,93 +48,12 @@ function removeIdsFromBlocks(blocks: BlockWithId[]): ContentBlock[] {
 
 // Emoji constants
 const EMOJI = {
-  grip: "\u2630", // Trigram for heaven (hamburger menu style)
-  trash: "\uD83D\uDDD1\uFE0F", // Wastebasket
   markdown: "\uD83D\uDCDD", // Memo
   image: "\uD83D\uDDBC\uFE0F", // Framed picture
   video: "\uD83C\uDFA5", // Movie camera
   back: "\u2B05\uFE0F", // Left arrow
   close: "\u2716\uFE0F", // Heavy multiplication X
 };
-
-// Generic Block Editor
-interface BlockEditorProps {
-  block: BlockWithId;
-  onChange: (block: BlockWithId) => void;
-}
-
-function BlockEditor({ block, onChange }: BlockEditorProps) {
-  const handleChange = (updatedBlock: ContentBlock) => {
-    onChange({ ...updatedBlock, _id: block._id } as BlockWithId);
-  };
-
-  switch (block.type) {
-    case "markdown":
-      return <MarkdownBlockEditor block={block} onChange={handleChange} />;
-    case "image":
-      return <ImageBlockEditor block={block} onChange={handleChange} />;
-    case "video":
-      return <VideoBlockEditor block={block} onChange={handleChange} />;
-    default:
-      return <div>Unknown block type</div>;
-  }
-}
-
-// Sortable Block Item
-interface SortableBlockItemProps {
-  block: BlockWithId;
-  onChange: (block: BlockWithId) => void;
-  onDelete: () => void;
-}
-
-function SortableBlockItem({
-  block,
-  onChange,
-  onDelete,
-}: SortableBlockItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: block._id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <div className="flex items-start gap-2 rounded border border-transparent p-3 hover:border-gray-200">
-        <button
-          type="button"
-          className="mt-1 cursor-grab text-gray-400 hover:text-gray-600"
-          {...attributes}
-          {...listeners}
-          aria-label="Drag to reorder"
-        >
-          {EMOJI.grip}
-        </button>
-        <div className="flex-1">
-          <BlockEditor block={block} onChange={onChange} />
-        </div>
-        <Button
-          variant="secondary-destructive"
-          shape="square"
-          size="sm"
-          onClick={onDelete}
-          aria-label="Delete block"
-        >
-          {EMOJI.trash}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 // Add Block Row
 interface AddBlockRowProps {
@@ -365,6 +281,30 @@ function PostEditor({ post }: PostEditorProps) {
     setBlocks((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleBlockMoveUp = (index: number) => {
+    if (index <= 0) return;
+    setBlocks((prev) => {
+      const newBlocks = [...prev];
+      [newBlocks[index - 1], newBlocks[index]] = [
+        newBlocks[index],
+        newBlocks[index - 1],
+      ];
+      return newBlocks;
+    });
+  };
+
+  const handleBlockMoveDown = (index: number) => {
+    setBlocks((prev) => {
+      if (index >= prev.length - 1) return prev;
+      const newBlocks = [...prev];
+      [newBlocks[index], newBlocks[index + 1]] = [
+        newBlocks[index + 1],
+        newBlocks[index],
+      ];
+      return newBlocks;
+    });
+  };
+
   const handleAddBlock = (type: ContentBlock["type"]) => {
     let newBlock: BlockWithId;
 
@@ -503,6 +443,10 @@ function PostEditor({ post }: PostEditorProps) {
                       handleBlockChange(index, updatedBlock)
                     }
                     onDelete={() => handleBlockDelete(index)}
+                    onMoveUp={() => handleBlockMoveUp(index)}
+                    onMoveDown={() => handleBlockMoveDown(index)}
+                    isFirst={index === 0}
+                    isLast={index === blocks.length - 1}
                   />
                 ))}
               </div>
