@@ -51,7 +51,7 @@ function App() {
         <Breadcrumbs.Current>Home</Breadcrumbs.Current>
       </Breadcrumbs>
       <div className="mt-4">
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Input
             className="w-60"
             placeholder="Search posts..."
@@ -71,7 +71,7 @@ function App() {
             ))}
           </Select>
           <Switch
-            label="Hidden posts"
+            label="Hidden"
             checked={showHiddenOnly}
             onCheckedChange={setShowHiddenOnly}
           />
