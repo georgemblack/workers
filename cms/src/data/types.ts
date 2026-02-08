@@ -20,7 +20,12 @@ export interface VideoBlock {
   caption?: string;
 }
 
-export type ContentBlock = MarkdownBlock | ImageBlock | VideoBlock;
+export interface TextBlock {
+  type: "text";
+  text: string;
+}
+
+export type ContentBlock = MarkdownBlock | ImageBlock | VideoBlock | TextBlock;
 
 export interface Post {
   id: string;
@@ -67,10 +72,16 @@ const videoBlockSchema = z.object({
   caption: z.string().optional(),
 });
 
+const textBlockSchema = z.object({
+  type: z.literal("text"),
+  text: z.string().min(1),
+});
+
 const contentBlockSchema = z.discriminatedUnion("type", [
   markdownBlockSchema,
   imageBlockSchema,
   videoBlockSchema,
+  textBlockSchema,
 ]);
 
 export const createPostInputSchema = z.object({

@@ -5,6 +5,7 @@ import type { ContentBlock } from "@/data/types";
 import { MarkdownBlockEditor } from "@/components/blocks/MarkdownBlock";
 import { ImageBlockEditor } from "@/components/blocks/ImageBlock";
 import { VideoBlockEditor } from "@/components/blocks/VideoBlock";
+import { TextBlockEditor } from "@/components/blocks/TextBlock";
 
 export type BlockWithId = ContentBlock & { _id: string };
 
@@ -32,6 +33,8 @@ function BlockEditor({ block, onChange }: BlockEditorProps) {
       return <ImageBlockEditor block={block} onChange={handleChange} />;
     case "video":
       return <VideoBlockEditor block={block} onChange={handleChange} />;
+    case "text":
+      return <TextBlockEditor block={block} onChange={handleChange} />;
     default:
       return <div>Unknown block type</div>;
   }
