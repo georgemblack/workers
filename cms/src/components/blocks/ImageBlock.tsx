@@ -1,4 +1,4 @@
-import { Input, Text } from "@cloudflare/kumo";
+import { Input } from "@cloudflare/kumo";
 import type { ImageBlock } from "@/data/types";
 
 interface ImageBlockEditorProps {
@@ -8,42 +8,49 @@ interface ImageBlockEditorProps {
 
 export function ImageBlockEditor({ block, onChange }: ImageBlockEditorProps) {
   return (
-    <div className="flex flex-col gap-3">
-      <Text variant="secondary" size="sm" bold>
-        Image
-      </Text>
-      <div className="flex gap-3">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div className="h-10 w-10 flex-shrink-0 rounded border border-gray-300 bg-gray-100 overflow-hidden">
+          {block.path && (
+            <img
+              src={block.path}
+              alt={block.alt || "Preview"}
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
         <div className="flex-1">
           <Input
-            label="Path"
-            size="sm"
+            className="w-full"
             value={block.path}
             onChange={(e) => onChange({ ...block, path: e.target.value })}
             placeholder="/images/example.jpg"
           />
         </div>
+      </div>
+      <div className="flex gap-2">
         <div className="flex-1">
           <Input
-            label="Alt Text"
-            size="sm"
+            className="w-full"
             value={block.alt}
             onChange={(e) => onChange({ ...block, alt: e.target.value })}
-            placeholder="Descriptive alt text..."
+            placeholder="Alt text"
+          />
+        </div>
+        <div className="flex-1">
+          <Input
+            className="w-full"
+            value={block.caption ?? ""}
+            onChange={(e) =>
+              onChange({
+                ...block,
+                caption: e.target.value || undefined,
+              })
+            }
+            placeholder="Caption"
           />
         </div>
       </div>
-      <Input
-        label="Caption (optional)"
-        size="sm"
-        value={block.caption ?? ""}
-        onChange={(e) =>
-          onChange({
-            ...block,
-            caption: e.target.value || undefined,
-          })
-        }
-        placeholder="Image caption..."
-      />
     </div>
   );
 }

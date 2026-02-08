@@ -94,7 +94,6 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
   );
 }
 
-// Metadata Section
 interface MetadataSectionProps {
   title: string;
   published: string;
@@ -126,14 +125,9 @@ function MetadataSection({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <Text variant="heading3" as="h2">
-        Post Metadata
-      </Text>
-      <div className="flex flex-col gap-4">
+    <div>
+      <div className="flex flex-col gap-4 mt-6">
         <Input
-          label="Title"
-          size="sm"
           value={title}
           onChange={(e) => onChange("title", e.target.value)}
           placeholder="Post title..."
@@ -141,8 +135,6 @@ function MetadataSection({
         <div className="flex gap-3">
           <div className="flex-1">
             <Input
-              label="Published Date"
-              size="sm"
               type="datetime-local"
               value={toDatetimeLocal(published)}
               onChange={(e) =>
@@ -152,7 +144,6 @@ function MetadataSection({
           </div>
           <div className="w-36">
             <Select
-              label="Status"
               value={status}
               onValueChange={(value) => onChange("status", String(value))}
             >
@@ -164,15 +155,11 @@ function MetadataSection({
           </div>
         </div>
         <Input
-          label="Slug"
-          size="sm"
           value={slug}
           onChange={(e) => onChange("slug", e.target.value)}
           placeholder="post-slug"
         />
         <Input
-          label="External Link (optional)"
-          size="sm"
           type="url"
           value={externalLink ?? ""}
           onChange={(e) => onChange("externalLink", e.target.value || null)}
@@ -183,7 +170,6 @@ function MetadataSection({
   );
 }
 
-// Main Route Component
 function RouteComponent() {
   const post = Route.useLoaderData();
 
@@ -201,7 +187,6 @@ interface PostEditorProps {
 function PostEditor({ post }: PostEditorProps) {
   const router = useRouter();
 
-  // Form state
   const [title, setTitle] = useState(post.title);
   const [published, setPublished] = useState(post.published);
   const [slug, setSlug] = useState(post.slug);
@@ -213,11 +198,9 @@ function PostEditor({ post }: PostEditorProps) {
     addIdsToBlocks(post.content),
   );
 
-  // UI state
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<"error" | null>(null);
 
-  // Dirty state
   const isDirty =
     title !== post.title ||
     published !== post.published ||
@@ -227,7 +210,6 @@ function PostEditor({ post }: PostEditorProps) {
     JSON.stringify(removeIdsFromBlocks(blocks)) !==
       JSON.stringify(post.content);
 
-  // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -400,7 +382,7 @@ function PostEditor({ post }: PostEditorProps) {
         onChange={handleMetadataChange}
       />
 
-      <div>
+      <div className="mt-6 flex flex-col gap-4">
         {blocks.length === 0 ? (
           <Text variant="secondary">No content blocks yet. Add one below.</Text>
         ) : (

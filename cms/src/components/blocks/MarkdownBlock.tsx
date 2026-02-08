@@ -15,8 +15,8 @@ export function MarkdownBlockEditor({
       <InputArea
         value={block.text}
         onChange={(e) => onChange({ ...block, text: e.target.value })}
-        rows={6}
-        placeholder="Write your content in Markdown..."
+        rows={8}
+        placeholder="Start writing..."
       />
     </div>
   );
