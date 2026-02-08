@@ -103,10 +103,7 @@ function App() {
         </div>
         <div className="mt-4 flex flex-col gap-6">
           {filteredPosts.map((post) => (
-            <div
-              className="orange flex justify-between items-center"
-              key={post.id}
-            >
+            <div className="flex justify-between items-center" key={post.id}>
               <Link to="/posts/$postId" params={{ postId: post.id }}>
                 <h2 className="font-bold">{post.title}</h2>
                 <div className="flex gap-4">

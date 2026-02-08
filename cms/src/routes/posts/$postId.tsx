@@ -56,6 +56,7 @@ const EMOJI = {
   markdown: "\uD83D\uDCDD", // Memo
   image: "\uD83D\uDDBC\uFE0F", // Framed picture
   video: "\uD83C\uDFA5", // Movie camera
+  text: "\u270D\uFE0F", // Writing hand
   back: "\u2B05\uFE0F", // Left arrow
   close: "\u2716\uFE0F", // Heavy multiplication X
 };
@@ -94,6 +95,14 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
         aria-label="Add Video"
       >
         {EMOJI.video} Video
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("text")}
+        aria-label="Add Text"
+      >
+        {EMOJI.text} Text
       </Button>
     </div>
   );
@@ -332,6 +341,13 @@ function PostEditor({ post }: PostEditorProps) {
           _id: generateBlockId(),
           type: "video",
           path: "",
+        };
+        break;
+      case "text":
+        newBlock = {
+          _id: generateBlockId(),
+          type: "text",
+          text: "",
         };
         break;
     }
