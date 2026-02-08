@@ -47,6 +47,7 @@ function App() {
         updated: now,
         status: "draft",
         hidden: false,
+        gallery: false,
         external_link: null,
         content: [],
       },

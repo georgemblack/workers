@@ -16,14 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  Breadcrumbs,
-  Button,
-  Input,
-  Select,
-  Switch,
-  Text,
-} from "@cloudflare/kumo";
+import { Breadcrumbs, Button, Input, Switch, Text } from "@cloudflare/kumo";
 import type { Post, ContentBlock, PostStatus } from "@/data/types";
 import {
   SortableBlockItem,
@@ -57,8 +50,11 @@ const EMOJI = {
   image: "\uD83D\uDDBC\uFE0F", // Framed picture
   video: "\uD83C\uDFA5", // Movie camera
   text: "\u270D\uFE0F", // Writing hand
-  back: "\u2B05\uFE0F", // Left arrow
-  close: "\u2716\uFE0F", // Heavy multiplication X
+  draft: "\uD83D\uDCDD", // Memo
+  published: "\uD83D\uDE80", // Rocket
+  hidden: "\uD83E\uDEE3", // Face with peeking eye
+  visible: "\uD83D\uDC40", // Eyes
+  gallery: "\uD83D\uDDBC\uFE0F", // Framed picture
 };
 
 // Add Block Row
@@ -72,6 +68,14 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
       <Text variant="secondary" size="sm">
         Add block:
       </Text>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("text")}
+        aria-label="Add Text"
+      >
+        {EMOJI.text} Text
+      </Button>
       <Button
         variant="secondary"
         size="sm"
@@ -96,14 +100,6 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
       >
         {EMOJI.video} Video
       </Button>
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => onAdd("text")}
-        aria-label="Add Text"
-      >
-        {EMOJI.text} Text
-      </Button>
     </div>
   );
 }
@@ -114,9 +110,11 @@ interface MetadataSectionProps {
   slug: string;
   status: PostStatus;
   hidden: boolean;
+  gallery: boolean;
   externalLink: string | null;
   onChange: (field: string, value: string | null) => void;
   onHiddenChange: (hidden: boolean) => void;
+  onGalleryChange: (gallery: boolean) => void;
 }
 
 function MetadataSection({
@@ -125,9 +123,11 @@ function MetadataSection({
   slug,
   status,
   hidden,
+  gallery,
   externalLink,
   onChange,
   onHiddenChange,
+  onGalleryChange,
 }: MetadataSectionProps) {
   // Convert ISO string to datetime-local format
   const toDatetimeLocal = (isoString: string): string => {
@@ -183,21 +183,27 @@ function MetadataSection({
               }
             />
           </div>
-          <div className="flex-[2]">
-            <Select
-              className="w-full"
-              value={status}
-              onValueChange={(value) => onChange("status", String(value))}
-            >
-              <Select.Option value="draft">draft</Select.Option>
-              <Select.Option value="published">published</Select.Option>
-            </Select>
+          <div className="flex-none flex items-center">
+            <Switch
+              label={status === "published" ? EMOJI.published : EMOJI.draft}
+              checked={status === "published"}
+              onCheckedChange={(checked) =>
+                onChange("status", checked ? "published" : "draft")
+              }
+            />
           </div>
           <div className="flex-none flex items-center">
             <Switch
-              label="Hidden"
+              label={hidden ? EMOJI.hidden : EMOJI.visible}
               checked={hidden}
               onCheckedChange={onHiddenChange}
+            />
+          </div>
+          <div className="flex-none flex items-center">
+            <Switch
+              label={EMOJI.gallery}
+              checked={gallery}
+              onCheckedChange={onGalleryChange}
             />
           </div>
         </div>
@@ -234,6 +240,7 @@ function PostEditor({ post }: PostEditorProps) {
   const [slug, setSlug] = useState(post.slug);
   const [status, setStatus] = useState<PostStatus>(post.status as PostStatus);
   const [hidden, setHidden] = useState(post.hidden);
+  const [gallery, setGallery] = useState(post.gallery);
   const [externalLink, setExternalLink] = useState<string | null>(
     post.external_link,
   );
@@ -250,6 +257,7 @@ function PostEditor({ post }: PostEditorProps) {
     slug !== post.slug ||
     status !== post.status ||
     hidden !== post.hidden ||
+    gallery !== post.gallery ||
     externalLink !== post.external_link ||
     JSON.stringify(removeIdsFromBlocks(blocks)) !==
       JSON.stringify(post.content);
@@ -380,6 +388,7 @@ function PostEditor({ post }: PostEditorProps) {
           slug,
           status,
           hidden,
+          gallery,
           external_link: externalLink,
           content: removeIdsFromBlocks(blocks),
         },
@@ -431,9 +440,11 @@ function PostEditor({ post }: PostEditorProps) {
         slug={slug}
         status={status}
         hidden={hidden}
+        gallery={gallery}
         externalLink={externalLink}
         onChange={handleMetadataChange}
         onHiddenChange={setHidden}
+        onGalleryChange={setGallery}
       />
 
       <div className="mt-6 flex flex-col gap-4">

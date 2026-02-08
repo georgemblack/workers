@@ -35,6 +35,7 @@ export interface Post {
   slug: string;
   status: PostStatus;
   hidden: boolean;
+  gallery: boolean;
   external_link: string | null;
   content: ContentBlock[];
 }
@@ -45,6 +46,7 @@ export interface PostListItem {
   published: string;
   status: PostStatus;
   hidden: boolean;
+  gallery: boolean;
 }
 
 // Zod schemas for DB inputs
@@ -91,6 +93,7 @@ export const createPostInputSchema = z.object({
   slug: slugString,
   status: postStatusSchema,
   hidden: z.boolean(),
+  gallery: z.boolean(),
   content: z.array(contentBlockSchema),
   external_link: urlString,
 });
@@ -102,6 +105,7 @@ export const updatePostInputSchema = z.object({
   slug: slugString,
   status: postStatusSchema,
   hidden: z.boolean(),
+  gallery: z.boolean(),
   content: z.array(contentBlockSchema),
   external_link: urlString,
 });

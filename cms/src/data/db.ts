@@ -12,11 +12,15 @@ export const getPost = createServerFn({ method: "GET" })
   .inputValidator((id: string) => id)
   .handler(async ({ data: id }): Promise<Post | null> => {
     const row = await env.WEB_DB.prepare(
-      "SELECT id, title, published, updated, slug, status, hidden, external_link, content FROM posts WHERE id = ? AND deleted = 0",
+      "SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content FROM posts WHERE id = ? AND deleted = 0",
     )
       .bind(id)
       .first<
-        Omit<Post, "content" | "hidden"> & { content: string; hidden: number }
+        Omit<Post, "content" | "hidden" | "gallery"> & {
+          content: string;
+          hidden: number;
+          gallery: number;
+        }
       >();
 
     if (!row) {
@@ -26,6 +30,7 @@ export const getPost = createServerFn({ method: "GET" })
     return {
       ...row,
       hidden: row.hidden === 1,
+      gallery: row.gallery === 1,
       content: JSON.parse(row.content) as ContentBlock[],
     };
   });
@@ -33,11 +38,17 @@ export const getPost = createServerFn({ method: "GET" })
 export const listPosts = createServerFn({ method: "GET" }).handler(
   async (): Promise<PostListItem[]> => {
     const result = await env.WEB_DB.prepare(
-      "SELECT id, title, published, status, hidden FROM posts WHERE deleted = 0 ORDER BY published DESC",
-    ).all<Omit<PostListItem, "hidden"> & { hidden: number }>();
+      "SELECT id, title, published, status, hidden, gallery FROM posts WHERE deleted = 0 ORDER BY published DESC",
+    ).all<
+      Omit<PostListItem, "hidden" | "gallery"> & {
+        hidden: number;
+        gallery: number;
+      }
+    >();
     return result.results.map((row) => ({
       ...row,
       hidden: row.hidden === 1,
+      gallery: row.gallery === 1,
     }));
   },
 );
@@ -48,7 +59,7 @@ export const createPost = createServerFn({ method: "POST" })
     const id = crypto.randomUUID();
 
     await env.WEB_DB.prepare(
-      "INSERT INTO posts (id, title, published, updated, slug, status, hidden, external_link, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO posts (id, title, published, updated, slug, status, hidden, gallery, external_link, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
       .bind(
         id,
@@ -58,6 +69,7 @@ export const createPost = createServerFn({ method: "POST" })
         input.slug,
         input.status,
         input.hidden ? 1 : 0,
+        input.gallery ? 1 : 0,
         input.external_link,
         JSON.stringify(input.content),
       )
@@ -71,6 +83,7 @@ export const createPost = createServerFn({ method: "POST" })
       slug: input.slug,
       status: input.status,
       hidden: input.hidden,
+      gallery: input.gallery,
       external_link: input.external_link,
       content: input.content,
     };
@@ -93,12 +106,13 @@ export const updatePost = createServerFn({ method: "POST" })
       slug: input.slug,
       status: input.status,
       hidden: input.hidden,
+      gallery: input.gallery,
       external_link: input.external_link,
       content: input.content,
     };
 
     await env.WEB_DB.prepare(
-      "UPDATE posts SET title = ?, published = ?, updated = ?, slug = ?, status = ?, hidden = ?, external_link = ?, content = ? WHERE id = ?",
+      "UPDATE posts SET title = ?, published = ?, updated = ?, slug = ?, status = ?, hidden = ?, gallery = ?, external_link = ?, content = ? WHERE id = ?",
     )
       .bind(
         newPost.title,
@@ -107,6 +121,7 @@ export const updatePost = createServerFn({ method: "POST" })
         newPost.slug,
         newPost.status,
         newPost.hidden ? 1 : 0,
+        newPost.gallery ? 1 : 0,
         newPost.external_link,
         JSON.stringify(newPost.content),
         input.id,
