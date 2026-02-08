@@ -16,7 +16,14 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Breadcrumbs, Button, Input, Select, Text } from "@cloudflare/kumo";
+import {
+  Breadcrumbs,
+  Button,
+  Input,
+  Select,
+  Switch,
+  Text,
+} from "@cloudflare/kumo";
 import type { Post, ContentBlock } from "@/data/types";
 import {
   SortableBlockItem,
@@ -29,7 +36,7 @@ export const Route = createFileRoute("/posts/$postId")({
   loader: async ({ params }) => await getPost({ data: params.postId }),
 });
 
-type PostStatus = "draft" | "published" | "idea" | "hidden";
+type PostStatus = "draft" | "published";
 
 function generateBlockId(): string {
   return crypto.randomUUID();
@@ -99,8 +106,10 @@ interface MetadataSectionProps {
   published: string;
   slug: string;
   status: PostStatus;
+  hidden: boolean;
   externalLink: string | null;
   onChange: (field: string, value: string | null) => void;
+  onHiddenChange: (hidden: boolean) => void;
 }
 
 function MetadataSection({
@@ -108,8 +117,10 @@ function MetadataSection({
   published,
   slug,
   status,
+  hidden,
   externalLink,
   onChange,
+  onHiddenChange,
 }: MetadataSectionProps) {
   // Convert ISO string to datetime-local format
   const toDatetimeLocal = (isoString: string): string => {
@@ -149,10 +160,13 @@ function MetadataSection({
             >
               <Select.Option value="draft">Draft</Select.Option>
               <Select.Option value="published">Published</Select.Option>
-              <Select.Option value="idea">Idea</Select.Option>
-              <Select.Option value="hidden">Hidden</Select.Option>
             </Select>
           </div>
+          <Switch
+            label="Hidden"
+            checked={hidden}
+            onCheckedChange={onHiddenChange}
+          />
         </div>
         <Input
           value={slug}
@@ -191,6 +205,7 @@ function PostEditor({ post }: PostEditorProps) {
   const [published, setPublished] = useState(post.published);
   const [slug, setSlug] = useState(post.slug);
   const [status, setStatus] = useState<PostStatus>(post.status as PostStatus);
+  const [hidden, setHidden] = useState(post.hidden);
   const [externalLink, setExternalLink] = useState<string | null>(
     post.external_link,
   );
@@ -206,6 +221,7 @@ function PostEditor({ post }: PostEditorProps) {
     published !== post.published ||
     slug !== post.slug ||
     status !== post.status ||
+    hidden !== post.hidden ||
     externalLink !== post.external_link ||
     JSON.stringify(removeIdsFromBlocks(blocks)) !==
       JSON.stringify(post.content);
@@ -328,6 +344,7 @@ function PostEditor({ post }: PostEditorProps) {
           published,
           slug,
           status,
+          hidden,
           external_link: externalLink,
           content: removeIdsFromBlocks(blocks),
         },
@@ -378,8 +395,10 @@ function PostEditor({ post }: PostEditorProps) {
         published={published}
         slug={slug}
         status={status}
+        hidden={hidden}
         externalLink={externalLink}
         onChange={handleMetadataChange}
+        onHiddenChange={setHidden}
       />
 
       <div className="mt-6 flex flex-col gap-4">

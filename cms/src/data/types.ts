@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export type PostStatus = "draft" | "published" | "idea" | "hidden";
+export type PostStatus = "draft" | "published";
 
 export interface MarkdownBlock {
   type: "markdown";
@@ -29,6 +29,7 @@ export interface Post {
   updated: string;
   slug: string;
   status: PostStatus;
+  hidden: boolean;
   external_link: string | null;
   content: ContentBlock[];
 }
@@ -38,10 +39,11 @@ export interface PostListItem {
   title: string;
   published: string;
   status: PostStatus;
+  hidden: boolean;
 }
 
 // Zod schemas for DB inputs
-const postStatusSchema = z.enum(["draft", "published", "idea", "hidden"]);
+const postStatusSchema = z.enum(["draft", "published"]);
 const iso8601String = z.iso.datetime();
 const slugString = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 const urlString = z.string().url().nullable();
@@ -77,6 +79,7 @@ export const createPostInputSchema = z.object({
   updated: iso8601String,
   slug: slugString,
   status: postStatusSchema,
+  hidden: z.boolean(),
   content: z.array(contentBlockSchema),
   external_link: urlString,
 });
@@ -87,6 +90,7 @@ export const updatePostInputSchema = z.object({
   published: iso8601String,
   slug: slugString,
   status: postStatusSchema,
+  hidden: z.boolean(),
   content: z.array(contentBlockSchema),
   external_link: urlString,
 });

@@ -5,6 +5,7 @@ CREATE TABLE posts (
     updated TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     status TEXT NOT NULL,
+    hidden INTEGER NOT NULL DEFAULT 0,
     external_link TEXT,
     content TEXT NOT NULL,
     deleted INTEGER NOT NULL DEFAULT 0

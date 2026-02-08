@@ -2,15 +2,16 @@ import { useMemo, useState } from "react";
 import { deletePost, listPosts } from "@/data/db";
 import { PostStatus } from "@/data/types";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Badge, Breadcrumbs, Button, Input, Select } from "@cloudflare/kumo";
+import {
+  Badge,
+  Breadcrumbs,
+  Button,
+  Input,
+  Select,
+  Switch,
+} from "@cloudflare/kumo";
 
-const STATUS_OPTIONS: Array<PostStatus | "all"> = [
-  "all",
-  "draft",
-  "published",
-  "idea",
-  "hidden",
-];
+const STATUS_OPTIONS: Array<PostStatus | "all"> = ["all", "draft", "published"];
 
 export const Route = createFileRoute("/")({
   component: App,
@@ -22,6 +23,7 @@ function App() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PostStatus | "all">("all");
+  const [showHiddenOnly, setShowHiddenOnly] = useState(false);
 
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
@@ -30,9 +32,10 @@ function App() {
         .includes(searchQuery.toLowerCase());
       const matchesStatus =
         statusFilter === "all" || post.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesHidden = !showHiddenOnly || post.hidden;
+      return matchesSearch && matchesStatus && matchesHidden;
     });
-  }, [posts, searchQuery, statusFilter]);
+  }, [posts, searchQuery, statusFilter, showHiddenOnly]);
 
   const handleDelete = async (postId: string, postTitle: string) => {
     if (!window.confirm(`Are you sure you want to delete "${postTitle}"?`)) {
@@ -67,6 +70,11 @@ function App() {
               </Select.Option>
             ))}
           </Select>
+          <Switch
+            label="Hidden posts"
+            checked={showHiddenOnly}
+            onCheckedChange={setShowHiddenOnly}
+          />
         </div>
         <div className="mt-4 flex flex-col gap-6">
           {filteredPosts.map((post) => (

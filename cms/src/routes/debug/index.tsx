@@ -39,6 +39,7 @@ function generateRandomPost() {
     published: now,
     updated: now,
     status: "draft" as const,
+    hidden: false,
     external_link: null,
     content: markdownBlocks,
   };
