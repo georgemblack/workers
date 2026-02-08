@@ -18,21 +18,11 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  Banner,
-  Button,
-  Input,
-  InputArea,
-  Select,
-  Text,
-} from "@cloudflare/kumo";
-import type {
-  Post,
-  ContentBlock,
-  MarkdownBlock,
-  ImageBlock,
-  VideoBlock,
-} from "@/data/types";
+import { Banner, Button, Input, Select, Text } from "@cloudflare/kumo";
+import type { Post, ContentBlock } from "@/data/types";
+import { MarkdownBlockEditor } from "@/components/blocks/MarkdownBlock";
+import { ImageBlockEditor } from "@/components/blocks/ImageBlock";
+import { VideoBlockEditor } from "@/components/blocks/VideoBlock";
 
 export const Route = createFileRoute("/posts/$postId")({
   ssr: "data-only",
@@ -69,111 +59,6 @@ const EMOJI = {
   back: "\u2B05\uFE0F", // Left arrow
   close: "\u2716\uFE0F", // Heavy multiplication X
 };
-
-// Block Editor Components
-interface MarkdownBlockEditorProps {
-  block: MarkdownBlock;
-  onChange: (block: MarkdownBlock) => void;
-}
-
-function MarkdownBlockEditor({ block, onChange }: MarkdownBlockEditorProps) {
-  return (
-    <div className="flex flex-col gap-3">
-      <Text variant="secondary" size="sm" bold>
-        Markdown
-      </Text>
-      <InputArea
-        label="Content (Markdown)"
-        size="sm"
-        value={block.text}
-        onChange={(e) => onChange({ ...block, text: e.target.value })}
-        rows={6}
-        placeholder="Write your content in Markdown..."
-      />
-    </div>
-  );
-}
-
-interface ImageBlockEditorProps {
-  block: ImageBlock;
-  onChange: (block: ImageBlock) => void;
-}
-
-function ImageBlockEditor({ block, onChange }: ImageBlockEditorProps) {
-  return (
-    <div className="flex flex-col gap-3">
-      <Text variant="secondary" size="sm" bold>
-        Image
-      </Text>
-      <div className="flex gap-3">
-        <div className="flex-1">
-          <Input
-            label="Path"
-            size="sm"
-            value={block.path}
-            onChange={(e) => onChange({ ...block, path: e.target.value })}
-            placeholder="/images/example.jpg"
-          />
-        </div>
-        <div className="flex-1">
-          <Input
-            label="Alt Text"
-            size="sm"
-            value={block.alt}
-            onChange={(e) => onChange({ ...block, alt: e.target.value })}
-            placeholder="Descriptive alt text..."
-          />
-        </div>
-      </div>
-      <Input
-        label="Caption (optional)"
-        size="sm"
-        value={block.caption ?? ""}
-        onChange={(e) =>
-          onChange({
-            ...block,
-            caption: e.target.value || undefined,
-          })
-        }
-        placeholder="Image caption..."
-      />
-    </div>
-  );
-}
-
-interface VideoBlockEditorProps {
-  block: VideoBlock;
-  onChange: (block: VideoBlock) => void;
-}
-
-function VideoBlockEditor({ block, onChange }: VideoBlockEditorProps) {
-  return (
-    <div className="flex flex-col gap-3">
-      <Text variant="secondary" size="sm" bold>
-        Video
-      </Text>
-      <Input
-        label="Path"
-        size="sm"
-        value={block.path}
-        onChange={(e) => onChange({ ...block, path: e.target.value })}
-        placeholder="/videos/example.mp4"
-      />
-      <Input
-        label="Caption (optional)"
-        size="sm"
-        value={block.caption ?? ""}
-        onChange={(e) =>
-          onChange({
-            ...block,
-            caption: e.target.value || undefined,
-          })
-        }
-        placeholder="Video caption..."
-      />
-    </div>
-  );
-}
 
 // Generic Block Editor
 interface BlockEditorProps {
@@ -412,19 +297,7 @@ function RouteComponent() {
   const post = Route.useLoaderData();
 
   if (!post) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-16">
-        <Text variant="heading2" as="h1">
-          Post Not Found
-        </Text>
-        <Text variant="secondary">
-          The post you&apos;re looking for doesn&apos;t exist.
-        </Text>
-        <Link to="/" className="text-blue-500 hover:underline">
-          {EMOJI.back} Back to posts
-        </Link>
-      </div>
-    );
+    return <span>Post not found</span>;
   }
 
   return <PostEditor post={post} />;
