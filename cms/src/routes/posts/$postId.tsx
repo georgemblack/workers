@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { getPost, updatePost } from "@/data/db";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
   DndContext,
   closestCenter,
@@ -16,7 +16,14 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Banner, Button, Input, Select, Text } from "@cloudflare/kumo";
+import {
+  Banner,
+  Breadcrumbs,
+  Button,
+  Input,
+  Select,
+  Text,
+} from "@cloudflare/kumo";
 import type { Post, ContentBlock } from "@/data/types";
 import {
   SortableBlockItem,
@@ -216,7 +223,7 @@ function RouteComponent() {
     return <span>Post not found</span>;
   }
 
-  return <PostEditor post={post} />;
+  return <PostEditor key={post.updated} post={post} />;
 }
 
 interface PostEditorProps {
@@ -224,6 +231,8 @@ interface PostEditorProps {
 }
 
 function PostEditor({ post }: PostEditorProps) {
+  const router = useRouter();
+
   // Form state
   const [title, setTitle] = useState(post.title);
   const [published, setPublished] = useState(post.published);
@@ -240,6 +249,16 @@ function PostEditor({ post }: PostEditorProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Dirty state
+  const isDirty =
+    title !== post.title ||
+    published !== post.published ||
+    slug !== post.slug ||
+    status !== post.status ||
+    externalLink !== post.external_link ||
+    JSON.stringify(removeIdsFromBlocks(blocks)) !==
+      JSON.stringify(post.content);
 
   // DnD sensors
   const sensors = useSensors(
@@ -369,6 +388,7 @@ function PostEditor({ post }: PostEditorProps) {
       if (result) {
         setSuccessMessage("Post saved successfully!");
         setTimeout(() => setSuccessMessage(null), 3000);
+        await router.invalidate();
       } else {
         setError("Failed to save post. The post may have been deleted.");
       }
@@ -384,29 +404,29 @@ function PostEditor({ post }: PostEditorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-6 pb-12">
-      {/* Header */}
+    <div>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-gray-500 hover:text-gray-700">
-            {EMOJI.back}
-          </Link>
-          <Text variant="heading2" as="h1">
-            Edit Post
-          </Text>
+        <Breadcrumbs>
+          <Breadcrumbs.Link href="/">Home</Breadcrumbs.Link>
+          <Breadcrumbs.Separator />
+          <Breadcrumbs.Current>{title}</Breadcrumbs.Current>
+        </Breadcrumbs>
+        <div className="flex gap-4 items-center">
+          {isDirty && <Text variant="secondary">Unsaved changes</Text>}
+          <Button
+            variant="primary"
+            onClick={handleSave}
+            loading={isSaving}
+            disabled={!isDirty}
+          >
+            Save
+          </Button>
         </div>
-        <Button variant="primary" onClick={handleSave} loading={isSaving}>
-          Save
-        </Button>
       </div>
 
-      {/* Success Message */}
       {successMessage && <Banner>{successMessage}</Banner>}
-
-      {/* Error Alert */}
       {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
 
-      {/* Metadata Section */}
       <MetadataSection
         title={title}
         published={published}
@@ -416,12 +436,7 @@ function PostEditor({ post }: PostEditorProps) {
         onChange={handleMetadataChange}
       />
 
-      {/* Content Blocks Section */}
-      <div className="flex flex-col gap-4">
-        <Text variant="heading3" as="h2">
-          Content Blocks
-        </Text>
-
+      <div>
         {blocks.length === 0 ? (
           <Text variant="secondary">No content blocks yet. Add one below.</Text>
         ) : (
@@ -434,27 +449,24 @@ function PostEditor({ post }: PostEditorProps) {
               items={blocks.map((b) => b._id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="flex flex-col gap-2">
-                {blocks.map((block, index) => (
-                  <SortableBlockItem
-                    key={block._id}
-                    block={block}
-                    onChange={(updatedBlock) =>
-                      handleBlockChange(index, updatedBlock)
-                    }
-                    onDelete={() => handleBlockDelete(index)}
-                    onMoveUp={() => handleBlockMoveUp(index)}
-                    onMoveDown={() => handleBlockMoveDown(index)}
-                    isFirst={index === 0}
-                    isLast={index === blocks.length - 1}
-                  />
-                ))}
-              </div>
+              {blocks.map((block, index) => (
+                <SortableBlockItem
+                  key={block._id}
+                  block={block}
+                  onChange={(updatedBlock) =>
+                    handleBlockChange(index, updatedBlock)
+                  }
+                  onDelete={() => handleBlockDelete(index)}
+                  onMoveUp={() => handleBlockMoveUp(index)}
+                  onMoveDown={() => handleBlockMoveDown(index)}
+                  isFirst={index === 0}
+                  isLast={index === blocks.length - 1}
+                />
+              ))}
             </SortableContext>
           </DndContext>
         )}
 
-        {/* Add Block Row */}
         <AddBlockRow onAdd={handleAddBlock} />
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { deletePost, listPosts } from "@/data/db";
 import { PostStatus } from "@/data/types";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Badge, Button, Input, Select } from "@cloudflare/kumo";
+import { Badge, Breadcrumbs, Button, Input, Select } from "@cloudflare/kumo";
 
 const STATUS_OPTIONS: Array<PostStatus | "all"> = [
   "all",
@@ -44,7 +44,10 @@ function App() {
 
   return (
     <div>
-      <div>
+      <Breadcrumbs>
+        <Breadcrumbs.Current>Home</Breadcrumbs.Current>
+      </Breadcrumbs>
+      <div className="mt-4">
         <div className="flex gap-2">
           <Input
             className="w-60"

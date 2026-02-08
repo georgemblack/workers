@@ -8,7 +8,6 @@ import { VideoBlockEditor } from "@/components/blocks/VideoBlock";
 
 export type BlockWithId = ContentBlock & { _id: string };
 
-// Emoji constants
 const EMOJI = {
   grip: "\u2630", // Trigram for heaven (hamburger menu style)
   trash: "\uD83D\uDDD1\uFE0F", // Wastebasket
@@ -16,7 +15,6 @@ const EMOJI = {
   down: "\u2B07\uFE0F", // Down arrow
 };
 
-// Generic Block Editor
 interface BlockEditorProps {
   block: BlockWithId;
   onChange: (block: BlockWithId) => void;
@@ -76,11 +74,11 @@ export function SortableBlockItem({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div className="flex items-start gap-2 rounded border border-transparent p-3 hover:border-gray-200">
+      <div className="orange flex gap-2">
         <div className="flex-1">
           <BlockEditor block={block} onChange={onChange} />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <Button
             variant="secondary"
             shape="square"
