@@ -31,9 +31,22 @@ export const Route = createRootRoute({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" data-mode="dark">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var media = window.matchMedia('(prefers-color-scheme: dark)');
+                document.documentElement.setAttribute('data-mode', media.matches ? 'dark' : 'light');
+                media.addEventListener('change', function(e) {
+                  document.documentElement.setAttribute('data-mode', e.matches ? 'dark' : 'light');
+                });
+              })();
+            `,
+          }}
+        />
       </head>
       <body>
         <main>
