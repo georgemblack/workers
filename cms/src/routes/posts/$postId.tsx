@@ -24,7 +24,7 @@ import {
   Switch,
   Text,
 } from "@cloudflare/kumo";
-import type { Post, ContentBlock } from "@/data/types";
+import type { Post, ContentBlock, PostStatus } from "@/data/types";
 import {
   SortableBlockItem,
   type BlockWithId,
@@ -35,8 +35,6 @@ export const Route = createFileRoute("/posts/$postId")({
   component: RouteComponent,
   loader: async ({ params }) => await getPost({ data: params.postId }),
 });
-
-type PostStatus = "draft" | "published";
 
 function generateBlockId(): string {
   return crypto.randomUUID();
@@ -138,14 +136,37 @@ function MetadataSection({
   return (
     <div>
       <div className="flex flex-col gap-4 mt-6">
-        <Input
-          value={title}
-          onChange={(e) => onChange("title", e.target.value)}
-          placeholder="Post title..."
-        />
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Input
+                className="w-full"
+                value={title}
+                onChange={(e) => onChange("title", e.target.value)}
+                placeholder="Title"
+              />
+            </div>
+            <Button
+              variant="secondary"
+              aria-label="Generate slug from title"
+              onClick={() => {
+                const generated = title
+                  .toLowerCase()
+                  .replace(/[^a-z0-9-]/g, "-")
+                  .replace(/-+/g, "-")
+                  .replace(/^-|-$/g, "");
+                onChange("slug", generated);
+              }}
+            >
+              Gen Slug
+            </Button>
+          </div>
+          <Text variant="secondary">{slug}</Text>
+        </div>
         <div className="flex gap-3">
-          <div className="flex-1">
+          <div className="flex-[3]">
             <Input
+              className="w-full"
               type="datetime-local"
               value={toDatetimeLocal(published)}
               onChange={(e) =>
@@ -153,26 +174,24 @@ function MetadataSection({
               }
             />
           </div>
-          <div className="w-36">
+          <div className="flex-[2]">
             <Select
+              className="w-full"
               value={status}
               onValueChange={(value) => onChange("status", String(value))}
             >
-              <Select.Option value="draft">Draft</Select.Option>
-              <Select.Option value="published">Published</Select.Option>
+              <Select.Option value="draft">draft</Select.Option>
+              <Select.Option value="published">published</Select.Option>
             </Select>
           </div>
-          <Switch
-            label="Hidden"
-            checked={hidden}
-            onCheckedChange={onHiddenChange}
-          />
+          <div className="flex-none flex items-center">
+            <Switch
+              label="Hidden"
+              checked={hidden}
+              onCheckedChange={onHiddenChange}
+            />
+          </div>
         </div>
-        <Input
-          value={slug}
-          onChange={(e) => onChange("slug", e.target.value)}
-          placeholder="post-slug"
-        />
         <Input
           type="url"
           value={externalLink ?? ""}
