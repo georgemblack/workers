@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { deletePost, listPosts } from "@/data/db";
+import { createPost, deletePost, listPosts } from "@/data/db";
 import { PostStatus } from "@/data/types";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
@@ -37,6 +37,26 @@ function App() {
     });
   }, [posts, searchQuery, statusFilter, showHiddenOnly]);
 
+  const handleCreatePost = async () => {
+    const now = new Date().toISOString();
+    const post = await createPost({
+      data: {
+        title: "Untitled",
+        slug: `untitled-${Date.now()}`,
+        published: now,
+        updated: now,
+        status: "draft",
+        hidden: false,
+        external_link: null,
+        content: [],
+      },
+    });
+    await router.navigate({
+      to: "/posts/$postId",
+      params: { postId: post.id },
+    });
+  };
+
   const handleDelete = async (postId: string, postTitle: string) => {
     if (!window.confirm(`Are you sure you want to delete "${postTitle}"?`)) {
       return;
@@ -47,10 +67,15 @@ function App() {
 
   return (
     <div>
-      <Breadcrumbs>
-        <Breadcrumbs.Current>Home</Breadcrumbs.Current>
-      </Breadcrumbs>
-      <div className="mt-4">
+      <div className="flex items-center justify-between">
+        <Breadcrumbs>
+          <Breadcrumbs.Current>Home</Breadcrumbs.Current>
+        </Breadcrumbs>
+        <Button variant="primary" onClick={handleCreatePost}>
+          New Post
+        </Button>
+      </div>
+      <div className="mt-6">
         <div className="flex gap-3">
           <Input
             className="w-60"
