@@ -6,6 +6,7 @@ import { MarkdownBlockEditor } from "@/components/blocks/MarkdownBlock";
 import { ImageBlockEditor } from "@/components/blocks/ImageBlock";
 import { VideoBlockEditor } from "@/components/blocks/VideoBlock";
 import { TextBlockEditor } from "@/components/blocks/TextBlock";
+import { BreakBlockEditor } from "@/components/blocks/BreakBlock";
 
 export type BlockWithId = ContentBlock & { _id: string };
 
@@ -35,6 +36,8 @@ function BlockEditor({ block, onChange }: BlockEditorProps) {
       return <VideoBlockEditor block={block} onChange={handleChange} />;
     case "text":
       return <TextBlockEditor block={block} onChange={handleChange} />;
+    case "break":
+      return <BreakBlockEditor />;
     default:
       return <div>Unknown block type</div>;
   }

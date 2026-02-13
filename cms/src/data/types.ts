@@ -25,7 +25,16 @@ export interface TextBlock {
   text: string;
 }
 
-export type ContentBlock = MarkdownBlock | ImageBlock | VideoBlock | TextBlock;
+export interface BreakBlock {
+  type: "break";
+}
+
+export type ContentBlock =
+  | MarkdownBlock
+  | ImageBlock
+  | VideoBlock
+  | TextBlock
+  | BreakBlock;
 
 export interface Post {
   id: string;
@@ -79,11 +88,16 @@ const textBlockSchema = z.object({
   text: z.string().min(1),
 });
 
+const breakBlockSchema = z.object({
+  type: z.literal("break"),
+});
+
 const contentBlockSchema = z.discriminatedUnion("type", [
   markdownBlockSchema,
   imageBlockSchema,
   videoBlockSchema,
   textBlockSchema,
+  breakBlockSchema,
 ]);
 
 export const createPostInputSchema = z.object({

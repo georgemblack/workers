@@ -50,6 +50,7 @@ const EMOJI = {
   image: "\uD83D\uDDBC\uFE0F", // Framed picture
   video: "\uD83C\uDFA5", // Movie camera
   text: "\u270D\uFE0F", // Writing hand
+  break: "\u2702\uFE0F", // Scissors
   draft: "\uD83D\uDCDD", // Memo
   published: "\uD83D\uDE80", // Rocket
   hidden: "\uD83E\uDEE3", // Face with peeking eye
@@ -99,6 +100,14 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
         aria-label="Add Video"
       >
         {EMOJI.video} Video
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("break")}
+        aria-label="Add Break"
+      >
+        {EMOJI.break} Break
       </Button>
     </div>
   );
@@ -356,6 +365,12 @@ function PostEditor({ post }: PostEditorProps) {
           _id: generateBlockId(),
           type: "text",
           text: "",
+        };
+        break;
+      case "break":
+        newBlock = {
+          _id: generateBlockId(),
+          type: "break",
         };
         break;
     }
