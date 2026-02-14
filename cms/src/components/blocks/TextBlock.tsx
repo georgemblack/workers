@@ -18,9 +18,6 @@ export function TextBlockEditor({ block, onChange }: TextBlockEditorProps) {
         codeBlock: false,
         code: false,
         horizontalRule: false,
-        bulletList: false,
-        orderedList: false,
-        listItem: false,
       }),
       Link.configure({
         openOnClick: false,
@@ -77,6 +74,22 @@ export function TextBlockEditor({ block, onChange }: TextBlockEditorProps) {
           aria-label="Link"
         >
           Link
+        </Button>
+        <Button
+          variant={editor?.isActive("bulletList") ? "primary" : "secondary"}
+          size="sm"
+          onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          aria-label="Bullet List"
+        >
+          UL
+        </Button>
+        <Button
+          variant={editor?.isActive("orderedList") ? "primary" : "secondary"}
+          size="sm"
+          onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          aria-label="Ordered List"
+        >
+          OL
         </Button>
       </div>
       <EditorContent editor={editor} />

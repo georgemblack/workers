@@ -50,6 +50,10 @@ const EMOJI = {
   image: "\uD83D\uDDBC\uFE0F", // Framed picture
   video: "\uD83C\uDFA5", // Movie camera
   text: "\u270D\uFE0F", // Writing hand
+  heading: "\uD83D\uDD24", // Input Latin letters (abc with arrow)
+  quote: "\u275D", // Heavy double turned comma quotation mark
+  code: "\uD83D\uDCBB", // Laptop
+  line: "\u2500", // Box drawings light horizontal
   break: "\u2702\uFE0F", // Scissors
   draft: "\uD83D\uDCDD", // Memo
   published: "\uD83D\uDE80", // Rocket
@@ -65,10 +69,7 @@ interface AddBlockRowProps {
 
 function AddBlockRow({ onAdd }: AddBlockRowProps) {
   return (
-    <div className="flex items-center gap-2 pt-2">
-      <Text variant="secondary" size="sm">
-        Add block:
-      </Text>
+    <div className="flex flex-wrap items-center gap-2 pt-2">
       <Button
         variant="secondary"
         size="sm"
@@ -100,6 +101,38 @@ function AddBlockRow({ onAdd }: AddBlockRowProps) {
         aria-label="Add Video"
       >
         {EMOJI.video} Video
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("heading")}
+        aria-label="Add Heading"
+      >
+        {EMOJI.heading} Heading
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("quote")}
+        aria-label="Add Quote"
+      >
+        {EMOJI.quote} Quote
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("code")}
+        aria-label="Add Code"
+      >
+        {EMOJI.code} Code
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd("line")}
+        aria-label="Add Line"
+      >
+        {EMOJI.line} Line
       </Button>
       <Button
         variant="secondary"
@@ -365,6 +398,34 @@ function PostEditor({ post }: PostEditorProps) {
           _id: generateBlockId(),
           type: "text",
           text: "",
+        };
+        break;
+      case "heading":
+        newBlock = {
+          _id: generateBlockId(),
+          type: "heading",
+          text: "",
+          level: 2,
+        };
+        break;
+      case "quote":
+        newBlock = {
+          _id: generateBlockId(),
+          type: "quote",
+          text: "",
+        };
+        break;
+      case "code":
+        newBlock = {
+          _id: generateBlockId(),
+          type: "code",
+          text: "",
+        };
+        break;
+      case "line":
+        newBlock = {
+          _id: generateBlockId(),
+          type: "line",
         };
         break;
       case "break":

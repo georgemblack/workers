@@ -4,25 +4,45 @@ export type PostStatus = "draft" | "published";
 
 export interface MarkdownBlock {
   type: "markdown";
-  text: string;
+  text: string; // Markdown content
 }
 
 export interface ImageBlock {
   type: "image";
-  path: string;
+  path: string; // '/files/2024/some-image.jpg'
   alt: string;
   caption?: string;
 }
 
 export interface VideoBlock {
   type: "video";
-  path: string;
+  path: string; // '/files/2024/some-video.mov'
   caption?: string;
 }
 
 export interface TextBlock {
   type: "text";
+  text: string; // HTML
+}
+
+export interface HeadingBlock {
+  type: "heading";
   text: string;
+  level: 1 | 2 | 3 | 4 | 5 | 6;
+}
+
+export interface QuoteBlock {
+  type: "quote";
+  text: string;
+}
+
+export interface CodeBlock {
+  type: "code";
+  text: string;
+}
+
+export interface LineBlock {
+  type: "line";
 }
 
 export interface BreakBlock {
@@ -34,6 +54,10 @@ export type ContentBlock =
   | ImageBlock
   | VideoBlock
   | TextBlock
+  | HeadingBlock
+  | QuoteBlock
+  | CodeBlock
+  | LineBlock
   | BreakBlock;
 
 export interface Post {
@@ -88,6 +112,33 @@ const textBlockSchema = z.object({
   text: z.string().min(1),
 });
 
+const headingBlockSchema = z.object({
+  type: z.literal("heading"),
+  text: z.string().min(1),
+  level: z.union([
+    z.literal(1),
+    z.literal(2),
+    z.literal(3),
+    z.literal(4),
+    z.literal(5),
+    z.literal(6),
+  ]),
+});
+
+const quoteBlockSchema = z.object({
+  type: z.literal("quote"),
+  text: z.string().min(1),
+});
+
+const codeBlockSchema = z.object({
+  type: z.literal("code"),
+  text: z.string().min(1),
+});
+
+const lineBlockSchema = z.object({
+  type: z.literal("line"),
+});
+
 const breakBlockSchema = z.object({
   type: z.literal("break"),
 });
@@ -97,6 +148,10 @@ const contentBlockSchema = z.discriminatedUnion("type", [
   imageBlockSchema,
   videoBlockSchema,
   textBlockSchema,
+  headingBlockSchema,
+  quoteBlockSchema,
+  codeBlockSchema,
+  lineBlockSchema,
   breakBlockSchema,
 ]);
 

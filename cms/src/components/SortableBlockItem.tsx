@@ -6,6 +6,10 @@ import { MarkdownBlockEditor } from "@/components/blocks/MarkdownBlock";
 import { ImageBlockEditor } from "@/components/blocks/ImageBlock";
 import { VideoBlockEditor } from "@/components/blocks/VideoBlock";
 import { TextBlockEditor } from "@/components/blocks/TextBlock";
+import { HeadingBlockEditor } from "@/components/blocks/HeadingBlock";
+import { QuoteBlockEditor } from "@/components/blocks/QuoteBlock";
+import { CodeBlockEditor } from "@/components/blocks/CodeBlock";
+import { LineBlockEditor } from "@/components/blocks/LineBlock";
 import { BreakBlockEditor } from "@/components/blocks/BreakBlock";
 
 export type BlockWithId = ContentBlock & { _id: string };
@@ -36,6 +40,14 @@ function BlockEditor({ block, onChange }: BlockEditorProps) {
       return <VideoBlockEditor block={block} onChange={handleChange} />;
     case "text":
       return <TextBlockEditor block={block} onChange={handleChange} />;
+    case "heading":
+      return <HeadingBlockEditor block={block} onChange={handleChange} />;
+    case "quote":
+      return <QuoteBlockEditor block={block} onChange={handleChange} />;
+    case "code":
+      return <CodeBlockEditor block={block} onChange={handleChange} />;
+    case "line":
+      return <LineBlockEditor />;
     case "break":
       return <BreakBlockEditor />;
     default:
