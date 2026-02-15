@@ -7,6 +7,7 @@ import {
   PostListItem,
   updatePostInputSchema,
 } from "./types";
+import { render } from "./transform";
 
 export const getPost = createServerFn({ method: "GET" })
   .inputValidator((id: string) => id)
@@ -57,9 +58,10 @@ export const createPost = createServerFn({ method: "POST" })
   .inputValidator(createPostInputSchema)
   .handler(async ({ data: input }): Promise<Post> => {
     const id = crypto.randomUUID();
+    const contentHtml = render(input.content);
 
     await env.WEB_DB.prepare(
-      "INSERT INTO posts (id, title, published, updated, slug, status, hidden, gallery, external_link, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO posts (id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
       .bind(
         id,
@@ -72,6 +74,7 @@ export const createPost = createServerFn({ method: "POST" })
         input.gallery ? 1 : 0,
         input.external_link,
         JSON.stringify(input.content),
+        contentHtml,
       )
       .run();
 
@@ -98,6 +101,7 @@ export const updatePost = createServerFn({ method: "POST" })
     }
 
     const updated = new Date().toISOString();
+    const contentHtml = render(input.content);
     const newPost: Post = {
       id: input.id,
       title: input.title,
@@ -112,7 +116,7 @@ export const updatePost = createServerFn({ method: "POST" })
     };
 
     await env.WEB_DB.prepare(
-      "UPDATE posts SET title = ?, published = ?, updated = ?, slug = ?, status = ?, hidden = ?, gallery = ?, external_link = ?, content = ? WHERE id = ?",
+      "UPDATE posts SET title = ?, published = ?, updated = ?, slug = ?, status = ?, hidden = ?, gallery = ?, external_link = ?, content = ?, content_html = ? WHERE id = ?",
     )
       .bind(
         newPost.title,
@@ -124,11 +128,28 @@ export const updatePost = createServerFn({ method: "POST" })
         newPost.gallery ? 1 : 0,
         newPost.external_link,
         JSON.stringify(newPost.content),
+        contentHtml,
         input.id,
       )
       .run();
 
     return newPost;
+  });
+
+export const getPostHtml = createServerFn({ method: "GET" })
+  .inputValidator((id: string) => id)
+  .handler(async ({ data: id }): Promise<string | null> => {
+    const row = await env.WEB_DB.prepare(
+      "SELECT content_html FROM posts WHERE id = ? AND deleted = 0",
+    )
+      .bind(id)
+      .first<{ content_html: string | null }>();
+
+    if (!row) {
+      return null;
+    }
+
+    return row.content_html;
   });
 
 export const deletePost = createServerFn({ method: "POST" })
