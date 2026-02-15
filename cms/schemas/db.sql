@@ -9,6 +9,6 @@ CREATE TABLE posts (
     gallery INTEGER NOT NULL DEFAULT 0,
     external_link TEXT,
     content TEXT NOT NULL,
-    content_html TEXT,
+    content_html TEXT NOT NULL,
     deleted INTEGER NOT NULL DEFAULT 0
 );
