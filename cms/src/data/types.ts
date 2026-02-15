@@ -9,14 +9,14 @@ export interface MarkdownBlock {
 
 export interface ImageBlock {
   type: "image";
-  path: string; // '/files/2024/some-image.jpg'
+  url: string;
   alt: string;
   caption?: string;
 }
 
 export interface VideoBlock {
   type: "video";
-  path: string; // '/files/2024/some-video.mov'
+  url: string;
   caption?: string;
 }
 
@@ -96,14 +96,14 @@ const markdownBlockSchema = z.object({
 
 const imageBlockSchema = z.object({
   type: z.literal("image"),
-  path: z.string().min(1),
+  url: z.string().min(1),
   alt: z.string().min(1),
   caption: z.string().optional(),
 });
 
 const videoBlockSchema = z.object({
   type: z.literal("video"),
-  path: z.string().min(1),
+  url: z.string().min(1),
   caption: z.string().optional(),
 });
 

@@ -382,7 +382,7 @@ function PostEditor({ post }: PostEditorProps) {
         newBlock = {
           _id: generateBlockId(),
           type: "image",
-          path: "",
+          url: "",
           alt: "",
         };
         break;
@@ -390,7 +390,7 @@ function PostEditor({ post }: PostEditorProps) {
         newBlock = {
           _id: generateBlockId(),
           type: "video",
-          path: "",
+          url: "",
         };
         break;
       case "text":

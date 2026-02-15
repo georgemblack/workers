@@ -19,7 +19,7 @@ function renderText(block: TextBlock): string {
 }
 
 function renderImage(block: ImageBlock): string {
-  const img = `<img src="${block.path}" alt="${block.alt}">`;
+  const img = `<img src="${block.url}" alt="${block.alt}">`;
   if (block.caption) {
     return `<figure>${img}<figcaption>${block.caption}</figcaption></figure>`;
   }
@@ -27,7 +27,7 @@ function renderImage(block: ImageBlock): string {
 }
 
 function renderVideo(block: VideoBlock): string {
-  const video = `<video src="${block.path}" controls></video>`;
+  const video = `<video src="${block.url}" controls></video>`;
   if (block.caption) {
     return `<figure>${video}<figcaption>${block.caption}</figcaption></figure>`;
   }
