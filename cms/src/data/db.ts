@@ -5,6 +5,7 @@ import {
   ContentBlock,
   Post,
   PostListItem,
+  PostStatus,
   updatePostInputSchema,
 } from "./types";
 import { render } from "./transform";
@@ -36,23 +37,44 @@ export const getPost = createServerFn({ method: "GET" })
     };
   });
 
-export const listPosts = createServerFn({ method: "GET" }).handler(
-  async (): Promise<PostListItem[]> => {
-    const result = await env.WEB_DB.prepare(
-      "SELECT id, title, published, status, hidden, gallery FROM posts WHERE deleted = 0 ORDER BY published DESC",
-    ).all<
-      Omit<PostListItem, "hidden" | "gallery"> & {
-        hidden: number;
-        gallery: number;
-      }
-    >();
+export interface ListPostsFilters {
+  hidden?: boolean;
+  state?: PostStatus;
+}
+
+export const listPosts = createServerFn({ method: "GET" })
+  .inputValidator((input: ListPostsFilters | undefined) => input)
+  .handler(async ({ data: filters }): Promise<PostListItem[]> => {
+    let query =
+      "SELECT id, title, published, status, hidden, gallery FROM posts WHERE deleted = 0";
+    const bindings: (string | number)[] = [];
+
+    if (filters?.hidden !== undefined) {
+      query += " AND hidden = ?";
+      bindings.push(filters.hidden ? 1 : 0);
+    }
+
+    if (filters?.state !== undefined) {
+      query += " AND status = ?";
+      bindings.push(filters.state);
+    }
+
+    query += " ORDER BY published DESC";
+
+    const result = await env.WEB_DB.prepare(query)
+      .bind(...bindings)
+      .all<
+        Omit<PostListItem, "hidden" | "gallery"> & {
+          hidden: number;
+          gallery: number;
+        }
+      >();
     return result.results.map((row) => ({
       ...row,
       hidden: row.hidden === 1,
       gallery: row.gallery === 1,
     }));
-  },
-);
+  });
 
 export const createPost = createServerFn({ method: "POST" })
   .inputValidator(createPostInputSchema)
