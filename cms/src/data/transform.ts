@@ -51,7 +51,7 @@ function renderLine(): string {
 }
 
 function renderBreak(): string {
-  return "<!-- break -->";
+  return '<div class="break"></div>';
 }
 
 export function renderBlock(block: ContentBlock): string {
