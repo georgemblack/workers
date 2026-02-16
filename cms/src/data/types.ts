@@ -60,6 +60,10 @@ export type ContentBlock =
   | LineBlock
   | BreakBlock;
 
+/**
+ * A post represents represents a post in the database, and is returned by
+ * the `/api/posts/$id` endpoint.
+ */
 export interface Post {
   id: string;
   title: string;
@@ -71,6 +75,24 @@ export interface Post {
   gallery: boolean;
   external_link: string | null;
   content: ContentBlock[];
+}
+
+/**
+ * A rendered post is returned by the `/api/posts/$id/rendered` endpoint,
+ * and includes only what is needed to render the front-end.
+ */
+export interface RenderedPost {
+  id: string;
+  title: string;
+  published: string;
+  updated: string;
+  slug: string;
+  status: PostStatus;
+  hidden: boolean;
+  gallery: boolean;
+  external_link: string | null;
+  content_html: string;
+  images: string[];
 }
 
 export interface PostListItem {
