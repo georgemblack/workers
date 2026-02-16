@@ -9,7 +9,7 @@ import {
   RenderedPost,
   updatePostInputSchema,
 } from "./types";
-import { render } from "./transform";
+import { render, renderPreview } from "./transform";
 
 export const getPost = createServerFn({ method: "GET" })
   .inputValidator((id: string) => id)
@@ -42,7 +42,7 @@ export const getRenderedPost = createServerFn({ method: "GET" })
   .inputValidator((id: string) => id)
   .handler(async ({ data: id }): Promise<RenderedPost | null> => {
     const row = await env.WEB_DB.prepare(
-      "SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html FROM posts WHERE id = ? AND deleted = 0",
+      "SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html, preview_html FROM posts WHERE id = ? AND deleted = 0",
     )
       .bind(id)
       .first<{
@@ -57,6 +57,7 @@ export const getRenderedPost = createServerFn({ method: "GET" })
         external_link: string | null;
         content: string;
         content_html: string;
+        preview_html: string | null;
       }>();
 
     if (!row) {
@@ -82,6 +83,7 @@ export const getRenderedPost = createServerFn({ method: "GET" })
       gallery: row.gallery === 1,
       external_link: row.external_link,
       content_html: row.content_html,
+      preview_html: row.preview_html,
       images,
     };
   });
@@ -130,9 +132,10 @@ export const createPost = createServerFn({ method: "POST" })
   .handler(async ({ data: input }): Promise<Post> => {
     const id = crypto.randomUUID();
     const contentHtml = render(input.content);
+    const previewHtml = renderPreview(input.content);
 
     await env.WEB_DB.prepare(
-      "INSERT INTO posts (id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO posts (id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html, preview_html) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
       .bind(
         id,
@@ -146,6 +149,7 @@ export const createPost = createServerFn({ method: "POST" })
         input.external_link,
         JSON.stringify(input.content),
         contentHtml,
+        previewHtml,
       )
       .run();
 
@@ -173,6 +177,7 @@ export const updatePost = createServerFn({ method: "POST" })
 
     const updated = new Date().toISOString();
     const contentHtml = render(input.content);
+    const previewHtml = renderPreview(input.content);
 
     const newPost: Post = {
       id: input.id,
@@ -188,7 +193,7 @@ export const updatePost = createServerFn({ method: "POST" })
     };
 
     await env.WEB_DB.prepare(
-      "UPDATE posts SET title = ?, published = ?, updated = ?, slug = ?, status = ?, hidden = ?, gallery = ?, external_link = ?, content = ?, content_html = ? WHERE id = ?",
+      "UPDATE posts SET title = ?, published = ?, updated = ?, slug = ?, status = ?, hidden = ?, gallery = ?, external_link = ?, content = ?, content_html = ?, preview_html = ? WHERE id = ?",
     )
       .bind(
         newPost.title,
@@ -201,6 +206,7 @@ export const updatePost = createServerFn({ method: "POST" })
         newPost.external_link,
         JSON.stringify(newPost.content),
         contentHtml,
+        previewHtml,
         input.id,
       )
       .run();

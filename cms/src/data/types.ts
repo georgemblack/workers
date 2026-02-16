@@ -92,6 +92,7 @@ export interface RenderedPost {
   gallery: boolean;
   external_link: string | null;
   content_html: string;
+  preview_html: string | null;
   images: string[];
 }
 

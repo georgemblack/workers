@@ -10,5 +10,6 @@ CREATE TABLE posts (
     external_link TEXT,
     content TEXT NOT NULL,
     content_html TEXT NOT NULL,
+    preview_html TEXT,
     deleted INTEGER NOT NULL DEFAULT 0
 );

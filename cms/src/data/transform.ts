@@ -80,3 +80,15 @@ export function renderBlock(block: ContentBlock): string {
 export function render(content: ContentBlock[]): string {
   return content.map(renderBlock).join("");
 }
+
+/**
+ * Renders HTML for blocks up until the first BreakBlock.
+ * Returns null if there is no BreakBlock in the content.
+ */
+export function renderPreview(content: ContentBlock[]): string | null {
+  const breakIndex = content.findIndex((block) => block.type === "break");
+  if (breakIndex === -1) {
+    return null;
+  }
+  return content.slice(0, breakIndex).map(renderBlock).join("");
+}
