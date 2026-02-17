@@ -39,12 +39,12 @@ export const getPost = createServerFn({ method: "GET" })
   });
 
 export const getRenderedPost = createServerFn({ method: "GET" })
-  .inputValidator((slug: string) => slug)
-  .handler(async ({ data: slug }): Promise<RenderedPost | null> => {
+  .inputValidator((id: string) => id)
+  .handler(async ({ data: id }): Promise<RenderedPost | null> => {
     const row = await env.WEB_DB.prepare(
-      "SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html, preview_html FROM posts WHERE slug = ? AND deleted = 0",
+      "SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html, preview_html FROM posts WHERE id = ? AND deleted = 0",
     )
-      .bind(slug)
+      .bind(id)
       .first<{
         id: string;
         title: string;
