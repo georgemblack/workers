@@ -222,3 +222,27 @@ export const deletePost = createServerFn({ method: "POST" })
       .run();
     return true;
   });
+
+export const createBackup = createServerFn({ method: "POST" }).handler(
+  async (): Promise<{ key: string; postCount: number }> => {
+    const result = await env.WEB_DB.prepare(
+      "SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content, content_html, preview_html, deleted FROM posts",
+    ).all();
+
+    const now = new Date();
+    const key = `backups/${now.toISOString().replace(/[:.]/g, "-")}.json`;
+
+    const backup = {
+      version: 1,
+      created: now.toISOString(),
+      postCount: result.results.length,
+      posts: result.results,
+    };
+
+    await env.BACKUP_BUCKET.put(key, JSON.stringify(backup, null, 2), {
+      httpMetadata: { contentType: "application/json" },
+    });
+
+    return { key, postCount: result.results.length };
+  },
+);

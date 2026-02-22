@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createPost, deletePost, listPosts } from "@/data/db";
+import { createBackup, createPost, deletePost, listPosts } from "@/data/db";
 import { PostStatus } from "@/data/types";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
@@ -24,6 +24,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<PostStatus | "all">("all");
   const [showHiddenOnly, setShowHiddenOnly] = useState(false);
+  const [isBackingUp, setIsBackingUp] = useState(false);
 
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
@@ -58,6 +59,21 @@ function App() {
     });
   };
 
+  const handleBackup = async () => {
+    setIsBackingUp(true);
+    try {
+      const result = await createBackup();
+      window.alert(
+        `Backup created: ${result.postCount} posts saved to ${result.key}`,
+      );
+    } catch (err) {
+      window.alert("Backup failed. Check console for details.");
+      console.error(err);
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
   const handleDelete = async (postId: string, postTitle: string) => {
     if (!window.confirm(`Are you sure you want to delete "${postTitle}"?`)) {
       return;
@@ -72,9 +88,18 @@ function App() {
         <Breadcrumbs>
           <Breadcrumbs.Current>Home</Breadcrumbs.Current>
         </Breadcrumbs>
-        <Button variant="primary" onClick={handleCreatePost}>
-          New Post
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={handleBackup}
+            disabled={isBackingUp}
+          >
+            {isBackingUp ? "Backing up..." : "Backup"}
+          </Button>
+          <Button variant="primary" onClick={handleCreatePost}>
+            New Post
+          </Button>
+        </div>
       </div>
       <div className="mt-6">
         <div className="flex gap-3">
