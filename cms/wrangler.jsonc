@@ -12,12 +12,6 @@
       "remote": true,
     },
   ],
-  "r2_buckets": [
-    {
-      "binding": "BACKUP_BUCKET",
-      "bucket_name": "cms-backups",
-    },
-  ],
   "observability": {
     "enabled": true,
   },
