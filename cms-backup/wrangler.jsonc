@@ -9,7 +9,6 @@
 	"triggers": {
 		"crons": ["0 12 * * *"],
 	},
-	"compatibility_flags": ["nodejs_compat"],
 	"d1_databases": [
 		{
 			"binding": "WEB_DB",
