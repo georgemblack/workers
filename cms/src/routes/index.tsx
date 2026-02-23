@@ -116,7 +116,13 @@ function App() {
                     })}
                   </span>
                   <span>
-                    <Badge variant="secondary">{post.status}</Badge>
+                    <Badge
+                      variant={
+                        post.status === "published" ? "primary" : "outline"
+                      }
+                    >
+                      {post.status}
+                    </Badge>
                   </span>
                 </div>
               </Link>
