@@ -8,8 +8,10 @@ import {
   Button,
   Input,
   Select,
+  Surface,
   Switch,
 } from "@cloudflare/kumo";
+import PaddedSurface from "@/components/PaddedSurface";
 
 const STATUS_OPTIONS: Array<PostStatus | "all"> = ["all", "draft", "published"];
 
@@ -77,31 +79,37 @@ function App() {
         </Button>
       </div>
       <div className="mt-6">
-        <div className="flex gap-3">
-          <Input
-            className="w-60"
-            placeholder="Search posts..."
-            aria-label="Search posts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <Select
-            className="w-30"
-            value={statusFilter}
-            onValueChange={(status) => setStatusFilter(status || "all")}
-          >
-            {STATUS_OPTIONS.map((status) => (
-              <Select.Option value={status}>
-                {status.toLowerCase()}
-              </Select.Option>
-            ))}
-          </Select>
-          <Switch
-            label="Hidden"
-            checked={showHiddenOnly}
-            onCheckedChange={setShowHiddenOnly}
-          />
-        </div>
+        <PaddedSurface>
+          <div>
+            <Input
+              className="w-full"
+              placeholder="Search..."
+              aria-label="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="mt-4 flex gap-3 items-center">
+            <Select
+              className="w-30"
+              value={statusFilter}
+              onValueChange={(status) => setStatusFilter(status || "all")}
+            >
+              {STATUS_OPTIONS.map((status) => (
+                <Select.Option value={status}>
+                  {status.toLowerCase()}
+                </Select.Option>
+              ))}
+            </Select>
+            <div>
+              <Switch
+                label="Hidden"
+                checked={showHiddenOnly}
+                onCheckedChange={setShowHiddenOnly}
+              />
+            </div>
+          </div>
+        </PaddedSurface>
         <div className="mt-4 flex flex-col gap-6">
           {filteredPosts.map((post) => (
             <div className="flex justify-between items-center" key={post.id}>

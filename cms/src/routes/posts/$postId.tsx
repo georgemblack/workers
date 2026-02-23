@@ -22,6 +22,7 @@ import {
   SortableBlockItem,
   type BlockWithId,
 } from "@/components/SortableBlockItem";
+import PaddedSurface from "@/components/PaddedSurface";
 
 export const Route = createFileRoute("/posts/$postId")({
   ssr: "data-only",
@@ -185,18 +186,16 @@ function MetadataSection({
   };
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 mt-6">
-        <div className="flex flex-col gap-1">
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                className="w-full"
-                value={title}
-                onChange={(e) => onChange("title", e.target.value)}
-                placeholder="Title"
-              />
-            </div>
+    <PaddedSurface>
+      <div className="flex flex-col gap-4">
+        <div>
+          <div className="flex gap-3">
+            <Input
+              className="w-full"
+              value={title}
+              onChange={(e) => onChange("title", e.target.value)}
+              placeholder="Title"
+            />
             <Button
               variant="secondary"
               aria-label="Generate slug from title"
@@ -209,10 +208,12 @@ function MetadataSection({
                 onChange("slug", generated);
               }}
             >
-              Gen Slug
+              Slug
             </Button>
           </div>
-          <Text variant="secondary">{slug}</Text>
+          <div className="ml-1 mt-1">
+            <Text variant="secondary">{slug}</Text>
+          </div>
         </div>
         <div className="flex gap-3">
           <div className="flex-[3]">
@@ -225,29 +226,6 @@ function MetadataSection({
               }
             />
           </div>
-          <div className="flex-none flex items-center">
-            <Switch
-              label={status === "published" ? EMOJI.published : EMOJI.draft}
-              checked={status === "published"}
-              onCheckedChange={(checked) =>
-                onChange("status", checked ? "published" : "draft")
-              }
-            />
-          </div>
-          <div className="flex-none flex items-center">
-            <Switch
-              label={hidden ? EMOJI.hidden : EMOJI.visible}
-              checked={hidden}
-              onCheckedChange={onHiddenChange}
-            />
-          </div>
-          <div className="flex-none flex items-center">
-            <Switch
-              label={EMOJI.gallery}
-              checked={gallery}
-              onCheckedChange={onGalleryChange}
-            />
-          </div>
         </div>
         <Input
           type="url"
@@ -255,8 +233,27 @@ function MetadataSection({
           onChange={(e) => onChange("externalLink", e.target.value || null)}
           placeholder="https://example.com"
         />
+        <div className="flex gap-3">
+          <Switch
+            label={status === "published" ? EMOJI.published : EMOJI.draft}
+            checked={status === "published"}
+            onCheckedChange={(checked) =>
+              onChange("status", checked ? "published" : "draft")
+            }
+          />
+          <Switch
+            label={hidden ? EMOJI.hidden : EMOJI.visible}
+            checked={hidden}
+            onCheckedChange={onHiddenChange}
+          />
+          <Switch
+            label={EMOJI.gallery}
+            checked={gallery}
+            onCheckedChange={onGalleryChange}
+          />
+        </div>
       </div>
-    </div>
+    </PaddedSurface>
   );
 }
 
@@ -510,18 +507,20 @@ function PostEditor({ post }: PostEditorProps) {
         </div>
       </div>
 
-      <MetadataSection
-        title={title}
-        published={published}
-        slug={slug}
-        status={status}
-        hidden={hidden}
-        gallery={gallery}
-        externalLink={externalLink}
-        onChange={handleMetadataChange}
-        onHiddenChange={setHidden}
-        onGalleryChange={setGallery}
-      />
+      <div className="mt-6">
+        <MetadataSection
+          title={title}
+          published={published}
+          slug={slug}
+          status={status}
+          hidden={hidden}
+          gallery={gallery}
+          externalLink={externalLink}
+          onChange={handleMetadataChange}
+          onHiddenChange={setHidden}
+          onGalleryChange={setGallery}
+        />
+      </div>
 
       <div className="mt-6 flex flex-col gap-4">
         {blocks.length === 0 ? (

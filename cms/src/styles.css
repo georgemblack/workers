@@ -6,13 +6,6 @@
   --accent-color: orange;
 }
 
-/* dark mode */
-@media screen and (prefers-color-scheme: dark) {
-  :root {
-    --accent-color: orangered;
-  }
-}
-
 body {
   margin: 0 auto;
   padding: 0 1em;
@@ -42,7 +35,7 @@ main {
   margin: 0;
 }
 
-.tiptap p + p {
+.tiptap p+p {
   margin-top: 0.5em;
 }
 
