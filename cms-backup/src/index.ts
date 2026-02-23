@@ -1,13 +1,4 @@
 export default {
-	async fetch(req) {
-		const url = new URL(req.url);
-		url.pathname = '/__scheduled';
-		url.searchParams.set('cron', '0 12 * * *');
-		return new Response(
-			`To test the scheduled handler, ensure you have used the "--test-scheduled" flag, then try running:\ncurl "${url.href}"`,
-		);
-	},
-
 	async scheduled(event, env, ctx): Promise<void> {
 		const posts = await queryPosts(env.WEB_DB);
 		const postsJson = JSON.stringify(posts);
