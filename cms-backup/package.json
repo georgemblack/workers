@@ -1,0 +1,20 @@
+{
+	"name": "cms-backup",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev --test-scheduled",
+		"start": "wrangler dev --test-scheduled",
+		"cf-typegen": "wrangler types",
+		"dryrun": "wrangler deploy --dry-run",
+		"typecheck": "tsc --noEmit",
+		"format": "prettier . --write"
+	},
+	"devDependencies": {
+		"@types/node": "^25.3.0",
+		"prettier": "^3.8.1",
+		"typescript": "^5.5.2",
+		"wrangler": "^4.67.0"
+	}
+}
