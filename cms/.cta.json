@@ -1,5 +1,5 @@
 {
-  "projectName": "gazetteer",
+  "projectName": "cms",
   "mode": "file-router",
   "typescript": true,
   "tailwind": true,
