@@ -279,7 +279,9 @@ interface PostEditorProps {
 function PostEditor({ post }: PostEditorProps) {
   const router = useRouter();
 
-  const [title, setTitle] = useState(post.title);
+  const [title, setTitle] = useState(
+    post.title === "Untitled" ? "" : post.title,
+  );
   const [published, setPublished] = useState(post.published);
   const [slug, setSlug] = useState(post.slug);
   const [status, setStatus] = useState<PostStatus>(post.status as PostStatus);
@@ -493,7 +495,7 @@ function PostEditor({ post }: PostEditorProps) {
           <Breadcrumbs>
             <Breadcrumbs.Link href="/">Home</Breadcrumbs.Link>
             <Breadcrumbs.Separator />
-            <Breadcrumbs.Current>{title}</Breadcrumbs.Current>
+            <Breadcrumbs.Current>{title || "Untitled"}</Breadcrumbs.Current>
           </Breadcrumbs>
         </div>
         <div className="flex gap-4 items-center">
