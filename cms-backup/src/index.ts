@@ -7,12 +7,12 @@ export default {
 		const latestHash = await getLatestBackupHash(env.BACKUP_BUCKET);
 
 		if (latestHash !== null && latestHash === postsHash) {
-			console.log('No changes detected since last backup. Skipping.');
+			console.log("No changes detected since last backup. Skipping.");
 			return;
 		}
 
 		const now = new Date();
-		const key = `backups/${now.toISOString().replace(/[:.]/g, '-')}.json`;
+		const key = `backups/${now.toISOString().replace(/[:.]/g, "-")}.json`;
 
 		const backup = {
 			version: 1,
@@ -22,7 +22,7 @@ export default {
 		};
 
 		await env.BACKUP_BUCKET.put(key, JSON.stringify(backup, null, 2), {
-			httpMetadata: { contentType: 'application/json' },
+			httpMetadata: { contentType: "application/json" },
 			customMetadata: { postsHash },
 		});
 
@@ -59,7 +59,7 @@ interface Post {
 async function queryPosts(db: D1Database): Promise<Post[]> {
 	const result = await db
 		.prepare(
-			'SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content FROM posts WHERE deleted = 0 ORDER BY published DESC',
+			"SELECT id, title, published, updated, slug, status, hidden, gallery, external_link, content FROM posts WHERE deleted = 0 ORDER BY published DESC",
 		)
 		.all<PostRow>();
 
@@ -73,20 +73,22 @@ async function queryPosts(db: D1Database): Promise<Post[]> {
 
 async function sha256(data: string): Promise<string> {
 	const encoded = new TextEncoder().encode(data);
-	const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+	const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
 	const hashArray = Array.from(new Uint8Array(hashBuffer));
-	return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+	return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function getLatestBackupHash(bucket: R2Bucket): Promise<string | null> {
-	const listed = await bucket.list({ prefix: 'backups/' });
+	const listed = await bucket.list({ prefix: "backups/" });
 
 	if (listed.objects.length === 0) {
 		return null;
 	}
 
 	// Keys are ISO timestamps, so lexicographic sort gives chronological order.
-	const latest = listed.objects.sort((a, b) => a.key.localeCompare(b.key)).at(-1)!;
+	const latest = listed.objects
+		.sort((a, b) => a.key.localeCompare(b.key))
+		.at(-1)!;
 
 	const head = await bucket.head(latest.key);
 	return head?.customMetadata?.postsHash ?? null;
