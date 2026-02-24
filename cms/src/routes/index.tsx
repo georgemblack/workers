@@ -69,16 +69,18 @@ function App() {
   };
 
   return (
-    <div>
+    <>
       <div className="flex items-center justify-between">
-        <Breadcrumbs>
-          <Breadcrumbs.Current>Home</Breadcrumbs.Current>
-        </Breadcrumbs>
+        <div>
+          <Breadcrumbs>
+            <Breadcrumbs.Current>Home</Breadcrumbs.Current>
+          </Breadcrumbs>
+        </div>
         <Button variant="primary" onClick={handleCreatePost}>
           New Post
         </Button>
       </div>
-      <div className="mt-6">
+      <div className="mt-4">
         <PaddedSurface>
           <div>
             <Input
@@ -145,6 +147,6 @@ function App() {
           ))}
         </div>
       </div>
-    </div>
+    </>
   );
 }

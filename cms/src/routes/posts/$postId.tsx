@@ -482,13 +482,15 @@ function PostEditor({ post }: PostEditorProps) {
   };
 
   return (
-    <div>
+    <>
       <div className="flex items-center justify-between">
-        <Breadcrumbs>
-          <Breadcrumbs.Link href="/">Home</Breadcrumbs.Link>
-          <Breadcrumbs.Separator />
-          <Breadcrumbs.Current>{title}</Breadcrumbs.Current>
-        </Breadcrumbs>
+        <div>
+          <Breadcrumbs>
+            <Breadcrumbs.Link href="/">Home</Breadcrumbs.Link>
+            <Breadcrumbs.Separator />
+            <Breadcrumbs.Current>{title}</Breadcrumbs.Current>
+          </Breadcrumbs>
+        </div>
         <div className="flex gap-4 items-center">
           {statusMessage === "error" && (
             <Text variant="secondary">Error saving post</Text>
@@ -507,7 +509,7 @@ function PostEditor({ post }: PostEditorProps) {
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <MetadataSection
           title={title}
           published={published}
@@ -555,6 +557,6 @@ function PostEditor({ post }: PostEditorProps) {
 
         <AddBlockRow onAdd={handleAddBlock} />
       </div>
-    </div>
+    </>
   );
 }
