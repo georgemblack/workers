@@ -8,7 +8,6 @@ import {
   Button,
   Input,
   Select,
-  Surface,
   Switch,
 } from "@cloudflare/kumo";
 import PaddedSurface from "@/components/PaddedSurface";

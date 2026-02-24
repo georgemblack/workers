@@ -216,16 +216,21 @@ function MetadataSection({
           </div>
         </div>
         <div className="flex gap-3">
-          <div className="flex-[3]">
-            <Input
-              className="w-full"
-              type="datetime-local"
-              value={toDatetimeLocal(published)}
-              onChange={(e) =>
-                onChange("published", toISOString(e.target.value))
-              }
-            />
-          </div>
+          <Input
+            className="w-full"
+            type="datetime-local"
+            value={toDatetimeLocal(published)}
+            onChange={(e) => onChange("published", toISOString(e.target.value))}
+          />
+          <Button
+            variant="secondary"
+            aria-label="Set published date to now"
+            onClick={() => {
+              onChange("published", new Date().toISOString());
+            }}
+          >
+            Now
+          </Button>
         </div>
         <Input
           type="url"
