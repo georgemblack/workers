@@ -12,6 +12,13 @@
       "remote": true,
     },
   ],
+  "services": [
+    {
+      "binding": "CMS_DB",
+      "service": "cms-db",
+      "remote": true
+    },
+  ],
   "observability": {
     "enabled": true,
   },
