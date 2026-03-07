@@ -25,11 +25,3 @@ curl -s \
 ```
 
 Omit `now` to use the current time (same as the cron trigger).
-
-Add `&dry=true` to test without sending push notifications. This still queries Fastmail and runs AI summarization, but skips the webhook call:
-
-```sh
-curl -s \
-  -H "cf-access-token: <TOKEN>" \
-  "https://mailman.georgeblack.workers.dev/?now=2026-03-06T22:00:00Z&dry=true"
-```

@@ -3,7 +3,6 @@ const MAILBOX_NAME = "Notifications";
 async function checkMailAndNotify(
   env: CloudflareBindings,
   now: Date,
-  dry: boolean = false,
 ): Promise<string> {
   const headers = {
     "Content-Type": "application/json",
@@ -110,12 +109,6 @@ async function checkMailAndNotify(
       continue;
     }
 
-    if (dry) {
-      console.log(`Dry run: ${summary}`);
-      results.push(`DRY: ${summary}`);
-      continue;
-    }
-
     const notifRes = await fetch(env.NOTIFICATION_WEBHOOK_URL, {
       method: "POST",
       body: summary,
@@ -143,8 +136,7 @@ export default {
       return new Response("Invalid 'now' parameter", { status: 400 });
     }
 
-    const dry = url.searchParams.get("dry") === "true";
-    const result = await checkMailAndNotify(env, now, dry);
+    const result = await checkMailAndNotify(env, now);
     return new Response(result);
   },
 
