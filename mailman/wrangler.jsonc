@@ -1,17 +1,15 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "mailman",
-	"main": "src/index.ts",
-	"compatibility_date": "2026-03-01",
-	"observability": {
-		"enabled": true
-	},
-	"triggers": {
-		"crons": [
-			"0 * * * *"
-		]
-	},
-	"ai": {
-		"binding": "AI"
-	},
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mailman",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-03-01",
+  "observability": {
+    "enabled": true,
+  },
+  "triggers": {
+    "crons": ["0 * * * *"],
+  },
+  "ai": {
+    "binding": "AI",
+  },
 }
