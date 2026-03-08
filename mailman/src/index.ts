@@ -88,18 +88,10 @@ async function checkMailAndNotify(
       : "";
     const truncatedBody = bodyText.substring(0, 2000);
 
-    const aiResponse = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fp8", {
-      messages: [
-        {
-          role: "system",
-          content:
-            "Summarize the following email in one short sentence or a few words, suitable for a push notification. For bank/credit card transactions, always include the card name, amount, and merchant. Only output the summary, nothing else.",
-        },
-        {
-          role: "user",
-          content: `From: ${from}\nSubject: ${subject}\n\n${truncatedBody}`,
-        },
-      ],
+    const aiResponse = await env.AI.run("@cf/openai/gpt-oss-120b", {
+      instructions:
+        "Summarize the following email in one sentence, suitable for a push notification. For bank/credit card transactions, include the card name, amount, and merchant. For Amazon purchases, include the order status and item(s). Only output the summary, nothing else.",
+      input: `From: ${from}\nSubject: ${subject}\n\n${truncatedBody}`,
     });
 
     const summary = (aiResponse as any).response?.trim();
