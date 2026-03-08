@@ -94,7 +94,16 @@ async function checkMailAndNotify(
       input: `From: ${from}\nSubject: ${subject}\n\n${truncatedBody}`,
     });
 
-    const summary = (aiResponse as any).response?.trim();
+    const response = aiResponse as any;
+    const summary =
+      response.output_text?.trim() ||
+      response.output
+        ?.filter((item: any) => item.type === "message")
+        .flatMap((item: any) => item.content)
+        .filter((c: any) => c.type === "output_text")
+        .map((c: any) => c.text)
+        .join("")
+        .trim();
     if (!summary) {
       console.log(`Failed to summarize email: ${subject}`);
       results.push(`FAILED: ${subject}`);
