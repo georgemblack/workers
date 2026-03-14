@@ -11,6 +11,15 @@ interface BrowserRenderingResponse {
   };
 }
 
+function isUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function sanitizeUrl(raw: string): string {
   const url = new URL(raw);
   url.search = "";
@@ -86,7 +95,11 @@ export default {
       await env.DB.prepare(
         "INSERT INTO links (url, title, description) VALUES (?, ?, ?)",
       )
-        .bind(url, providedTitle || fetchedTitle, description)
+        .bind(
+          url,
+          providedTitle && !isUrl(providedTitle) ? providedTitle : fetchedTitle,
+          description,
+        )
         .run();
 
       message.ack();
