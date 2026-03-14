@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "linkmgr",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "linkmgr",
+      "database_id": "11314889-4638-4543-a04e-2c5adf94c613",
+    },
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "LINK_QUEUE",
+        "queue": "linkmgr-queue",
+      },
+    ],
+  },
+  "observability": {
+    "enabled": true,
+  },
+  "workers_dev": true,
+}

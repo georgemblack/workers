@@ -4,6 +4,8 @@ This project is a monorepo containing personal Cloudflare workers. Each top-leve
 
 * `mailman`: Fetches email, summarizes it, and sends push notifications
 * `sleep`: Calculates sleep from the previous night and renders it as a webpage
+* `linkmgr`: Web app for collecting and displaying interesting links
+* `linkmgr-processor`: Queue consumer that fetches link metadata via Browser Rendering API
 
 Each project has it's own `AGENTS.md` with unqiue instructions.
 

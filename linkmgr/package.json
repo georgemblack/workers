@@ -1,0 +1,39 @@
+{
+  "name": "linkmgr",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --port 3000",
+    "build": "vite build",
+    "deploy": "pnpm run build && wrangler deploy",
+    "dryrun": "pnpm run build && wrangler deploy --dry-run",
+    "typegen": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier . --write"
+  },
+  "dependencies": {
+    "@cloudflare/kumo": "^1.10.0",
+    "@cloudflare/vite-plugin": "^1.26.1",
+    "@tailwindcss/vite": "^4.2.1",
+    "@tanstack/react-devtools": "^0.9.10",
+    "@tanstack/react-router": "^1.166.6",
+    "@tanstack/react-router-devtools": "^1.166.6",
+    "@tanstack/react-start": "^1.166.6",
+    "@tanstack/router-plugin": "^1.166.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.2.1",
+    "vite-tsconfig-paths": "^6.1.1"
+  },
+  "devDependencies": {
+    "@tanstack/devtools-vite": "^0.5.3",
+    "@types/node": "^25.4.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "prettier": "^3.8.1",
+    "typescript": "^5.7.2",
+    "vite": "^7.1.7",
+    "wrangler": "^4.71.0"
+  }
+}

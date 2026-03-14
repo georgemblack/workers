@@ -24,3 +24,19 @@ updates:
       all-dependencies:
         patterns:
           - "*"
+  - package-ecosystem: "npm"
+    directory: "/linkmgr"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "npm"
+    directory: "/linkmgr-processor"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"

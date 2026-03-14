@@ -1,0 +1,13 @@
+@source "../node_modules/@cloudflare/kumo/dist/**/*.{js,jsx,ts,tsx}";
+@import "tailwindcss";
+@import "@cloudflare/kumo/styles/tailwind";
+
+body {
+  margin: 0 auto 4rem auto;
+  padding: 0 1em;
+  max-width: 36rem;
+}
+
+main {
+  margin-top: 1rem;
+}
