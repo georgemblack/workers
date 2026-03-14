@@ -8,7 +8,7 @@ Cloudflare Worker web app for collecting and displaying interesting links. Built
 - **API** (`POST /api/links/`): Accepts a `url` parameter and queues it for processing
 - **Data**: Links stored in a D1 database, read via server functions
 
-The API sends URLs to a Cloudflare Queue (`linkmgr-queue`) which is consumed by the `linkmgr-processor` worker.
+The API sends URLs to a Cloudflare Queue (`linkmgr-queue`) which is consumed by the `linkproc` worker.
 
 ## D1 Schema
 

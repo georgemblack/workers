@@ -33,7 +33,7 @@ updates:
         patterns:
           - "*"
   - package-ecosystem: "npm"
-    directory: "/linkmgr-processor"
+    directory: "/linkproc"
     schedule:
       interval: "weekly"
     groups:
