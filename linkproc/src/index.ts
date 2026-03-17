@@ -20,10 +20,14 @@ function isUrl(value: string): boolean {
   }
 }
 
+const KEEP_QUERY_HOSTS = ["youtube.com", "www.youtube.com", "youtu.be"];
+
 function sanitizeUrl(raw: string): string {
   const url = new URL(raw);
-  url.search = "";
   url.hash = "";
+  if (!KEEP_QUERY_HOSTS.includes(url.hostname)) {
+    url.search = "";
+  }
   return url.toString();
 }
 
