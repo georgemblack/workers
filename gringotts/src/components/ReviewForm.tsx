@@ -18,10 +18,10 @@ function ReviewForm({
   merchantCategories: string[];
   onComplete: (id: number) => void;
 }) {
-  const [merchant, setMerchant] = useState<string>(transaction.merchant);
+  const [merchant, setMerchant] = useState<string>(transaction.merchant ?? "");
   const [merchantCategory, setMerchantCategory] = useState<string>("");
   const [category, setCategory] = useState<Category | null>(null);
-  const [notes, setNotes] = useState<string>(transaction.notes);
+  const [notes, setNotes] = useState<string>(transaction.notes ?? "");
   const [tag, setTag] = useState<Tag | null>(null);
 
   const [ruleCreated, setRuleCreated] = useState<boolean>(false);
@@ -33,11 +33,11 @@ function ReviewForm({
     await updateTransaction({
       data: {
         ...transaction,
-        merchant,
-        merchantCategory,
+        merchant: merchant || null,
+        merchantCategory: merchantCategory || null,
         category,
-        notes,
-        tags: tag ? [tag] : [],
+        notes: notes || null,
+        tags: tag ? [tag] : null,
         reviewed: Bool.TRUE,
       },
     });

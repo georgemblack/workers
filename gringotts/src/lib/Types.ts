@@ -174,13 +174,13 @@ export interface Transaction {
   year: number;
   amount: number;
   credit: Bool.FALSE | Bool.TRUE;
-  merchant: string;
-  merchantCategory: string;
-  category: string;
+  merchant: string | null;
+  merchantCategory: string | null;
+  category: string | null;
   account: Account;
   description: string;
-  notes: string;
-  tags?: string[];
+  notes: string | null;
+  tags?: string[] | null;
   skipped: Bool.FALSE | Bool.TRUE;
   reviewed: Bool.FALSE | Bool.TRUE;
 }

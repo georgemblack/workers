@@ -13,10 +13,13 @@ import {
 
 export function validRule(rule: Rule): boolean {
   return (
+    rule.merchant !== null &&
     validStr(rule.merchant) &&
     rule.merchant !== "" &&
+    rule.merchantCategory !== null &&
     validStr(rule.merchantCategory) &&
     rule.merchantCategory !== "" &&
+    rule.category !== null &&
     validStr(rule.category) &&
     rule.category !== "" &&
     Object.values(Category).includes(rule.category as Category)
@@ -32,11 +35,11 @@ export function validTransaction(transaction: Transaction): boolean {
     validYear(transaction.year) &&
     validNum(transaction.amount) &&
     validBool(transaction.credit) &&
-    validStr(transaction.merchant) &&
-    validStr(transaction.merchantCategory) &&
+    validNullableStr(transaction.merchant) &&
+    validNullableStr(transaction.merchantCategory) &&
     validAccount(transaction.account) &&
     validStr(transaction.description) &&
-    validStr(transaction.notes) &&
+    validNullableStr(transaction.notes) &&
     validTags(transaction.tags) &&
     validBool(transaction.skipped) &&
     validBool(transaction.reviewed)
@@ -136,6 +139,10 @@ function validStr(field: string): boolean {
   return field !== undefined && field !== null && typeof field === "string";
 }
 
+function validNullableStr(field: string | null | undefined): boolean {
+  return field === null || validStr(field as string);
+}
+
 function validNum(field: number): boolean {
   return (
     field !== undefined &&
@@ -173,8 +180,8 @@ function validAccount(account: string): boolean {
   return Object.values(Account).includes(account as Account);
 }
 
-function validTags(tags: string[] | undefined): boolean {
-  if (tags === undefined) return true;
+function validTags(tags: string[] | null | undefined): boolean {
+  if (tags === undefined || tags === null) return true;
   if (!Array.isArray(tags)) return false;
   return tags.every((tag) => validTag(tag));
 }

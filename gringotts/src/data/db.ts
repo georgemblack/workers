@@ -34,12 +34,12 @@ interface TransactionRow {
   year: number;
   amount: number;
   credit: number;
-  merchant: string;
-  merchant_category: string;
-  category: string;
+  merchant: string | null;
+  merchant_category: string | null;
+  category: string | null;
   account: string;
   description: string;
-  notes: string;
+  notes: string | null;
   tags: string | null;
   skipped: number;
   reviewed: number;
@@ -67,7 +67,7 @@ function rowToTransaction(row: TransactionRow): Transaction {
     account: row.account as Account,
     description: row.description,
     notes: row.notes,
-    tags: row.tags ? JSON.parse(row.tags) : undefined,
+    tags: row.tags ? JSON.parse(row.tags) : null,
     skipped: row.skipped as Bool,
     reviewed: row.reviewed as Bool,
   };
@@ -109,7 +109,7 @@ function bindTransaction(tx: Transaction) {
 export const getMerchants = createServerFn({ method: "GET" }).handler(
   async (): Promise<string[]> => {
     const result = await env.GRINGOTTS_DB.prepare(
-      "SELECT DISTINCT merchant FROM transactions WHERE merchant != '' ORDER BY merchant",
+      "SELECT DISTINCT merchant FROM transactions WHERE merchant IS NOT NULL ORDER BY merchant",
     ).all();
     return result.results.map((row: Record<string, unknown>) => row.merchant as string);
   },
@@ -118,7 +118,7 @@ export const getMerchants = createServerFn({ method: "GET" }).handler(
 export const getMerchantCategories = createServerFn({ method: "GET" }).handler(
   async (): Promise<string[]> => {
     const result = await env.GRINGOTTS_DB.prepare(
-      "SELECT DISTINCT merchant_category FROM transactions WHERE merchant_category != '' ORDER BY merchant_category",
+      "SELECT DISTINCT merchant_category FROM transactions WHERE merchant_category IS NOT NULL ORDER BY merchant_category",
     ).all();
     return result.results.map(
       (row: Record<string, unknown>) => row.merchant_category as string,
