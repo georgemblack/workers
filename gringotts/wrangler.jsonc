@@ -9,6 +9,7 @@
       "binding": "GRINGOTTS_DB",
       "database_name": "gringotts",
       "database_id": "7eb6e3a4-cad9-4fc9-b0e6-216555e33bbd",
+      "remote": true,
     },
   ],
   "observability": {
