@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gringotts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "d1_databases": [
+    {
+      "binding": "GRINGOTTS_DB",
+      "database_name": "gringotts",
+      "database_id": "7eb6e3a4-cad9-4fc9-b0e6-216555e33bbd",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+  },
+  "workers_dev": true,
+  "preview_urls": true,
+}

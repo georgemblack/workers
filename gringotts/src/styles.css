@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+}
+
+header {
+  max-width: 56em;
+  margin: 1em auto;
+  padding: 0 1em;
+}
+
+.page-standard-width {
+  max-width: 56em;
+  margin: 0 auto;
+  padding: 0 1em;
+}
+
+.page-full-width {
+  max-width: 85em;
+  margin: 0 auto;
+  padding: 0 1em;
+}
