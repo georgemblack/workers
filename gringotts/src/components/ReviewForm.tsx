@@ -1,11 +1,11 @@
-import { getRule, saveRule, updateTransaction } from "@/data/db";
-import { AccountNames, Bool, Category, Tag, Transaction } from "@/lib/Types";
 import { useState } from "react";
 
-import Autosuggest from "./Autosuggest";
-import CategoryField from "./CategoryField";
-import Currency from "./Currency";
-import TagField from "./TagField";
+import Autosuggest from "@/components/Autosuggest";
+import CategoryField from "@/components/CategoryField";
+import Currency from "@/components/Currency";
+import TagField from "@/components/TagField";
+import { getRule, saveRule, updateTransaction } from "@/data/db";
+import { AccountNames, Bool, Category, Tag, Transaction } from "@/lib/Types";
 
 function ReviewForm({
   transaction,

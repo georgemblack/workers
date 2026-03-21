@@ -1,7 +1,8 @@
 import { Hono } from "hono";
+
 import { HomePage } from "../components/HomePage";
-import { getSecondsUntilCacheExpiry } from "../utils/cache";
 import { SleepStats } from "../types";
+import { getSecondsUntilCacheExpiry } from "../utils/cache";
 
 const pages = new Hono<{ Bindings: CloudflareBindings }>();
 

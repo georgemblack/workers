@@ -1,4 +1,4 @@
-import { Account, AccountNames } from "../lib/Types";
+import { Account, AccountNames } from "@/lib/Types";
 
 function AccountSelect({
   value,

@@ -1,4 +1,4 @@
-import { Tag, TagNames } from "../lib/Types";
+import { Tag, TagNames } from "@/lib/Types";
 
 function SelectableTag({
   value,

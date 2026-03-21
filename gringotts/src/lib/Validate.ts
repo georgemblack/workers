@@ -9,7 +9,7 @@ import {
   Rule,
   Tag,
   Transaction,
-} from "./Types";
+} from "@/lib/Types";
 
 export function validRule(rule: Rule): boolean {
   return (

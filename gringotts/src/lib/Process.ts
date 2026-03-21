@@ -8,13 +8,13 @@ import {
   AppleCardCreditRecord,
   C1CheckingRecord,
   AppleCardSavingsRecord,
-} from "./Types";
+} from "@/lib/Types";
 import {
   valid1CreditRecord,
   validAppleCardCreditRecord,
   validAppleCardSavingsRecord,
   validC1CheckingRecord,
-} from "./Validate";
+} from "@/lib/Validate";
 
 /**
  * Generate a unique identifier for a raw transaction by:

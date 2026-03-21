@@ -1,6 +1,7 @@
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+
 import { deleteRule, getRules } from "@/data/db";
 import { Category, CategoryNames } from "@/lib/Types";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/rules")({
   component: RulesPage,

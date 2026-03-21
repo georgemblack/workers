@@ -2,6 +2,7 @@
   "name": "mailman",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
     "dryrun": "wrangler deploy --dry-run",
@@ -10,8 +11,10 @@
     "format": "prettier . --write"
   },
   "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/node": "^25.5.0",
     "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "^5.5.2",
     "wrangler": "^4.76.0"
   },

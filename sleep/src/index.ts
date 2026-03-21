@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+
 import { api } from "./routes/api";
 import { pages } from "./routes/pages";
 

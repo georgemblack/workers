@@ -1,3 +1,6 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+
 import Currency from "@/components/Currency";
 import EmptyRow from "@/components/EmptyRow";
 import YearFilter from "@/components/YearFilter";
@@ -11,8 +14,6 @@ import {
   Category,
   MonthSummary,
 } from "@/lib/Types";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/summary")({
   component: SummaryPage,

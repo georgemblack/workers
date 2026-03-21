@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 
-import { process } from "../lib/Process";
+import { process } from "@/lib/Process";
 import {
   Account,
   Bool,
@@ -15,8 +15,8 @@ import {
   Summary,
   Transaction,
   getMonthNumber,
-} from "../lib/Types";
-import { validRule, validTransaction } from "../lib/Validate";
+} from "@/lib/Types";
+import { validRule, validTransaction } from "@/lib/Validate";
 
 export interface TransactionFilter {
   month?: number;

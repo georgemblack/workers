@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { Category, CategoryNames, getProperCategory } from "../lib/Types";
-import Autosuggest from "./Autosuggest";
+import Autosuggest from "@/components/Autosuggest";
+import { Category, CategoryNames, getProperCategory } from "@/lib/Types";
 
 function CategoryField({
   value,

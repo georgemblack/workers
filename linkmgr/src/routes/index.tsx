@@ -1,6 +1,7 @@
+import { Button } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useRouter } from "@tanstack/react-router";
-import { Button } from "@cloudflare/kumo";
+
 import { deleteLink, Link as LinkType, listLinks } from "@/data/db";
 
 export const Route = createFileRoute("/")({

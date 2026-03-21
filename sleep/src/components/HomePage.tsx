@@ -1,4 +1,5 @@
 import type { FC } from "hono/jsx";
+
 import type { SleepStats } from "../types";
 
 type HomePageProps = {

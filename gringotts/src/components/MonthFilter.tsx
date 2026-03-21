@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Month } from "../lib/Types";
+import { Month } from "@/lib/Types";
 
 function MonthFilter({
   value,

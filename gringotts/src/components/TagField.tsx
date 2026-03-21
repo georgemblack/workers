@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { Tag, TagNames, getProperTag } from "../lib/Types";
-import Autosuggest from "./Autosuggest";
+import Autosuggest from "@/components/Autosuggest";
+import { Tag, TagNames, getProperTag } from "@/lib/Types";
 
 function TagField({
   value,

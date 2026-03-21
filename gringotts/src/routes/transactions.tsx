@@ -1,3 +1,6 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+
 import Currency from "@/components/Currency";
 import MonthFilter from "@/components/MonthFilter";
 import TagFilter from "@/components/TagFilter";
@@ -16,8 +19,6 @@ import {
   Transaction,
   getMonthNumber as monthNumber,
 } from "@/lib/Types";
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/transactions")({
   component: TransactionsPage,

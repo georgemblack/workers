@@ -1,4 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
+
 import { SleepSample, SleepStats } from "../types";
 
 function toUTCString(isoString: string): string {
