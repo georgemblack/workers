@@ -24,6 +24,7 @@
     "vite-tsconfig-paths": "^6.1.1"
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.0",

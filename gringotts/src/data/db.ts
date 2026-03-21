@@ -200,7 +200,7 @@ export const getTransactions = createServerFn({ method: "GET" })
     let transactions = result.results.map(rowToTransaction);
 
     if (filter.tag) {
-      transactions = transactions.filter((t) => t.tags?.includes(filter.tag!));
+      transactions = transactions.filter((t: Transaction) => t.tags?.includes(filter.tag!));
     }
 
     return transactions;
@@ -311,20 +311,20 @@ export const getSummary = createServerFn({ method: "GET" })
       };
 
       const transactionsForMonth = transactions.filter(
-        (t) => t.month === getMonthNumber(month),
+        (t: Transaction) => t.month === getMonthNumber(month),
       );
 
       const income = transactionsForMonth
-        .filter((t) => Groups[t.category as Category] === Group.INCOME)
-        .reduce((acc, t) => acc + t.amount, 0);
+        .filter((t: Transaction) => Groups[t.category as Category] === Group.INCOME)
+        .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
 
       const spending = transactionsForMonth
-        .filter((t) =>
+        .filter((t: Transaction) =>
           [Group.ESSENTIAL, Group.ELECTIVE].includes(
             Groups[t.category as Category],
           ),
         )
-        .reduce((acc, t) => acc + t.amount, 0);
+        .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
 
       newItem.totals = {
         income,
@@ -332,10 +332,10 @@ export const getSummary = createServerFn({ method: "GET" })
         expected: income * 0.2,
       };
 
-      Object.values(Category).forEach((category) => {
+      Object.values(Category).forEach((category: Category) => {
         const total = transactionsForMonth
-          .filter((t) => t.category === category)
-          .reduce((acc, t) => acc + t.amount, 0);
+          .filter((t: Transaction) => t.category === category)
+          .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
         newItem.categories.push({ category, total });
       });
 

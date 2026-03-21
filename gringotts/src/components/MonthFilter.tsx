@@ -14,7 +14,7 @@ function MonthFilter({
   };
 
   const getOptions = () => {
-    let result: JSX.Element[] = [];
+    let result: React.JSX.Element[] = [];
 
     // Add "Any" option
     result.push(

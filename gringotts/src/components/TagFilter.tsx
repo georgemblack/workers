@@ -1,3 +1,5 @@
+import * as React from "react";
+
 import { Tag, TagNames } from "../lib/Types";
 
 function TagFilter({
@@ -12,7 +14,7 @@ function TagFilter({
   };
 
   const getOptions = () => {
-    let result: JSX.Element[] = [];
+    let result: React.JSX.Element[] = [];
 
     // Add "Any" option
     result.push(
