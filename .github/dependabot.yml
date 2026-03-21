@@ -40,3 +40,19 @@ updates:
       all-dependencies:
         patterns:
           - "*"
+  - package-ecosystem: "npm"
+    directory: "/gringotts"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "npm"
+    directory: "/goblin"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"
