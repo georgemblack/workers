@@ -1,7 +1,7 @@
-import { useState } from "react";
-
 import { getRule, saveRule, updateTransaction } from "@/data/db";
 import { AccountNames, Bool, Category, Tag, Transaction } from "@/lib/Types";
+import { useState } from "react";
+
 import Autosuggest from "./Autosuggest";
 import CategoryField from "./CategoryField";
 import Currency from "./Currency";

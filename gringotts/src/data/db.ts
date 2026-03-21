@@ -1,5 +1,5 @@
-import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
+import { env } from "cloudflare:workers";
 
 import { process } from "../lib/Process";
 import {
@@ -160,9 +160,7 @@ export const saveRule = createServerFn({ method: "POST" })
 export const deleteRule = createServerFn({ method: "POST" })
   .inputValidator((id: number) => id)
   .handler(async ({ data: id }): Promise<void> => {
-    await env.DB.prepare("DELETE FROM rules WHERE id = ?")
-      .bind(id)
-      .run();
+    await env.DB.prepare("DELETE FROM rules WHERE id = ?").bind(id).run();
   });
 
 // Transactions
@@ -243,9 +241,7 @@ export const importCSV = createServerFn({ method: "POST" })
 
     try {
       const stmts = processResult.transactions.map((tx) =>
-        env.DB.prepare(INSERT_TRANSACTION_SQL).bind(
-          ...bindTransaction(tx),
-        ),
+        env.DB.prepare(INSERT_TRANSACTION_SQL).bind(...bindTransaction(tx)),
       );
       await env.DB.batch(stmts);
     } catch (error) {

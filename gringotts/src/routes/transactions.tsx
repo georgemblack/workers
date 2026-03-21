@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-
 import Currency from "@/components/Currency";
 import MonthFilter from "@/components/MonthFilter";
 import TagFilter from "@/components/TagFilter";
@@ -19,6 +16,8 @@ import {
   Transaction,
   getMonthNumber as monthNumber,
 } from "@/lib/Types";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/transactions")({
   component: TransactionsPage,
@@ -85,9 +84,7 @@ function TransactionsPage() {
               <td>
                 <Currency amount={transaction.amount} />
               </td>
-              <td>
-                {transaction.merchant}
-              </td>
+              <td>{transaction.merchant}</td>
               <td>{CategoryNames[transaction.category as Category]}</td>
               <td>{AccountNames[transaction.account]}</td>
               <td>

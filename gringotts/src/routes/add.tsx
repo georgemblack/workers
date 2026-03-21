@@ -1,12 +1,11 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-
 import AccountSelect from "@/components/AccountSelect";
 import Autosuggest from "@/components/Autosuggest";
 import CategoryField from "@/components/CategoryField";
 import TagField from "@/components/TagField";
 import { getMerchants, saveTransaction } from "@/data/db";
 import { Account, Bool, Category, Tag } from "@/lib/Types";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 
 export const Route = createFileRoute("/add")({
   component: AddPage,

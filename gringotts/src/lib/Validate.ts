@@ -84,7 +84,7 @@ export function validC1CheckingRecord(record: C1CheckingRecord): boolean {
 }
 
 export function validAppleCardCreditRecord(
-  record: AppleCardCreditRecord
+  record: AppleCardCreditRecord,
 ): boolean {
   const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/; // MM/DD/YYYY
 
@@ -109,7 +109,7 @@ export function validAppleCardCreditRecord(
 }
 
 export function validAppleCardSavingsRecord(
-  record: AppleCardSavingsRecord
+  record: AppleCardSavingsRecord,
 ): boolean {
   const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/; // MM/DD/YYYY
 
