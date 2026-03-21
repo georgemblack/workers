@@ -76,27 +76,6 @@ function SummaryPage() {
     );
   };
 
-  const groupExpectedRow = (group: Group) => {
-    const columns: React.ReactNode[] = [];
-
-    Object.values(Month).forEach((month, i) => {
-      const item = summary.items.find((item) => item.month === month);
-      const value = item?.groups.find((g) => g.group === group);
-      columns.push(
-        <td key={i}>
-          <Currency amount={value?.expected || 0} />
-        </td>,
-      );
-    });
-
-    return (
-      <tr className="bg-gray-100">
-        <td>Expected</td>
-        {columns}
-      </tr>
-    );
-  };
-
   const totalRows = () => {
     const rowElements: React.ReactNode[] = [];
     const items: MonthSummary[] = [];
@@ -154,22 +133,6 @@ function SummaryPage() {
       </tr>,
     );
 
-    // Expected row
-    columns = [];
-    items.forEach((item, i) => {
-      columns.push(
-        <td key={i}>
-          <Currency amount={item.totals.expected} />
-        </td>,
-      );
-    });
-    rowElements.push(
-      <tr key="expected" className="bg-gray-100">
-        <td>Expected</td>
-        {columns}
-      </tr>,
-    );
-
     return rowElements;
   };
 
@@ -197,11 +160,9 @@ function SummaryPage() {
           <EmptyRow cols={13} />
           {rows(Group.ESSENTIAL)}
           {groupTotalRow(Group.ESSENTIAL)}
-          {groupExpectedRow(Group.ESSENTIAL)}
           <EmptyRow cols={13} />
           {rows(Group.ELECTIVE)}
           {groupTotalRow(Group.ELECTIVE)}
-          {groupExpectedRow(Group.ELECTIVE)}
           <EmptyRow cols={13} />
           {rows(Group.INVESTMENT)}
           {groupTotalRow(Group.INVESTMENT)}
