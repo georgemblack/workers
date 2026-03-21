@@ -27,7 +27,7 @@ export const Route = createFileRoute("/transactions")({
 function TransactionsPage() {
   const [tag, setTag] = useState<Tag | "Any">("Any");
   const [month, setMonth] = useState<Month | "Any">("Any");
-  const [year, setYear] = useState<number>(2025);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {

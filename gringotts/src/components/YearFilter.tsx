@@ -11,21 +11,17 @@ function YearFilter({
     onSelect(Number(event.target.value));
   };
 
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
+
   return (
     <div className="select">
       <select value={value} onChange={handleChange}>
-        <option key="2023" value={2023}>
-          2023
-        </option>
-        <option key="2024" value={2024}>
-          2024
-        </option>
-        <option key="2025" value={2025}>
-          2025
-        </option>
-        <option key="2026" value={2026}>
-          2026
-        </option>
+        {years.map((year) => (
+          <option key={year} value={year}>
+            {year}
+          </option>
+        ))}
       </select>
     </div>
   );

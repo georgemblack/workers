@@ -20,7 +20,7 @@ export const Route = createFileRoute("/summary")({
 });
 
 function SummaryPage() {
-  const [year, setYear] = useState<number>(2025);
+  const [year, setYear] = useState<number>(new Date().getFullYear());
   const [summary, setSummary] = useState<TransactionSummary>({ items: [] });
 
   const rows = (group: Group) => {
