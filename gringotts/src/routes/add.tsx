@@ -50,6 +50,7 @@ function AddPage() {
         notes: notes || null,
         skipped: Bool.FALSE,
         reviewed: Bool.TRUE,
+        merchantSuggestion: null,
       },
     });
     setStatusMessage(result.message);

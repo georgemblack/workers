@@ -42,6 +42,7 @@ interface TransactionRow {
   tags: string | null;
   skipped: number;
   reviewed: number;
+  merchant_suggestion: string | null;
 }
 
 interface RuleRow {
@@ -67,6 +68,7 @@ function rowToTransaction(row: TransactionRow): Transaction {
     tags: row.tags ? JSON.parse(row.tags) : null,
     skipped: row.skipped as Bool,
     reviewed: row.reviewed as Bool,
+    merchantSuggestion: row.merchant_suggestion,
   };
 }
 
@@ -103,10 +105,12 @@ function bindTransaction(tx: Transaction) {
 
 export const getMerchants = createServerFn({ method: "GET" }).handler(
   async (): Promise<string[]> => {
-    const result = await env.GRINGOTTS_DB.prepare(
+    const result = await env.DB.prepare(
       "SELECT DISTINCT merchant FROM transactions WHERE merchant IS NOT NULL ORDER BY merchant",
     ).all();
-    return result.results.map((row: Record<string, unknown>) => row.merchant as string);
+    return result.results.map(
+      (row: Record<string, unknown>) => row.merchant as string,
+    );
   },
 );
 
@@ -115,7 +119,7 @@ export const getMerchants = createServerFn({ method: "GET" }).handler(
 export const getRule = createServerFn({ method: "GET" })
   .inputValidator((merchant: string) => merchant)
   .handler(async ({ data: merchant }): Promise<Rule | null> => {
-    const result = await env.GRINGOTTS_DB.prepare(
+    const result = await env.DB.prepare(
       "SELECT * FROM rules WHERE merchant = ?",
     )
       .bind(merchant)
@@ -125,7 +129,7 @@ export const getRule = createServerFn({ method: "GET" })
 
 export const getRules = createServerFn({ method: "GET" }).handler(
   async (): Promise<Rule[]> => {
-    const result = await env.GRINGOTTS_DB.prepare(
+    const result = await env.DB.prepare(
       "SELECT * FROM rules ORDER BY merchant",
     ).all<RuleRow>();
     return result.results.map(rowToRule);
@@ -144,7 +148,7 @@ export const saveRule = createServerFn({ method: "POST" })
       return { success: false, message: "Error saving rule: invalid rule" };
     }
     try {
-      await env.GRINGOTTS_DB.prepare(
+      await env.DB.prepare(
         "INSERT INTO rules (merchant, category) VALUES (?, ?)",
       )
         .bind(rule.merchant, rule.category)
@@ -158,7 +162,7 @@ export const saveRule = createServerFn({ method: "POST" })
 export const deleteRule = createServerFn({ method: "POST" })
   .inputValidator((id: number) => id)
   .handler(async ({ data: id }): Promise<void> => {
-    await env.GRINGOTTS_DB.prepare("DELETE FROM rules WHERE id = ?")
+    await env.DB.prepare("DELETE FROM rules WHERE id = ?")
       .bind(id)
       .run();
   });
@@ -194,13 +198,15 @@ export const getTransactions = createServerFn({ method: "GET" })
     }
     sql += " ORDER BY month, day";
 
-    const result = await env.GRINGOTTS_DB.prepare(sql)
+    const result = await env.DB.prepare(sql)
       .bind(...params)
       .all<TransactionRow>();
     let transactions = result.results.map(rowToTransaction);
 
     if (filter.tag) {
-      transactions = transactions.filter((t: Transaction) => t.tags?.includes(filter.tag!));
+      transactions = transactions.filter((t: Transaction) =>
+        t.tags?.includes(filter.tag!),
+      );
     }
 
     return transactions;
@@ -216,7 +222,7 @@ export const saveTransaction = createServerFn({ method: "POST" })
       };
     }
     try {
-      await env.GRINGOTTS_DB.prepare(INSERT_TRANSACTION_SQL)
+      await env.DB.prepare(INSERT_TRANSACTION_SQL)
         .bind(...bindTransaction(tx))
         .run();
       return { success: true, message: "Saved transaction" };
@@ -239,15 +245,31 @@ export const importCSV = createServerFn({ method: "POST" })
 
     try {
       const stmts = processResult.transactions.map((tx) =>
-        env.GRINGOTTS_DB.prepare(INSERT_TRANSACTION_SQL).bind(
+        env.DB.prepare(INSERT_TRANSACTION_SQL).bind(
           ...bindTransaction(tx),
         ),
       );
-      await env.GRINGOTTS_DB.batch(stmts);
-      return `${processResult.message}; Saved ${processResult.transactions.length} transactions`;
+      await env.DB.batch(stmts);
     } catch (error) {
       return `${processResult.message}; Error saving transactions: ${error}`;
     }
+
+    // Queue merchant suggestion jobs for transactions missing a merchant
+    const toQueue = processResult.transactions.filter((tx) => !tx.merchant);
+    const BATCH_LIMIT = 100;
+    for (let i = 0; i < toQueue.length; i += BATCH_LIMIT) {
+      try {
+        await env.QUEUE.sendBatch(
+          toQueue.slice(i, i + BATCH_LIMIT).map((tx) => ({
+            body: { key: tx.key, description: tx.description },
+          })),
+        );
+      } catch (error) {
+        console.error(`Error queuing merchant suggestions: ${error}`);
+      }
+    }
+
+    return `${processResult.message}; Saved ${processResult.transactions.length} transactions`;
   });
 
 export const updateTransaction = createServerFn({ method: "POST" })
@@ -266,7 +288,7 @@ export const updateTransaction = createServerFn({ method: "POST" })
       };
     }
     try {
-      await env.GRINGOTTS_DB.prepare(
+      await env.DB.prepare(
         `UPDATE transactions SET key = ?, day = ?, month = ?, year = ?, amount = ?, credit = ?, merchant = ?, category = ?, account = ?, description = ?, notes = ?, tags = ?, skipped = ?, reviewed = ? WHERE id = ?`,
       )
         .bind(...bindTransaction(tx), tx.id)
@@ -283,7 +305,7 @@ export const updateTransaction = createServerFn({ method: "POST" })
 export const deleteTransaction = createServerFn({ method: "POST" })
   .inputValidator((id: number) => id)
   .handler(async ({ data: id }): Promise<void> => {
-    await env.GRINGOTTS_DB.prepare("DELETE FROM transactions WHERE id = ?")
+    await env.DB.prepare("DELETE FROM transactions WHERE id = ?")
       .bind(id)
       .run();
   });
@@ -293,7 +315,7 @@ export const deleteTransaction = createServerFn({ method: "POST" })
 export const getSummary = createServerFn({ method: "GET" })
   .inputValidator((year: number) => year)
   .handler(async ({ data: year }): Promise<Summary> => {
-    const dbResult = await env.GRINGOTTS_DB.prepare(
+    const dbResult = await env.DB.prepare(
       "SELECT * FROM transactions WHERE year = ?",
     )
       .bind(year)
@@ -315,7 +337,9 @@ export const getSummary = createServerFn({ method: "GET" })
       );
 
       const income = transactionsForMonth
-        .filter((t: Transaction) => Groups[t.category as Category] === Group.INCOME)
+        .filter(
+          (t: Transaction) => Groups[t.category as Category] === Group.INCOME,
+        )
         .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
 
       const spending = transactionsForMonth

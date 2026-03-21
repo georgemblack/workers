@@ -121,6 +121,7 @@ export function c1CreditRecordToTransaction(
     notes: null,
     skipped: Bool.FALSE,
     reviewed: Bool.FALSE,
+    merchantSuggestion: null,
   };
 }
 
@@ -164,6 +165,7 @@ export function c1CheckingRecordToTransaction(
     notes: null,
     skipped: Bool.FALSE,
     reviewed: Bool.FALSE,
+    merchantSuggestion: null,
   };
 }
 
@@ -207,6 +209,7 @@ export function appleCardCreditRecordToTransaction(
     notes: null,
     skipped: Bool.FALSE,
     reviewed: Bool.FALSE,
+    merchantSuggestion: null,
   };
 }
 
@@ -242,6 +245,7 @@ export function appleCardSavingsRecordToTransaction(
     notes: null,
     skipped: Bool.FALSE,
     reviewed: Bool.FALSE,
+    merchantSuggestion: null,
   };
 }
 
