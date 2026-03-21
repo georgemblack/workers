@@ -139,17 +139,9 @@ export function c1CheckingRecordToTransaction(
   record: C1CheckingRecord,
   account: Account
 ): Transaction {
-  // If amount is positive, it's a credit
   const credit =
-    record["Transaction Amount"].startsWith("-") === true
-      ? Bool.FALSE
-      : Bool.TRUE;
-
-  // Remove negative sign from amount if it's not a credit
-  const amount =
-    credit === Bool.TRUE
-      ? Number(record["Transaction Amount"])
-      : Number(record["Transaction Amount"].substring(1));
+    record["Transaction Type"] === "Credit" ? Bool.TRUE : Bool.FALSE;
+  const amount = Number(record["Transaction Amount"]);
 
   return {
     key: generateRecordId(record),
