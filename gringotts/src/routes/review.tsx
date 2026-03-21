@@ -2,22 +2,17 @@ import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import ReviewForm from "@/components/ReviewForm";
-import {
-  getMerchantCategories,
-  getMerchants,
-  getTransactions,
-} from "@/data/db";
+import { getMerchants, getTransactions } from "@/data/db";
 import { Transaction } from "@/lib/Types";
 
 export const Route = createFileRoute("/review")({
   component: ReviewPage,
   loader: async () => {
-    const [transactions, merchants, merchantCategories] = await Promise.all([
+    const [transactions, merchants] = await Promise.all([
       getTransactions({ data: { reviewed: false } }),
       getMerchants(),
-      getMerchantCategories(),
     ]);
-    return { transactions, merchants, merchantCategories };
+    return { transactions, merchants };
   },
 });
 
@@ -56,7 +51,6 @@ function ReviewPage() {
           <ReviewForm
             transaction={transaction}
             merchants={initialData.merchants}
-            merchantCategories={initialData.merchantCategories}
             onComplete={handleComplete}
           />
         </div>

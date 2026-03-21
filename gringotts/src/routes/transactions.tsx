@@ -86,7 +86,7 @@ function TransactionsPage() {
                 <Currency amount={transaction.amount} />
               </td>
               <td>
-                {transaction.merchant} &bull; {transaction.merchantCategory}
+                {transaction.merchant}
               </td>
               <td>{CategoryNames[transaction.category as Category]}</td>
               <td>{AccountNames[transaction.account]}</td>

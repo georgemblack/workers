@@ -5,32 +5,24 @@ import AccountSelect from "@/components/AccountSelect";
 import Autosuggest from "@/components/Autosuggest";
 import CategoryField from "@/components/CategoryField";
 import TagField from "@/components/TagField";
-import {
-  getMerchants,
-  getMerchantCategories,
-  saveTransaction,
-} from "@/data/db";
+import { getMerchants, saveTransaction } from "@/data/db";
 import { Account, Bool, Category, Tag } from "@/lib/Types";
 
 export const Route = createFileRoute("/add")({
   component: AddPage,
   loader: async () => {
-    const [merchants, merchantCategories] = await Promise.all([
-      getMerchants(),
-      getMerchantCategories(),
-    ]);
-    return { merchants, merchantCategories };
+    const merchants = await getMerchants();
+    return { merchants };
   },
 });
 
 function AddPage() {
-  const { merchants, merchantCategories } = Route.useLoaderData();
+  const { merchants } = Route.useLoaderData();
   const [statusMessage, setStatusMessage] = useState<string>("");
 
   const [amount, setAmount] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const [merchant, setMerchant] = useState<string>("");
-  const [merchantCategory, setMerchantCategory] = useState<string>("");
   const [category, setCategory] = useState<Category | null>(null);
   const [tag, setTag] = useState<Tag | null>(null);
   const [notes, setNotes] = useState<string>("");
@@ -40,7 +32,7 @@ function AddPage() {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (merchant === "" || merchantCategory === "" || category === null) return;
+    if (merchant === "" || category === null) return;
 
     const result = await saveTransaction({
       data: {
@@ -50,7 +42,6 @@ function AddPage() {
         year: Number(date.split("/")[2]),
         description: "Manually created",
         merchant,
-        merchantCategory,
         category,
         amount: Number(amount),
         credit: Bool.FALSE,
@@ -65,7 +56,6 @@ function AddPage() {
     setAmount("");
     setDate("");
     setMerchant("");
-    setMerchantCategory("");
     setCategory(null);
     setTag(null);
     setNotes("");
@@ -98,21 +88,14 @@ function AddPage() {
             />
           </div>
           <div className="flex-1">
-            <Autosuggest
-              value={merchantCategory}
-              suggestions={merchantCategories}
-              placeholder="Merchant Category"
-              onChange={setMerchantCategory}
-            />
+            <CategoryField value={category} onSelect={setCategory} />
           </div>
         </div>
         <div className="flex gap-2 mt-4">
           <div className="flex-1">
-            <CategoryField value={category} onSelect={setCategory} />
-          </div>
-          <div className="flex-1">
             <TagField value={tag} onSelect={setTag} />
           </div>
+          <div className="flex-1"></div>
         </div>
         <div className="flex gap-2 mt-4">
           <div className="flex-1">

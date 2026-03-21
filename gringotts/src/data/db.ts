@@ -35,7 +35,6 @@ interface TransactionRow {
   amount: number;
   credit: number;
   merchant: string | null;
-  merchant_category: string | null;
   category: string | null;
   account: string;
   description: string;
@@ -48,7 +47,6 @@ interface TransactionRow {
 interface RuleRow {
   id: number;
   merchant: string;
-  merchant_category: string;
   category: string;
 }
 
@@ -62,7 +60,6 @@ function rowToTransaction(row: TransactionRow): Transaction {
     amount: row.amount,
     credit: row.credit as Bool,
     merchant: row.merchant,
-    merchantCategory: row.merchant_category,
     category: row.category,
     account: row.account as Account,
     description: row.description,
@@ -77,12 +74,11 @@ function rowToRule(row: RuleRow): Rule {
   return {
     id: row.id,
     merchant: row.merchant,
-    merchantCategory: row.merchant_category,
     category: row.category,
   };
 }
 
-const INSERT_TRANSACTION_SQL = `INSERT INTO transactions (key, day, month, year, amount, credit, merchant, merchant_category, category, account, description, notes, tags, skipped, reviewed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+const INSERT_TRANSACTION_SQL = `INSERT INTO transactions (key, day, month, year, amount, credit, merchant, category, account, description, notes, tags, skipped, reviewed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
 function bindTransaction(tx: Transaction) {
   return [
@@ -93,7 +89,6 @@ function bindTransaction(tx: Transaction) {
     tx.amount,
     tx.credit,
     tx.merchant,
-    tx.merchantCategory,
     tx.category,
     tx.account,
     tx.description,
@@ -112,17 +107,6 @@ export const getMerchants = createServerFn({ method: "GET" }).handler(
       "SELECT DISTINCT merchant FROM transactions WHERE merchant IS NOT NULL ORDER BY merchant",
     ).all();
     return result.results.map((row: Record<string, unknown>) => row.merchant as string);
-  },
-);
-
-export const getMerchantCategories = createServerFn({ method: "GET" }).handler(
-  async (): Promise<string[]> => {
-    const result = await env.GRINGOTTS_DB.prepare(
-      "SELECT DISTINCT merchant_category FROM transactions WHERE merchant_category IS NOT NULL ORDER BY merchant_category",
-    ).all();
-    return result.results.map(
-      (row: Record<string, unknown>) => row.merchant_category as string,
-    );
   },
 );
 
@@ -149,12 +133,11 @@ export const getRules = createServerFn({ method: "GET" }).handler(
 );
 
 export const saveRule = createServerFn({ method: "POST" })
-  .inputValidator((rule: { merchant: string; merchantCategory: string; category: string }) => rule)
+  .inputValidator((rule: { merchant: string; category: string }) => rule)
   .handler(async ({ data: rule }): Promise<DBResult> => {
     if (
       !validRule({
         merchant: rule.merchant,
-        merchantCategory: rule.merchantCategory,
         category: rule.category,
       })
     ) {
@@ -162,9 +145,9 @@ export const saveRule = createServerFn({ method: "POST" })
     }
     try {
       await env.GRINGOTTS_DB.prepare(
-        "INSERT INTO rules (merchant, merchant_category, category) VALUES (?, ?, ?)",
+        "INSERT INTO rules (merchant, category) VALUES (?, ?)",
       )
-        .bind(rule.merchant, rule.merchantCategory, rule.category)
+        .bind(rule.merchant, rule.category)
         .run();
       return { success: true, message: "Saved rule" };
     } catch (error) {
@@ -284,7 +267,7 @@ export const updateTransaction = createServerFn({ method: "POST" })
     }
     try {
       await env.GRINGOTTS_DB.prepare(
-        `UPDATE transactions SET key = ?, day = ?, month = ?, year = ?, amount = ?, credit = ?, merchant = ?, merchant_category = ?, category = ?, account = ?, description = ?, notes = ?, tags = ?, skipped = ?, reviewed = ? WHERE id = ?`,
+        `UPDATE transactions SET key = ?, day = ?, month = ?, year = ?, amount = ?, credit = ?, merchant = ?, category = ?, account = ?, description = ?, notes = ?, tags = ?, skipped = ?, reviewed = ? WHERE id = ?`,
       )
         .bind(...bindTransaction(tx), tx.id)
         .run();

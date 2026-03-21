@@ -10,16 +10,13 @@ import TagField from "./TagField";
 function ReviewForm({
   transaction,
   merchants,
-  merchantCategories,
   onComplete,
 }: {
   transaction: Transaction;
   merchants: string[];
-  merchantCategories: string[];
   onComplete: (id: number) => void;
 }) {
   const [merchant, setMerchant] = useState<string>(transaction.merchant ?? "");
-  const [merchantCategory, setMerchantCategory] = useState<string>("");
   const [category, setCategory] = useState<Category | null>(null);
   const [notes, setNotes] = useState<string>(transaction.notes ?? "");
   const [tag, setTag] = useState<Tag | null>(null);
@@ -28,13 +25,12 @@ function ReviewForm({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (merchant === "" || merchantCategory === "" || category === null) return;
+    if (merchant === "" || category === null) return;
 
     await updateTransaction({
       data: {
         ...transaction,
         merchant: merchant || null,
-        merchantCategory: merchantCategory || null,
         category,
         notes: notes || null,
         tags: tag ? [tag] : null,
@@ -85,18 +81,9 @@ function ReviewForm({
 
                     const rule = await getRule({ data: merchant });
                     if (rule) {
-                      setMerchantCategory(rule.merchantCategory);
                       setCategory(rule.category as Category);
                     }
                   }}
-                />
-              </div>
-              <div className="flex-1">
-                <Autosuggest
-                  value={merchantCategory}
-                  suggestions={merchantCategories}
-                  placeholder="Merchant Category"
-                  onChange={setMerchantCategory}
                 />
               </div>
             </div>
@@ -124,16 +111,10 @@ function ReviewForm({
                 type="button"
                 className="button is-disabled"
                 onClick={async () => {
-                  if (
-                    merchant === "" ||
-                    merchantCategory === "" ||
-                    category === null
-                  )
-                    return;
+                  if (merchant === "" || category === null) return;
                   await saveRule({
                     data: {
                       merchant,
-                      merchantCategory,
                       category,
                     },
                   });

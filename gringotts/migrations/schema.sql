@@ -6,12 +6,11 @@ CREATE TABLE transactions (
   year INTEGER NOT NULL,
   amount REAL NOT NULL,
   credit INTEGER NOT NULL DEFAULT 0,
-  merchant TEXT NOT NULL DEFAULT '',
-  merchant_category TEXT NOT NULL DEFAULT '',
-  category TEXT NOT NULL DEFAULT '',
+  merchant TEXT,
+  category TEXT,
   account TEXT NOT NULL,
-  description TEXT NOT NULL DEFAULT '',
-  notes TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL,
+  notes TEXT,
   tags TEXT,
   skipped INTEGER NOT NULL DEFAULT 0,
   reviewed INTEGER NOT NULL DEFAULT 0
@@ -20,7 +19,6 @@ CREATE TABLE transactions (
 CREATE TABLE rules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   merchant TEXT UNIQUE NOT NULL,
-  merchant_category TEXT NOT NULL,
   category TEXT NOT NULL
 );
 

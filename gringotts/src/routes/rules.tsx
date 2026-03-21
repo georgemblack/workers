@@ -23,7 +23,6 @@ function RulesPage() {
         <thead>
           <tr>
             <th>Merchant</th>
-            <th>Merchant Category</th>
             <th>Category</th>
             <th></th>
           </tr>
@@ -32,7 +31,6 @@ function RulesPage() {
           {rules.map((rule) => (
             <tr key={rule.id}>
               <td>{rule.merchant}</td>
-              <td>{rule.merchantCategory}</td>
               <td>{CategoryNames[rule.category as Category]}</td>
               <td className="flex justify-end">
                 <span

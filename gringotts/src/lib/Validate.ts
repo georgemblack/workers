@@ -16,9 +16,6 @@ export function validRule(rule: Rule): boolean {
     rule.merchant !== null &&
     validStr(rule.merchant) &&
     rule.merchant !== "" &&
-    rule.merchantCategory !== null &&
-    validStr(rule.merchantCategory) &&
-    rule.merchantCategory !== "" &&
     rule.category !== null &&
     validStr(rule.category) &&
     rule.category !== "" &&
@@ -36,7 +33,6 @@ export function validTransaction(transaction: Transaction): boolean {
     validNum(transaction.amount) &&
     validBool(transaction.credit) &&
     validNullableStr(transaction.merchant) &&
-    validNullableStr(transaction.merchantCategory) &&
     validAccount(transaction.account) &&
     validStr(transaction.description) &&
     validNullableStr(transaction.notes) &&

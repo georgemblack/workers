@@ -175,7 +175,6 @@ export interface Transaction {
   amount: number;
   credit: Bool.FALSE | Bool.TRUE;
   merchant: string | null;
-  merchantCategory: string | null;
   category: string | null;
   account: Account;
   description: string;
@@ -188,7 +187,6 @@ export interface Transaction {
 export interface Rule {
   id?: number;
   merchant: string;
-  merchantCategory: string;
   category: string;
 }
 
