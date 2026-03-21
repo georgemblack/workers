@@ -12,7 +12,7 @@ function Autosuggest({
   const filtered = suggestions.filter((suggestion) => {
     return suggestion.toLowerCase().startsWith(value.toLowerCase());
   });
-  const consolidated = filtered.slice(0, 3);
+  const consolidated = filtered.slice(0, 5);
 
   return (
     <div>

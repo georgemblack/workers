@@ -42,7 +42,6 @@ interface TransactionRow {
   tags: string | null;
   skipped: number;
   reviewed: number;
-  merchant_suggestion: string | null;
 }
 
 interface RuleRow {
@@ -68,7 +67,6 @@ function rowToTransaction(row: TransactionRow): Transaction {
     tags: row.tags ? JSON.parse(row.tags) : null,
     skipped: row.skipped as Bool,
     reviewed: row.reviewed as Bool,
-    merchantSuggestion: row.merchant_suggestion,
   };
 }
 

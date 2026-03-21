@@ -7,6 +7,11 @@ interface AiResponse {
   response: string;
 }
 
+interface Rule {
+  merchant: string;
+  category: string;
+}
+
 async function getMerchantExamples(db: D1Database): Promise<string[]> {
   const result = await db
     .prepare(
@@ -19,6 +24,17 @@ async function getMerchantExamples(db: D1Database): Promise<string[]> {
     )
     .all<{ merchant: string }>();
   return result.results.map((row) => row.merchant);
+}
+
+async function getRules(db: D1Database): Promise<Map<string, string>> {
+  const result = await db
+    .prepare("SELECT merchant, category FROM rules")
+    .all<Rule>();
+  const map = new Map<string, string>();
+  for (const row of result.results) {
+    map.set(row.merchant, row.category);
+  }
+  return map;
 }
 
 function buildPrompt(description: string, examples: string[]): string {
@@ -35,6 +51,7 @@ Transaction description: ${description}`;
 export default {
   async queue(batch: MessageBatch, env: Env): Promise<void> {
     const examples = await getMerchantExamples(env.DB);
+    const rules = await getRules(env.DB);
 
     for (const message of batch.messages) {
       const { key, description } = message.body as QueueMessage;
@@ -53,10 +70,11 @@ export default {
           continue;
         }
 
+        const category = rules.get(merchantName) ?? null;
         await env.DB.prepare(
-          "UPDATE transactions SET merchant_suggestion = ? WHERE key = ?",
+          "UPDATE transactions SET merchant = ?, category = ? WHERE key = ?",
         )
-          .bind(merchantName, key)
+          .bind(merchantName, category, key)
           .run();
 
         message.ack();

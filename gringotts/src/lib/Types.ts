@@ -182,7 +182,6 @@ export interface Transaction {
   tags?: string[] | null;
   skipped: Bool.FALSE | Bool.TRUE;
   reviewed: Bool.FALSE | Bool.TRUE;
-  merchantSuggestion: string | null;
 }
 
 export interface Rule {

@@ -13,8 +13,7 @@ CREATE TABLE transactions (
   notes TEXT,
   tags TEXT,
   skipped INTEGER NOT NULL DEFAULT 0,
-  reviewed INTEGER NOT NULL DEFAULT 0,
-  merchant_suggestion TEXT
+  reviewed INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE rules (

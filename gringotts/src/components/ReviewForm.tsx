@@ -17,7 +17,9 @@ function ReviewForm({
   onComplete: (id: number) => void;
 }) {
   const [merchant, setMerchant] = useState<string>(transaction.merchant ?? "");
-  const [category, setCategory] = useState<Category | null>(null);
+  const [category, setCategory] = useState<Category | null>(
+    (transaction.category as Category) ?? null,
+  );
   const [notes, setNotes] = useState<string>(transaction.notes ?? "");
   const [tag, setTag] = useState<Tag | null>(null);
 
@@ -69,26 +71,6 @@ function ReviewForm({
               {transaction.description}, {AccountNames[transaction.account]}
             </p>
           </div>
-          {transaction.merchantSuggestion && !merchant && (
-            <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-              <span>Suggested: {transaction.merchantSuggestion}</span>
-              <button
-                type="button"
-                className="button is-small is-light"
-                onClick={async () => {
-                  setMerchant(transaction.merchantSuggestion!);
-                  const rule = await getRule({
-                    data: transaction.merchantSuggestion!,
-                  });
-                  if (rule) {
-                    setCategory(rule.category as Category);
-                  }
-                }}
-              >
-                Accept
-              </button>
-            </div>
-          )}
           <form className="mt-4" onSubmit={handleSubmit}>
             <div className="flex gap-2">
               <div className="flex-1">

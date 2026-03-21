@@ -1,19 +1,19 @@
 {
-	"name": "goblin",
-	"version": "0.0.0",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"deploy": "wrangler deploy",
-		"dryrun": "wrangler deploy --dry-run",
-		"typegen": "wrangler types",
-		"typecheck": "tsc --noEmit",
-		"format": "prettier . --write"
-	},
-	"devDependencies": {
-		"@types/node": "^25.5.0",
-		"prettier": "^3.8.1",
-		"typescript": "^5.5.2",
-		"wrangler": "^4.76.0"
-	}
+  "name": "goblin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dryrun": "wrangler deploy --dry-run",
+    "typegen": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier . --write"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.5.2",
+    "wrangler": "^4.76.0"
+  }
 }
