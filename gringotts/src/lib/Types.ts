@@ -129,12 +129,12 @@ export function getProperCategory(category: string): Category | null {
 
 export enum Tag {
   PICASSO = "PICASSO",
-  ICELAND = "ICELAND",
+  ARTHUR = "ARTHUR",
 }
 
 export const TagNames = {
   [Tag.PICASSO]: "Picasso",
-  [Tag.ICELAND]: "Iceland",
+  [Tag.ARTHUR]: "Arthur",
 };
 
 /**
