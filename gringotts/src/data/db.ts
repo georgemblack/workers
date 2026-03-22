@@ -227,6 +227,21 @@ export const saveTransaction = createServerFn({ method: "POST" })
     }
   });
 
+function buildMessage(
+  savedCount: number,
+  skippedCount: number,
+  processResult: { invalidCount: number; mergedCount: number },
+): string {
+  const parts: string[] = [];
+  parts.push(`Imported ${savedCount} transactions`);
+  if (skippedCount > 0) parts.push(`${skippedCount} duplicates skipped`);
+  if (processResult.mergedCount > 0)
+    parts.push(`${processResult.mergedCount} merged`);
+  if (processResult.invalidCount > 0)
+    parts.push(`${processResult.invalidCount} invalid`);
+  return parts.join(", ");
+}
+
 export const importCSV = createServerFn({ method: "POST" })
   .inputValidator((input: { csv: string; account: string }) => input)
   .handler(async ({ data: { csv, account } }): Promise<string> => {
@@ -236,21 +251,47 @@ export const importCSV = createServerFn({ method: "POST" })
       (t) => !validTransaction(t),
     );
     if (invalid.length > 0) {
-      return `${processResult.message}; Error: ${invalid.length} transactions are not valid`;
+      return `Error: ${invalid.length} transactions are not valid`;
+    }
+
+    // Filter out transactions whose keys already exist in the database
+    const allKeys = processResult.transactions.map((tx) => tx.key);
+    const existingKeys = new Set<string>();
+    const BATCH_LIMIT = 100;
+    for (let i = 0; i < allKeys.length; i += BATCH_LIMIT) {
+      const batch = allKeys.slice(i, i + BATCH_LIMIT);
+      const placeholders = batch.map(() => "?").join(", ");
+      const result = await env.DB.prepare(
+        `SELECT key FROM transactions WHERE key IN (${placeholders})`,
+      )
+        .bind(...batch)
+        .all<{ key: string }>();
+      for (const row of result.results) {
+        existingKeys.add(row.key);
+      }
+    }
+
+    const newTransactions = processResult.transactions.filter(
+      (tx) => !existingKeys.has(tx.key),
+    );
+    const skippedCount =
+      processResult.transactions.length - newTransactions.length;
+
+    if (newTransactions.length === 0) {
+      return buildMessage(0, skippedCount, processResult);
     }
 
     try {
-      const stmts = processResult.transactions.map((tx) =>
+      const stmts = newTransactions.map((tx) =>
         env.DB.prepare(INSERT_TRANSACTION_SQL).bind(...bindTransaction(tx)),
       );
       await env.DB.batch(stmts);
     } catch (error) {
-      return `${processResult.message}; Error saving transactions: ${error}`;
+      return `Error saving transactions: ${error}`;
     }
 
     // Queue merchant suggestion jobs for transactions missing a merchant
-    const toQueue = processResult.transactions.filter((tx) => !tx.merchant);
-    const BATCH_LIMIT = 100;
+    const toQueue = newTransactions.filter((tx) => !tx.merchant);
     for (let i = 0; i < toQueue.length; i += BATCH_LIMIT) {
       try {
         await env.QUEUE.sendBatch(
@@ -263,7 +304,7 @@ export const importCSV = createServerFn({ method: "POST" })
       }
     }
 
-    return `${processResult.message}; Saved ${processResult.transactions.length} transactions`;
+    return buildMessage(newTransactions.length, skippedCount, processResult);
   });
 
 export const updateTransaction = createServerFn({ method: "POST" })

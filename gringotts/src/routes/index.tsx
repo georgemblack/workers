@@ -27,6 +27,7 @@ function ImportPage() {
         value={csv}
         onChange={(e) => setCsv(e.target.value)}
         rows={12}
+        className="w-full"
       />
       <div className="mt-4 flex justify-between">
         <AccountSelect value={account} onSelect={setAccount} />

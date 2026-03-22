@@ -1,8 +1,10 @@
+import { Table } from "@cloudflare/kumo";
+
 function EmptyRow({ cols }: { cols: number }) {
   return (
-    <tr>
-      <td colSpan={cols}>-</td>
-    </tr>
+    <Table.Row>
+      <Table.Cell colSpan={cols}>-</Table.Cell>
+    </Table.Row>
   );
 }
 

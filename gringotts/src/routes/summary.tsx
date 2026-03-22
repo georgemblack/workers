@@ -1,3 +1,4 @@
+import { Table } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -35,17 +36,17 @@ function SummaryPage() {
         const item = summary.items.find((item) => item.month === month);
         const value = item?.categories.find((c) => c.category === category);
         columns.push(
-          <td key={i} className="p-1">
+          <Table.Cell key={i}>
             <Currency amount={value?.total || 0} />
-          </td>,
+          </Table.Cell>,
         );
       });
 
       return (
-        <tr key={category} className="border-b">
-          <td className="p-1">{CategoryNames[category]}</td>
+        <Table.Row key={category}>
+          <Table.Cell>{CategoryNames[category]}</Table.Cell>
           {columns}
-        </tr>
+        </Table.Row>
       );
     });
   };
@@ -69,10 +70,10 @@ function SummaryPage() {
     if (group === Group.INVESTMENT) classes = "font-bold bg-blue-100";
 
     return (
-      <tr className={classes}>
-        <td className="p-1">Total</td>
+      <Table.Row className={classes}>
+        <Table.Cell>Total</Table.Cell>
         {columns}
-      </tr>
+      </Table.Row>
     );
   };
 
@@ -89,48 +90,48 @@ function SummaryPage() {
     let columns: React.ReactNode[] = [];
     items.forEach((item, i) => {
       columns.push(
-        <td key={i} className="p-1">
+        <Table.Cell key={i}>
           <Currency amount={item.totals.income} />
-        </td>,
+        </Table.Cell>,
       );
     });
     rowElements.push(
-      <tr key="income" className="border-b">
-        <td className="p-1">Income</td>
+      <Table.Row key="income">
+        <Table.Cell>Income</Table.Cell>
         {columns}
-      </tr>,
+      </Table.Row>,
     );
 
     // Spending row
     columns = [];
     items.forEach((item, i) => {
       columns.push(
-        <td key={i} className="p-1">
+        <Table.Cell key={i}>
           <Currency amount={item.totals.spending} />
-        </td>,
+        </Table.Cell>,
       );
     });
     rowElements.push(
-      <tr key="spending" className="border-b">
-        <td className="p-1">Spending</td>
+      <Table.Row key="spending">
+        <Table.Cell>Spending</Table.Cell>
         {columns}
-      </tr>,
+      </Table.Row>,
     );
 
     // Take home row
     columns = [];
     items.forEach((item, i) => {
       columns.push(
-        <td key={i} className="p-1">
+        <Table.Cell key={i}>
           <Currency amount={item.totals.income - item.totals.spending} />
-        </td>,
+        </Table.Cell>,
       );
     });
     rowElements.push(
-      <tr key="takehome" className="bg-emerald-300 font-bold">
-        <td className="p-1">Take Home</td>
+      <Table.Row key="takehome" className="bg-emerald-300 font-bold">
+        <Table.Cell>Take Home</Table.Cell>
         {columns}
-      </tr>,
+      </Table.Row>,
     );
 
     return rowElements;
@@ -145,18 +146,16 @@ function SummaryPage() {
       <div className="flex justify-end gap-2">
         <YearFilter value={year} onSelect={setYear} />
       </div>
-      <table className="mt-4 w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b">
-            <th className="p-1"></th>
+      <Table className="mt-4">
+        <Table.Header>
+          <Table.Row>
+            <Table.Head></Table.Head>
             {Object.values(Month).map((month) => (
-              <th key={month} className="p-1 text-left">
-                {month}
-              </th>
+              <Table.Head key={month}>{month}</Table.Head>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {rows(Group.INCOME)}
           {groupTotalRow(Group.INCOME)}
           <EmptyRow cols={13} />
@@ -170,8 +169,8 @@ function SummaryPage() {
           {groupTotalRow(Group.INVESTMENT)}
           <EmptyRow cols={13} />
           {totalRows()}
-        </tbody>
-      </table>
+        </Table.Body>
+      </Table>
     </main>
   );
 }

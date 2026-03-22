@@ -38,9 +38,9 @@ function generateRecordId(record: any): string {
 export function process(
   csv: string,
   account: Account,
-): { transactions: Transaction[]; message: string } {
+): { transactions: Transaction[]; invalidCount: number; mergedCount: number } {
   let transactions: Transaction[] = [];
-  let message = "";
+  let invalidCount = 0;
 
   csv = csv.trim();
 
@@ -52,9 +52,7 @@ export function process(
   ) {
     const result = parse<C1CreditRecord>(csv, { header: true });
     const valid = result.data.filter(valid1CreditRecord);
-    message += `Discovered ${valid.length} records, ignoring ${
-      result.data.length - valid.length
-    }`;
+    invalidCount = result.data.length - valid.length;
     transactions = c1CreditRecordsToTransactions(valid, account);
   }
 
@@ -62,9 +60,7 @@ export function process(
   if (account === Account.CAPITAL_ONE_CHECKING) {
     const result = parse<C1CheckingRecord>(csv, { header: true });
     const valid = result.data.filter(validC1CheckingRecord);
-    message += `Discovered ${valid.length} records, ignoring ${
-      result.data.length - valid.length
-    }`;
+    invalidCount = result.data.length - valid.length;
     transactions = c1CheckingRecordsToTransactions(valid, account);
   }
 
@@ -72,9 +68,7 @@ export function process(
   if (account === Account.APPLE_CARD) {
     const result = parse<AppleCardCreditRecord>(csv, { header: true });
     const valid = result.data.filter(validAppleCardCreditRecord);
-    message += `Discovered ${valid.length} records, ignoring ${
-      result.data.length - valid.length
-    }`;
+    invalidCount = result.data.length - valid.length;
     transactions = appleCardCreditRecordsToTransactions(valid, account);
   }
 
@@ -82,18 +76,15 @@ export function process(
   if (account === Account.APPLE_SAVINGS) {
     const result = parse<AppleCardSavingsRecord>(csv, { header: true });
     const valid = result.data.filter(validAppleCardSavingsRecord);
-    message += `Discovered ${valid.length} records, ignoring ${
-      result.data.length - valid.length
-    }`;
+    invalidCount = result.data.length - valid.length;
     transactions = appleCardSavingsRecordsToTransactions(valid, account);
   }
 
   // Normalize transactions
   const result = normalizeTransactions(transactions);
   transactions = result.transactions;
-  message += `; ${result.message}`;
 
-  return { transactions, message };
+  return { transactions, invalidCount, mergedCount: result.mergedCount };
 }
 
 /**
@@ -252,7 +243,7 @@ export function appleCardSavingsRecordsToTransactions(
  */
 export function normalizeTransactions(transactions: Transaction[]): {
   transactions: Transaction[];
-  message: string;
+  mergedCount: number;
 } {
   let result = transactions.slice();
 
@@ -285,6 +276,6 @@ export function normalizeTransactions(transactions: Transaction[]): {
 
   return {
     transactions: result,
-    message: `Created ${duplicates.length} merged transactions`,
+    mergedCount: duplicates.length,
   };
 }

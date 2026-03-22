@@ -1,4 +1,4 @@
-import { Button } from "@cloudflare/kumo";
+import { Button, Table } from "@cloudflare/kumo";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 import { deleteRule, getRules } from "@/data/db";
@@ -20,37 +20,36 @@ function RulesPage() {
 
   return (
     <main className="page-standard-width">
-      <table className="mt-4 w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b">
-            <th className="p-2 text-left">Merchant</th>
-            <th className="p-2 text-left">Category</th>
-            <th className="p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table className="mt-4">
+        <Table.Header>
+          <Table.Row>
+            <Table.Head>Merchant</Table.Head>
+            <Table.Head>Category</Table.Head>
+            <Table.Head></Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {rules.map((rule) => (
-            <tr key={rule.id} className="border-b even:bg-gray-50">
-              <td className="p-2">{rule.merchant}</td>
-              <td className="p-2">
+            <Table.Row key={rule.id}>
+              <Table.Cell>{rule.merchant}</Table.Cell>
+              <Table.Cell>
                 {CategoryNames[rule.category as Category]}
-              </td>
-              <td className="flex justify-end p-2">
+              </Table.Cell>
+              <Table.Cell className="flex justify-end">
                 <Button
-                  variant="secondary-destructive"
-                  shape="square"
-                  aria-label="Delete rule"
+                  variant="destructive"
+                  size="xs"
                   onClick={() => {
                     if (rule.id) handleDelete(rule.id);
                   }}
                 >
-                  X
+                  Delete
                 </Button>
-              </td>
-            </tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </tbody>
-      </table>
+        </Table.Body>
+      </Table>
     </main>
   );
 }

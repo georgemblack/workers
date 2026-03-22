@@ -14,11 +14,12 @@ function Autosuggest({
   const filtered = suggestions.filter((suggestion) => {
     return suggestion.toLowerCase().startsWith(value.toLowerCase());
   });
-  const consolidated = filtered.slice(0, 5);
+  const consolidated = filtered.slice(0, 3);
 
   return (
     <div>
       <Input
+        className="w-full"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}

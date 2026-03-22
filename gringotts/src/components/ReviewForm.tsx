@@ -58,15 +58,15 @@ function ReviewForm({
   return (
     <Surface className="rounded-lg p-4">
       <div className="flex justify-between font-mono">
-        <p className="m-0">
+        <p>
           {transaction.month}/{transaction.day}/{transaction.year}
         </p>
-        <p className={transaction.credit ? "mt-0 bg-green-300" : "mt-0"}>
+        <p className={transaction.credit ? "bg-green-300" : ""}>
           <Currency amount={transaction.amount} />
         </p>
       </div>
       <div className="text-gray-400">
-        <p className="m-0">
+        <p>
           {transaction.description}, {AccountNames[transaction.account]}
         </p>
       </div>
@@ -87,26 +87,24 @@ function ReviewForm({
               }}
             />
           </div>
-        </div>
-        <div className="mt-4 flex gap-2">
           <div className="flex-1">
             <CategoryField value={category} onSelect={setCategory} />
           </div>
-          <div className="flex-1">
-            <TagField value={tag} onSelect={setTag} />
-          </div>
         </div>
         <div className="mt-4 flex gap-2">
           <div className="flex-1">
+            <TagField value={tag} onSelect={setTag} />
+          </div>
+          <div className="flex-1">
             <Input
+              className="w-full"
               placeholder="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-          <div className="flex-1"></div>
         </div>
-        <div className="mt-4 flex flex-1 justify-end gap-2">
+        <div className="mt-2 flex flex-1 justify-end gap-2">
           <Button
             type="button"
             variant="secondary"

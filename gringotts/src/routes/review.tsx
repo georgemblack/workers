@@ -37,13 +37,12 @@ function ReviewPage() {
     <main className="page-standard-width">
       <div className="flex items-center justify-end gap-1">
         <span>$</span>
-        <div className="max-w-28">
-          <Input
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="Amount"
-          />
-        </div>
+        <Input
+          className="w-20"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Amount"
+        />
       </div>
       {filtered.length === 0 && <p>No transactions to review</p>}
       {filtered.map((transaction) => (

@@ -96,19 +96,16 @@ function AddPage() {
           <div className="flex-1">
             <TagField value={tag} onSelect={setTag} />
           </div>
-          <div className="flex-1"></div>
-        </div>
-        <div className="mt-4 flex gap-2">
           <div className="flex-1">
             <Input
+              className="w-full"
               placeholder="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
-          <div className="flex-1"></div>
         </div>
-        <div className="mt-4 flex justify-between">
+        <div className="mt-2 flex justify-between">
           <AccountSelect value={account} onSelect={setAccount} />
           <Button type="submit" variant="primary">
             Save

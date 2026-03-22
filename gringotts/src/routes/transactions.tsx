@@ -1,4 +1,4 @@
-import { Button } from "@cloudflare/kumo";
+import { Button, Table } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -66,34 +66,34 @@ function TransactionsPage() {
         <MonthFilter value={month} onSelect={setMonth} />
         <YearFilter value={year} onSelect={setYear} />
       </div>
-      <table className="mt-4 w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b">
-            <th className="p-2 text-left">Date</th>
-            <th className="p-2 text-left">Amount</th>
-            <th className="p-2 text-left">Merchant</th>
-            <th className="p-2 text-left">Category</th>
-            <th className="p-2 text-left">Account</th>
-            <th className="p-2"></th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table className="mt-4">
+        <Table.Header>
+          <Table.Row>
+            <Table.Head>Date</Table.Head>
+            <Table.Head>Amount</Table.Head>
+            <Table.Head>Merchant</Table.Head>
+            <Table.Head>Category</Table.Head>
+            <Table.Head>Account</Table.Head>
+            <Table.Head></Table.Head>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
           {sorted.map((transaction) => (
-            <tr key={transaction.id} className="border-b even:bg-gray-50">
-              <td className="p-2">
+            <Table.Row key={transaction.id}>
+              <Table.Cell>
                 {transaction.month}/{transaction.day}/{transaction.year}
-              </td>
-              <td className="p-2">
+              </Table.Cell>
+              <Table.Cell>
                 <Currency amount={transaction.amount} />
-              </td>
-              <td className="p-2">{transaction.merchant}</td>
-              <td className="p-2">
+              </Table.Cell>
+              <Table.Cell>{transaction.merchant}</Table.Cell>
+              <Table.Cell>
                 {CategoryNames[transaction.category as Category]}
-              </td>
-              <td className="p-2">{AccountNames[transaction.account]}</td>
-              <td className="p-2">
+              </Table.Cell>
+              <Table.Cell>{AccountNames[transaction.account]}</Table.Cell>
+              <Table.Cell>
                 <Button
-                  variant="secondary-destructive"
+                  variant="destructive"
                   size="xs"
                   onClick={() => {
                     if (transaction.id) handleDelete(transaction.id);
@@ -101,11 +101,11 @@ function TransactionsPage() {
                 >
                   Delete
                 </Button>
-              </td>
-            </tr>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </tbody>
-      </table>
+        </Table.Body>
+      </Table>
     </main>
   );
 }
