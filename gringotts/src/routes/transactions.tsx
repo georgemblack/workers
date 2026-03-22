@@ -65,7 +65,7 @@ function TransactionsPage() {
         <MonthFilter value={month} onSelect={setMonth} />
         <YearFilter value={year} onSelect={setYear} />
       </div>
-      <table className="table w-full mt-4 is-striped is-narrow">
+      <table className="is-striped is-narrow mt-4 table w-full">
         <thead>
           <tr>
             <th>Date</th>

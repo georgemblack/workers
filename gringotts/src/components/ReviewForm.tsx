@@ -89,7 +89,7 @@ function ReviewForm({
                 />
               </div>
             </div>
-            <div className="flex gap-2 mt-4">
+            <div className="mt-4 flex gap-2">
               <div className="flex-1">
                 <CategoryField value={category} onSelect={setCategory} />
               </div>
@@ -97,7 +97,7 @@ function ReviewForm({
                 <TagField value={tag} onSelect={setTag} />
               </div>
             </div>
-            <div className="flex gap-2 mt-4">
+            <div className="mt-4 flex gap-2">
               <div className="flex-1">
                 <input
                   className="input"
@@ -108,7 +108,7 @@ function ReviewForm({
               </div>
               <div className="flex-1"></div>
             </div>
-            <div className="flex justify-end flex-1 gap-2 mt-4">
+            <div className="mt-4 flex flex-1 justify-end gap-2">
               <button
                 type="button"
                 className="button is-disabled"

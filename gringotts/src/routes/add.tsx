@@ -64,7 +64,7 @@ function AddPage() {
   return (
     <main className="page-standard-width">
       <form onSubmit={handleSubmit}>
-        <div className="flex gap-2 mt-4">
+        <div className="mt-4 flex gap-2">
           <input
             className="input"
             placeholder="Amount (i.e. 12.34)"
@@ -78,7 +78,7 @@ function AddPage() {
             onChange={(e) => setDate(e.target.value)}
           />
         </div>
-        <div className="flex gap-2 mt-4">
+        <div className="mt-4 flex gap-2">
           <div className="flex-1">
             <Autosuggest
               value={merchant}
@@ -91,13 +91,13 @@ function AddPage() {
             <CategoryField value={category} onSelect={setCategory} />
           </div>
         </div>
-        <div className="flex gap-2 mt-4">
+        <div className="mt-4 flex gap-2">
           <div className="flex-1">
             <TagField value={tag} onSelect={setTag} />
           </div>
           <div className="flex-1"></div>
         </div>
-        <div className="flex gap-2 mt-4">
+        <div className="mt-4 flex gap-2">
           <div className="flex-1">
             <input
               className="input"
@@ -108,7 +108,7 @@ function AddPage() {
           </div>
           <div className="flex-1"></div>
         </div>
-        <div className="flex justify-between mt-4">
+        <div className="mt-4 flex justify-between">
           <AccountSelect value={account} onSelect={setAccount} />
           <button type="submit" className="button is-primary">
             Save

@@ -60,7 +60,7 @@ function RootComponent() {
   return (
     <>
       <header>
-        <nav className="flex gap-4 standard-width">
+        <nav className="standard-width flex gap-4">
           <Link to="/">Import</Link>
           <Link to="/add">Add</Link>
           <Link to="/review">Review</Link>

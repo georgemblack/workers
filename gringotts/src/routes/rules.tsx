@@ -19,7 +19,7 @@ function RulesPage() {
 
   return (
     <main className="page-standard-width">
-      <table className="table w-full mt-4 is-striped is-narrow">
+      <table className="is-striped is-narrow mt-4 table w-full">
         <thead>
           <tr>
             <th>Merchant</th>

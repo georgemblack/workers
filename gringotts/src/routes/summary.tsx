@@ -127,7 +127,7 @@ function SummaryPage() {
       );
     });
     rowElements.push(
-      <tr key="takehome" className="font-bold bg-emerald-300">
+      <tr key="takehome" className="bg-emerald-300 font-bold">
         <td>Take Home</td>
         {columns}
       </tr>,
@@ -145,7 +145,7 @@ function SummaryPage() {
       <div className="flex justify-end gap-2">
         <YearFilter value={year} onSelect={setYear} />
       </div>
-      <table className="table w-full mt-4 is-narrow">
+      <table className="is-narrow mt-4 table w-full">
         <thead>
           <tr>
             <th></th>

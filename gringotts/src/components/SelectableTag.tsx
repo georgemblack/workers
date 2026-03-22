@@ -11,7 +11,7 @@ function SelectableTag({
 }) {
   return (
     <span
-      className="cursor-pointer tag is-info is-light"
+      className="tag is-info is-light cursor-pointer"
       onClick={() => {
         console.log("clicked: ", !value);
         onChange(!selected);

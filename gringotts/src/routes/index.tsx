@@ -25,9 +25,9 @@ function ImportPage() {
       <textarea
         value={csv}
         onChange={(e) => setCsv(e.target.value)}
-        className="h-64 textarea"
+        className="textarea h-64"
       />
-      <div className="flex justify-between mt-4">
+      <div className="mt-4 flex justify-between">
         <AccountSelect value={account} onSelect={setAccount} />
         <button onClick={handleSubmit} className="button">
           Submit

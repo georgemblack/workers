@@ -34,17 +34,17 @@ function LinksPage() {
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 min-w-0"
+              className="min-w-0 flex-1"
             >
-              <div className="font-semibold truncate">
+              <div className="truncate font-semibold">
                 {link.title || link.url}
               </div>
               {link.description && (
-                <div className="mt-1 text-sm opacity-70 line-clamp-2">
+                <div className="mt-1 line-clamp-2 text-sm opacity-70">
                   {link.description}
                 </div>
               )}
-              <div className="mt-1 text-xs opacity-50 truncate">{link.url}</div>
+              <div className="mt-1 truncate text-xs opacity-50">{link.url}</div>
             </a>
             <Button
               variant="secondary"
