@@ -12,6 +12,7 @@
     "format": "prettier . --write"
   },
   "dependencies": {
+    "@cloudflare/kumo": "^1.15.0",
     "@cloudflare/vite-plugin": "^1.30.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-router": "^1.168.1",

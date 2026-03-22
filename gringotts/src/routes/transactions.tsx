@@ -1,3 +1,4 @@
+import { Button } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -65,38 +66,42 @@ function TransactionsPage() {
         <MonthFilter value={month} onSelect={setMonth} />
         <YearFilter value={year} onSelect={setYear} />
       </div>
-      <table className="is-striped is-narrow mt-4 table w-full">
+      <table className="mt-4 w-full border-collapse text-sm">
         <thead>
-          <tr>
-            <th>Date</th>
-            <th>Amount</th>
-            <th>Merchant</th>
-            <th>Category</th>
-            <th>Account</th>
-            <th></th>
+          <tr className="border-b">
+            <th className="p-2 text-left">Date</th>
+            <th className="p-2 text-left">Amount</th>
+            <th className="p-2 text-left">Merchant</th>
+            <th className="p-2 text-left">Category</th>
+            <th className="p-2 text-left">Account</th>
+            <th className="p-2"></th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((transaction) => (
-            <tr key={transaction.id}>
-              <td>
+            <tr key={transaction.id} className="border-b even:bg-gray-50">
+              <td className="p-2">
                 {transaction.month}/{transaction.day}/{transaction.year}
               </td>
-              <td>
+              <td className="p-2">
                 <Currency amount={transaction.amount} />
               </td>
-              <td>{transaction.merchant}</td>
-              <td>{CategoryNames[transaction.category as Category]}</td>
-              <td>{AccountNames[transaction.account]}</td>
-              <td>
-                <span
-                  className="cursor-pointer"
+              <td className="p-2">{transaction.merchant}</td>
+              <td className="p-2">
+                {CategoryNames[transaction.category as Category]}
+              </td>
+              <td className="p-2">{AccountNames[transaction.account]}</td>
+              <td className="p-2">
+                <Button
+                  variant="secondary-destructive"
+                  shape="square"
+                  aria-label="Delete transaction"
                   onClick={() => {
                     if (transaction.id) handleDelete(transaction.id);
                   }}
                 >
                   X
-                </span>
+                </Button>
               </td>
             </tr>
           ))}

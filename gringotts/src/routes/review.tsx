@@ -1,3 +1,4 @@
+import { Input } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -37,12 +38,11 @@ function ReviewPage() {
       <div className="flex items-center justify-end gap-1">
         <span>$</span>
         <div className="max-w-28">
-          <input
+          <Input
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Amount"
-            className="input"
-          ></input>
+          />
         </div>
       </div>
       {filtered.length === 0 && <p>No transactions to review</p>}

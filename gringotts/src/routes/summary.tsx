@@ -35,15 +35,15 @@ function SummaryPage() {
         const item = summary.items.find((item) => item.month === month);
         const value = item?.categories.find((c) => c.category === category);
         columns.push(
-          <td key={i}>
+          <td key={i} className="p-1">
             <Currency amount={value?.total || 0} />
           </td>,
         );
       });
 
       return (
-        <tr key={category}>
-          <td>{CategoryNames[category]}</td>
+        <tr key={category} className="border-b">
+          <td className="p-1">{CategoryNames[category]}</td>
           {columns}
         </tr>
       );
@@ -57,7 +57,7 @@ function SummaryPage() {
       const item = summary.items.find((item) => item.month === month);
       const value = item?.groups.find((g) => g.group === group);
       columns.push(
-        <td key={i}>
+        <td key={i} className="p-1">
           <Currency amount={value?.total || 0} />
         </td>,
       );
@@ -70,7 +70,7 @@ function SummaryPage() {
 
     return (
       <tr className={classes}>
-        <td>Total</td>
+        <td className="p-1">Total</td>
         {columns}
       </tr>
     );
@@ -89,14 +89,14 @@ function SummaryPage() {
     let columns: React.ReactNode[] = [];
     items.forEach((item, i) => {
       columns.push(
-        <td key={i}>
+        <td key={i} className="p-1">
           <Currency amount={item.totals.income} />
         </td>,
       );
     });
     rowElements.push(
-      <tr key="income">
-        <td>Income</td>
+      <tr key="income" className="border-b">
+        <td className="p-1">Income</td>
         {columns}
       </tr>,
     );
@@ -105,14 +105,14 @@ function SummaryPage() {
     columns = [];
     items.forEach((item, i) => {
       columns.push(
-        <td key={i}>
+        <td key={i} className="p-1">
           <Currency amount={item.totals.spending} />
         </td>,
       );
     });
     rowElements.push(
-      <tr key="spending">
-        <td>Spending</td>
+      <tr key="spending" className="border-b">
+        <td className="p-1">Spending</td>
         {columns}
       </tr>,
     );
@@ -121,14 +121,14 @@ function SummaryPage() {
     columns = [];
     items.forEach((item, i) => {
       columns.push(
-        <td key={i}>
+        <td key={i} className="p-1">
           <Currency amount={item.totals.income - item.totals.spending} />
         </td>,
       );
     });
     rowElements.push(
       <tr key="takehome" className="bg-emerald-300 font-bold">
-        <td>Take Home</td>
+        <td className="p-1">Take Home</td>
         {columns}
       </tr>,
     );
@@ -145,12 +145,14 @@ function SummaryPage() {
       <div className="flex justify-end gap-2">
         <YearFilter value={year} onSelect={setYear} />
       </div>
-      <table className="is-narrow mt-4 table w-full">
+      <table className="mt-4 w-full border-collapse text-sm">
         <thead>
-          <tr>
-            <th></th>
+          <tr className="border-b">
+            <th className="p-1"></th>
             {Object.values(Month).map((month) => (
-              <th key={month}>{month}</th>
+              <th key={month} className="p-1 text-left">
+                {month}
+              </th>
             ))}
           </tr>
         </thead>

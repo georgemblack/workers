@@ -1,3 +1,5 @@
+import { Badge, Input } from "@cloudflare/kumo";
+
 function Autosuggest({
   value,
   suggestions,
@@ -16,8 +18,7 @@ function Autosuggest({
 
   return (
     <div>
-      <input
-        className="input"
+      <Input
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -30,10 +31,10 @@ function Autosuggest({
         {consolidated.map((suggestion) => (
           <span
             key={suggestion}
-            className="tag cursor-pointer"
+            className="cursor-pointer"
             onClick={() => onChange(suggestion)}
           >
-            {suggestion}
+            <Badge variant="outline">{suggestion}</Badge>
           </span>
         ))}
       </div>

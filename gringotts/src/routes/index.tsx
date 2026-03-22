@@ -1,3 +1,4 @@
+import { Button, InputArea } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -22,16 +23,14 @@ function ImportPage() {
 
   return (
     <main className="page-standard-width">
-      <textarea
+      <InputArea
         value={csv}
         onChange={(e) => setCsv(e.target.value)}
-        className="textarea h-64"
+        rows={12}
       />
       <div className="mt-4 flex justify-between">
         <AccountSelect value={account} onSelect={setAccount} />
-        <button onClick={handleSubmit} className="button">
-          Submit
-        </button>
+        <Button onClick={handleSubmit}>Submit</Button>
       </div>
       <div className="mt-2">{status && <p>{status}</p>}</div>
     </main>

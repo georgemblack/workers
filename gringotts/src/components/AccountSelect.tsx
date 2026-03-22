@@ -1,3 +1,5 @@
+import { Select } from "@cloudflare/kumo";
+
 import { Account, AccountNames } from "@/lib/Types";
 
 function AccountSelect({
@@ -7,22 +9,14 @@ function AccountSelect({
   value: Account;
   onSelect: (account: Account) => void;
 }) {
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onSelect(event.target.value as Account);
-  };
-
   return (
-    <div className="select">
-      <select value={value} onChange={handleChange}>
-        {Object.values(Account).map((account) => {
-          return (
-            <option key={account} value={account}>
-              {AccountNames[account]}
-            </option>
-          );
-        })}
-      </select>
-    </div>
+    <Select value={value} onValueChange={(v) => onSelect(v as Account)}>
+      {Object.values(Account).map((account) => (
+        <Select.Option key={account} value={account}>
+          {AccountNames[account]}
+        </Select.Option>
+      ))}
+    </Select>
   );
 }
 

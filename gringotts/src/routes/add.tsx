@@ -1,3 +1,4 @@
+import { Button, Input } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -65,14 +66,14 @@ function AddPage() {
     <main className="page-standard-width">
       <form onSubmit={handleSubmit}>
         <div className="mt-4 flex gap-2">
-          <input
-            className="input"
+          <Input
+            className="flex-1"
             placeholder="Amount (i.e. 12.34)"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
-          <input
-            className="input"
+          <Input
+            className="flex-1"
             placeholder="Date (i.e. 4/26/2024)"
             value={date}
             onChange={(e) => setDate(e.target.value)}
@@ -99,8 +100,7 @@ function AddPage() {
         </div>
         <div className="mt-4 flex gap-2">
           <div className="flex-1">
-            <input
-              className="input"
+            <Input
               placeholder="Notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -110,9 +110,9 @@ function AddPage() {
         </div>
         <div className="mt-4 flex justify-between">
           <AccountSelect value={account} onSelect={setAccount} />
-          <button type="submit" className="button is-primary">
+          <Button type="submit" variant="primary">
             Save
-          </button>
+          </Button>
         </div>
       </form>
       <div className="mt-2">{statusMessage && <p>{statusMessage}</p>}</div>

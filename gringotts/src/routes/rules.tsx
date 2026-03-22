@@ -1,3 +1,4 @@
+import { Button } from "@cloudflare/kumo";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 
 import { deleteRule, getRules } from "@/data/db";
@@ -19,28 +20,32 @@ function RulesPage() {
 
   return (
     <main className="page-standard-width">
-      <table className="is-striped is-narrow mt-4 table w-full">
+      <table className="mt-4 w-full border-collapse text-sm">
         <thead>
-          <tr>
-            <th>Merchant</th>
-            <th>Category</th>
-            <th></th>
+          <tr className="border-b">
+            <th className="p-2 text-left">Merchant</th>
+            <th className="p-2 text-left">Category</th>
+            <th className="p-2"></th>
           </tr>
         </thead>
         <tbody>
           {rules.map((rule) => (
-            <tr key={rule.id}>
-              <td>{rule.merchant}</td>
-              <td>{CategoryNames[rule.category as Category]}</td>
-              <td className="flex justify-end">
-                <span
-                  className="cursor-pointer"
+            <tr key={rule.id} className="border-b even:bg-gray-50">
+              <td className="p-2">{rule.merchant}</td>
+              <td className="p-2">
+                {CategoryNames[rule.category as Category]}
+              </td>
+              <td className="flex justify-end p-2">
+                <Button
+                  variant="secondary-destructive"
+                  shape="square"
+                  aria-label="Delete rule"
                   onClick={() => {
                     if (rule.id) handleDelete(rule.id);
                   }}
                 >
                   X
-                </span>
+                </Button>
               </td>
             </tr>
           ))}

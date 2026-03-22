@@ -1,29 +1,23 @@
-import * as React from "react";
+import { Select } from "@cloudflare/kumo";
 
 function YearFilter({
   value,
   onSelect,
 }: {
   value: number;
-  onSelect: (month: number) => void;
+  onSelect: (year: number) => void;
 }) {
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onSelect(Number(event.target.value));
-  };
-
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) => currentYear + i);
 
   return (
-    <div className="select">
-      <select value={value} onChange={handleChange}>
-        {years.map((year) => (
-          <option key={year} value={year}>
-            {year}
-          </option>
-        ))}
-      </select>
-    </div>
+    <Select value={String(value)} onValueChange={(v) => onSelect(Number(v))}>
+      {years.map((year) => (
+        <Select.Option key={year} value={String(year)}>
+          {year}
+        </Select.Option>
+      ))}
+    </Select>
   );
 }
 

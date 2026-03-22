@@ -1,3 +1,5 @@
+import { Badge } from "@cloudflare/kumo";
+
 import { Tag, TagNames } from "@/lib/Types";
 
 function SelectableTag({
@@ -10,14 +12,10 @@ function SelectableTag({
   onChange: (selected: boolean) => void;
 }) {
   return (
-    <span
-      className="tag is-info is-light cursor-pointer"
-      onClick={() => {
-        console.log("clicked: ", !value);
-        onChange(!selected);
-      }}
-    >
-      {selected ? `${TagNames[value]} ✔` : TagNames[value]}
+    <span className="cursor-pointer" onClick={() => onChange(!selected)}>
+      <Badge variant={selected ? "primary" : "outline"}>
+        {selected ? `${TagNames[value]} ✔` : TagNames[value]}
+      </Badge>
     </span>
   );
 }

@@ -1,4 +1,4 @@
-import * as React from "react";
+import { Select } from "@cloudflare/kumo";
 
 import { Tag, TagNames } from "@/lib/Types";
 
@@ -9,36 +9,18 @@ function TagFilter({
   value: Tag | "Any";
   onSelect: (tag: Tag | "Any") => void;
 }) {
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    onSelect(event.target.value as Tag | "Any");
-  };
-
-  const getOptions = () => {
-    let result: React.JSX.Element[] = [];
-
-    // Add "Any" option
-    result.push(
-      <option key="Any" value="Any">
-        Any
-      </option>,
-    );
-
-    // Add option for each tag
-    for (const [key, value] of Object.entries(Tag)) {
-      result.push(
-        <option key={key} value={value}>
-          {TagNames[value]}
-        </option>,
-      );
-    }
-    return result;
-  };
   return (
-    <div className="select">
-      <select value={value} onChange={handleChange}>
-        {getOptions()}
-      </select>
-    </div>
+    <Select
+      value={value as string}
+      onValueChange={(v) => onSelect(v as Tag | "Any")}
+    >
+      <Select.Option value="Any">Any</Select.Option>
+      {Object.values(Tag).map((tag) => (
+        <Select.Option key={tag} value={tag}>
+          {TagNames[tag]}
+        </Select.Option>
+      ))}
+    </Select>
   );
 }
 
