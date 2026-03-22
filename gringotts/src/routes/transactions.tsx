@@ -94,13 +94,12 @@ function TransactionsPage() {
               <td className="p-2">
                 <Button
                   variant="secondary-destructive"
-                  shape="square"
-                  aria-label="Delete transaction"
+                  size="xs"
                   onClick={() => {
                     if (transaction.id) handleDelete(transaction.id);
                   }}
                 >
-                  X
+                  Delete
                 </Button>
               </td>
             </tr>
