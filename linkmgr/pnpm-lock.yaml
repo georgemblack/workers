@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@cloudflare/kumo':
-        specifier: ^1.15.0
-        version: 1.15.0(@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(echarts@6.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: ^1.16.0
+        version: 1.16.0(@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(echarts@6.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@cloudflare/vite-plugin':
         specifier: ^1.30.0
         version: 1.30.0(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(tsx@4.21.0))(workerd@1.20260317.1)(wrangler@4.76.0)
@@ -193,8 +193,8 @@ packages:
       '@types/react':
         optional: true
 
-  '@cloudflare/kumo@1.15.0':
-    resolution: {integrity: sha512-cbdVMSkp+pzb6lo0vbDNVreICfzgwTN+T3GFfIivWd/vnYEVW/Ff2DE5Hhnfld9W/pddk+xmQ6bwa56tVk0uoA==}
+  '@cloudflare/kumo@1.16.0':
+    resolution: {integrity: sha512-uCrj7jGPvdXj8lrdQBfMGKzV3JTDi7hUBsLf4jpirD7QHvZMsGe6XuU+KKvQFqDTmj5ELXQVES4YVoducxZ7Tg==}
     hasBin: true
     peerDependencies:
       '@phosphor-icons/react': ^2.1.10
@@ -2391,7 +2391,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  '@cloudflare/kumo@1.15.0(@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(echarts@6.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@cloudflare/kumo@1.16.0(@phosphor-icons/react@2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(echarts@6.0.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@base-ui/react': 1.3.0(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@phosphor-icons/react': 2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
