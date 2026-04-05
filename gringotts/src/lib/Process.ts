@@ -209,7 +209,8 @@ export function appleCardSavingsRecordToTransaction(
   record: AppleCardSavingsRecord,
   account: Account,
 ): Transaction {
-  const credit = record["Activity Type"] === "Credit" ? Bool.TRUE : Bool.FALSE;
+  const credit =
+    record["Transaction Type"] === "Credit" ? Bool.TRUE : Bool.FALSE;
 
   return {
     key: generateRecordId(record),

@@ -9,7 +9,20 @@ const rules: ImportRule[] = [
   {
     match: (tx) =>
       tx.account === Account.APPLE_SAVINGS &&
-      tx.description === "Daily Cash Deposit",
+      tx.description === "Daily Cash Deposit" &&
+      tx.credit === Bool.TRUE,
+    apply: (tx) => ({
+      ...tx,
+      merchant: "Goldman Sachs",
+      category: Category.BANKING_REWARDS,
+      reviewed: Bool.TRUE,
+    }),
+  },
+  {
+    match: (tx) =>
+      tx.account === Account.APPLE_SAVINGS &&
+      tx.description === "Interest Paid" &&
+      tx.credit === Bool.TRUE,
     apply: (tx) => ({
       ...tx,
       merchant: "Goldman Sachs",
