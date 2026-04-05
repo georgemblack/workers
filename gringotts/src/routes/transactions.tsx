@@ -2,6 +2,7 @@ import { Button, Table } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import CategoryFilter from "@/components/CategoryFilter";
 import Currency from "@/components/Currency";
 import MonthFilter from "@/components/MonthFilter";
 import TagFilter from "@/components/TagFilter";
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/transactions")({
 
 function TransactionsPage() {
   const [tag, setTag] = useState<Tag | "Any">("Any");
+  const [category, setCategory] = useState<Category | "Any">("Any");
   const [month, setMonth] = useState<Month | "Any">("Any");
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -44,9 +46,12 @@ function TransactionsPage() {
     if (tag !== "Any") {
       query.tag = tag;
     }
+    if (category !== "Any") {
+      query.category = category;
+    }
 
     getTransactions({ data: query }).then(setTransactions);
-  }, [month, year, tag]);
+  }, [month, year, tag, category]);
 
   const handleDelete = async (id: number) => {
     await deleteTransaction({ data: id });
@@ -62,6 +67,7 @@ function TransactionsPage() {
   return (
     <main className="page-full-width">
       <div className="flex justify-end gap-2">
+        <CategoryFilter value={category} onSelect={setCategory} />
         <TagFilter value={tag} onSelect={setTag} />
         <MonthFilter value={month} onSelect={setMonth} />
         <YearFilter value={year} onSelect={setYear} />

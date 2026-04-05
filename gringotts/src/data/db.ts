@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
 
+import { applyImportRules } from "@/lib/ImportRules";
 import { process } from "@/lib/Process";
 import {
   Account,
@@ -22,6 +23,7 @@ export interface TransactionFilter {
   month?: number;
   year?: number;
   tag?: string;
+  category?: string;
   skipped?: boolean;
   reviewed?: boolean;
 }
@@ -187,6 +189,10 @@ export const getTransactions = createServerFn({ method: "GET" })
       conditions.push("reviewed = ?");
       params.push(filter.reviewed ? 1 : 0);
     }
+    if (filter.category !== undefined) {
+      conditions.push("category = ?");
+      params.push(filter.category);
+    }
 
     let sql = "SELECT * FROM transactions";
     if (conditions.length > 0) {
@@ -281,6 +287,9 @@ export const importCSV = createServerFn({ method: "POST" })
       return buildMessage(0, skippedCount, processResult);
     }
 
+    // Apply pre-import rules to auto-populate known transactions
+    const { unmatched } = applyImportRules(newTransactions);
+
     try {
       const stmts = newTransactions.map((tx) =>
         env.DB.prepare(INSERT_TRANSACTION_SQL).bind(...bindTransaction(tx)),
@@ -290,8 +299,8 @@ export const importCSV = createServerFn({ method: "POST" })
       return `Error saving transactions: ${error}`;
     }
 
-    // Queue merchant suggestion jobs for transactions missing a merchant
-    const toQueue = newTransactions.filter((tx) => !tx.merchant);
+    // Queue merchant suggestion jobs for unmatched transactions missing a merchant
+    const toQueue = unmatched.filter((tx) => !tx.merchant);
     for (let i = 0; i < toQueue.length; i += BATCH_LIMIT) {
       try {
         await env.QUEUE.sendBatch(
