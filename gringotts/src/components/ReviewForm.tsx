@@ -1,5 +1,5 @@
 import { Button, Input, Surface } from "@cloudflare/kumo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Autosuggest from "@/components/Autosuggest";
 import CategoryField from "@/components/CategoryField";
@@ -25,6 +25,16 @@ function ReviewForm({
   const [tag, setTag] = useState<Tag | null>(null);
 
   const [ruleCreated, setRuleCreated] = useState<boolean>(false);
+
+  // If the merchant is pre-populated but no category is set,
+  // look up the matching rule on mount to auto-fill the category.
+  useEffect(() => {
+    if (merchant && !category) {
+      getRule({ data: merchant }).then((rule) => {
+        if (rule) setCategory(rule.category as Category);
+      });
+    }
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
