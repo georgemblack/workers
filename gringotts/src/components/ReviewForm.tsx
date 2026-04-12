@@ -58,6 +58,8 @@ function ReviewForm({
     await updateTransaction({
       data: {
         ...transaction,
+        merchant: null,
+        category: null,
         skipped: Bool.TRUE,
         reviewed: Bool.TRUE,
       },

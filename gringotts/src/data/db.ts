@@ -360,7 +360,7 @@ export const getSummary = createServerFn({ method: "GET" })
   .inputValidator((year: number) => year)
   .handler(async ({ data: year }): Promise<Summary> => {
     const dbResult = await env.DB.prepare(
-      "SELECT * FROM transactions WHERE year = ?",
+      "SELECT * FROM transactions WHERE year = ? AND skipped = 0",
     )
       .bind(year)
       .all<TransactionRow>();
