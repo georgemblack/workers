@@ -1,63 +1,104 @@
-const MAILBOX_NAME = "Notifications";
+const NOTIFICATIONS_NAME = "Notifications";
+const TOKEN_TTL_SECONDS = 24 * 60 * 60;
 
-async function checkMailAndNotify(
-  env: CloudflareBindings,
-  now: Date,
-): Promise<string> {
+type JmapSession = {
+  accountId: string;
+  apiUrl: string;
+  headers: Record<string, string>;
+};
+
+async function jmapSession(env: CloudflareBindings): Promise<JmapSession> {
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${env.FASTMAIL_API_KEY}`,
   };
-
-  // Discover JMAP session
-  const sessionRes = await fetch("https://api.fastmail.com/jmap/session/", {
+  const res = await fetch("https://api.fastmail.com/jmap/session/", {
     headers,
   });
-  if (!sessionRes.ok)
-    throw new Error(`Session discovery failed: ${sessionRes.status}`);
-  const session = (await sessionRes.json()) as any;
-  const accountId = session.primaryAccounts["urn:ietf:params:jmap:mail"];
-  const apiUrl: string = session.apiUrl;
-
-  // Find mailbox by name
-  const mailboxRes = await fetch(apiUrl, {
-    method: "POST",
+  if (!res.ok) throw new Error(`Session discovery failed: ${res.status}`);
+  const session = (await res.json()) as any;
+  return {
+    accountId: session.primaryAccounts["urn:ietf:params:jmap:mail"],
+    apiUrl: session.apiUrl,
     headers,
+  };
+}
+
+async function getMailboxIds(
+  session: JmapSession,
+): Promise<{ inboxId: string; notificationsId: string }> {
+  const res = await fetch(session.apiUrl, {
+    method: "POST",
+    headers: session.headers,
     body: JSON.stringify({
       using: ["urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"],
       methodCalls: [
-        ["Mailbox/query", { accountId, filter: { name: MAILBOX_NAME } }, "0"],
+        [
+          "Mailbox/query",
+          { accountId: session.accountId, filter: { role: "inbox" } },
+          "0",
+        ],
+        [
+          "Mailbox/query",
+          {
+            accountId: session.accountId,
+            filter: { name: NOTIFICATIONS_NAME },
+          },
+          "1",
+        ],
+        [
+          "Mailbox/get",
+          {
+            accountId: session.accountId,
+            "#ids": { resultOf: "1", name: "Mailbox/query", path: "/ids" },
+            properties: ["id", "name"],
+          },
+          "2",
+        ],
       ],
     }),
   });
-  const mailboxData = (await mailboxRes.json()) as any;
-  const mailboxIds: string[] = mailboxData.methodResponses[0][1].ids;
-  if (!mailboxIds || mailboxIds.length === 0) {
-    const msg = `Mailbox "${MAILBOX_NAME}" not found`;
-    console.log(msg);
-    return msg;
-  }
-  const mailboxId = mailboxIds[0];
+  const data = (await res.json()) as any;
+  const inboxIds: string[] = data.methodResponses[0][1].ids;
+  const notifCandidates: { id: string; name: string }[] =
+    data.methodResponses[2][1].list ?? [];
+  if (!inboxIds?.length) throw new Error(`Mailbox with role=inbox not found`);
+  const notif = notifCandidates.find((m) => m.name === NOTIFICATIONS_NAME);
+  if (!notif) throw new Error(`Mailbox "${NOTIFICATIONS_NAME}" not found`);
+  return { inboxId: inboxIds[0], notificationsId: notif.id };
+}
 
-  // Query emails from last hour and fetch their details
-  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-  const emailRes = await fetch(apiUrl, {
+type FetchedEmail = {
+  id: string;
+  from: string;
+  subject: string;
+  body: string;
+};
+
+async function getUnreadInboxEmails(
+  session: JmapSession,
+  inboxId: string,
+): Promise<FetchedEmail[]> {
+  const res = await fetch(session.apiUrl, {
     method: "POST",
-    headers,
+    headers: session.headers,
     body: JSON.stringify({
       using: ["urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"],
       methodCalls: [
         [
           "Email/query",
-          { accountId, filter: { inMailbox: mailboxId, after: oneHourAgo } },
+          {
+            accountId: session.accountId,
+            filter: { inMailbox: inboxId, notKeyword: "$seen" },
+          },
           "0",
         ],
         [
           "Email/get",
           {
-            accountId,
+            accountId: session.accountId,
             "#ids": { resultOf: "0", name: "Email/query", path: "/ids" },
-            properties: ["subject", "from", "textBody", "bodyValues"],
+            properties: ["id", "subject", "from", "textBody", "bodyValues"],
             fetchTextBodyValues: true,
           },
           "1",
@@ -65,87 +106,193 @@ async function checkMailAndNotify(
       ],
     }),
   });
-  const emailData = (await emailRes.json()) as any;
-
-  const queryResult = emailData.methodResponses[0][1];
-  if (!queryResult.ids || queryResult.ids.length === 0) {
-    const msg = "No new emails in the last hour";
-    console.log(msg);
-    return msg;
-  }
-
-  const emails: any[] = emailData.methodResponses[1][1].list;
-  console.log(`Found ${emails.length} email(s) in the last hour`);
-  const results: string[] = [];
-
-  // Summarize and notify for each email
-  for (const email of emails) {
-    const from = email.from?.[0]?.name || email.from?.[0]?.email || "Unknown";
-    const subject = email.subject || "No subject";
+  const data = (await res.json()) as any;
+  const list: any[] = data.methodResponses[1][1].list ?? [];
+  return list.map((email) => {
     const bodyPartId = email.textBody?.[0]?.partId;
     const bodyText = bodyPartId
       ? email.bodyValues?.[bodyPartId]?.value || ""
       : "";
-    const truncatedBody = bodyText.substring(0, 2000);
+    return {
+      id: email.id,
+      from: email.from?.[0]?.name || email.from?.[0]?.email || "Unknown",
+      subject: email.subject || "No subject",
+      body: bodyText,
+    };
+  });
+}
 
-    const aiResponse = await env.AI.run("@cf/openai/gpt-oss-120b", {
-      instructions:
-        "Summarize the following email in one sentence, suitable for a push notification. For bank/credit card transactions, include the card name, amount, and merchant. For Amazon purchases, include the order status and item(s). Only output the summary, nothing else.",
-      input: `From: ${from}\nSubject: ${subject}\n\n${truncatedBody}`,
-    });
+function extractAiText(response: ResponsesOutput): string {
+  const direct = response.output_text?.trim();
+  if (direct) return direct;
+  return (
+    response.output
+      ?.filter((item: any) => item.type === "message")
+      .flatMap((item: any) => item.content)
+      .filter((c: any) => c.type === "output_text")
+      .map((c: any) => c.text)
+      .join("")
+      .trim() ?? ""
+  );
+}
 
-    const response = aiResponse as any;
-    const summary =
-      response.output_text?.trim() ||
-      response.output
-        ?.filter((item: any) => item.type === "message")
-        .flatMap((item: any) => item.content)
-        .filter((c: any) => c.type === "output_text")
-        .map((c: any) => c.text)
-        .join("")
-        .trim();
-    if (!summary) {
-      console.log(`Failed to summarize email: ${subject}`);
-      results.push(`FAILED: ${subject}`);
-      continue;
-    }
+type Classification = { is_notification: boolean; summary: string };
 
-    const notifRes = await fetch(env.NOTIFICATION_WEBHOOK_URL, {
-      method: "POST",
-      body: summary,
-    });
+async function classifyAndSummarize(
+  env: CloudflareBindings,
+  email: FetchedEmail,
+): Promise<Classification | null> {
+  const aiResponse = await env.AI.run("@cf/openai/gpt-oss-120b", {
+    instructions:
+      'You classify emails as "notification-style" (something the user does not need to act on immediately — bank alerts, credit card transactions, bills, receipts, order/shipping updates, newsletters, ads, marketing) vs "not notification-style" (personal mail, anything requiring a reply or action). Respond with a single JSON object, no prose, matching: {"is_notification": boolean, "summary": string}. The summary must be one sentence suitable for a push notification. For bank/credit card transactions include card name, amount, and merchant. For Amazon/shipping include order status and item(s). If is_notification is false, summary may be empty.',
+    input: `From: ${email.from}\nSubject: ${email.subject}\n\n${email.body.substring(0, 2000)}`,
+  });
 
-    if (!notifRes.ok) {
-      console.log(`Failed to send notification: ${notifRes.status}`);
-      results.push(`NOTIF FAILED: ${summary}`);
-    } else {
-      console.log(`Notification sent: ${summary}`);
-      results.push(`SENT: ${summary}`);
+  const text = extractAiText(aiResponse);
+  if (!text) return null;
+
+  const jsonStart = text.indexOf("{");
+  const jsonEnd = text.lastIndexOf("}");
+  if (jsonStart === -1 || jsonEnd === -1) return null;
+
+  try {
+    const parsed = JSON.parse(text.substring(jsonStart, jsonEnd + 1));
+    if (typeof parsed.is_notification !== "boolean") return null;
+    return {
+      is_notification: parsed.is_notification,
+      summary: typeof parsed.summary === "string" ? parsed.summary.trim() : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function setEmailMailbox(
+  session: JmapSession,
+  emailId: string,
+  mailboxId: string,
+): Promise<void> {
+  const update = {
+    mailboxIds: { [mailboxId]: true },
+    "keywords/$seen": true,
+  };
+  const res = await fetch(session.apiUrl, {
+    method: "POST",
+    headers: session.headers,
+    body: JSON.stringify({
+      using: ["urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"],
+      methodCalls: [
+        [
+          "Email/set",
+          {
+            accountId: session.accountId,
+            update: { [emailId]: update },
+          },
+          "0",
+        ],
+      ],
+    }),
+  });
+  if (!res.ok) throw new Error(`Email/set failed: ${res.status}`);
+  const data = (await res.json()) as any;
+  const notUpdated = data.methodResponses[0][1].notUpdated;
+  if (notUpdated && notUpdated[emailId]) {
+    throw new Error(
+      `Email/set notUpdated for ${emailId}: ${JSON.stringify(notUpdated[emailId])}`,
+    );
+  }
+}
+
+async function sendWebhook(
+  env: CloudflareBindings,
+  message: string,
+  openUrl: string,
+): Promise<boolean> {
+  const res = await fetch(env.NOTIFICATION_WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, open_url: openUrl }),
+  });
+  if (!res.ok) {
+    console.log(`Webhook failed: ${res.status}`);
+    return false;
+  }
+  return true;
+}
+
+async function processInbox(env: CloudflareBindings): Promise<void> {
+  const session = await jmapSession(env);
+  const { inboxId, notificationsId } = await getMailboxIds(session);
+  const emails = await getUnreadInboxEmails(session, inboxId);
+  console.log(`Found ${emails.length} unread email(s) in Inbox`);
+
+  for (const email of emails) {
+    try {
+      const classification = await classifyAndSummarize(env, email);
+      if (!classification) {
+        console.log(`Classification failed: ${email.subject}`);
+        continue;
+      }
+      if (!classification.is_notification) {
+        console.log(`Skipping (not notification): ${email.subject}`);
+        continue;
+      }
+      if (!classification.summary) {
+        console.log(`Empty summary: ${email.subject}`);
+        continue;
+      }
+
+      const token = crypto.randomUUID();
+      await env.TOKENS.put(token, email.id, {
+        expirationTtl: TOKEN_TTL_SECONDS,
+      });
+      const openUrl = `https://mailman.george.black/open/${token}`;
+
+      const sent = await sendWebhook(env, classification.summary, openUrl);
+      if (!sent) {
+        await env.TOKENS.delete(token);
+        continue;
+      }
+
+      await setEmailMailbox(session, email.id, notificationsId);
+      console.log(`Notified & moved: ${email.subject}`);
+    } catch (err) {
+      console.log(
+        `Error processing ${email.subject}: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
   }
+}
 
-  return results.join("\n");
+async function handleOpen(
+  env: CloudflareBindings,
+  token: string,
+): Promise<Response> {
+  const emailId = await env.TOKENS.get(token);
+  if (!emailId) return new Response("Not found", { status: 404 });
+
+  const session = await jmapSession(env);
+  const { inboxId } = await getMailboxIds(session);
+  await setEmailMailbox(session, emailId, inboxId);
+  await env.TOKENS.delete(token);
+  return new Response("ok");
 }
 
 export default {
   async fetch(req: Request, env: CloudflareBindings): Promise<Response> {
     const url = new URL(req.url);
-    const nowParam = url.searchParams.get("now");
-    const now = nowParam ? new Date(nowParam) : new Date();
-
-    if (isNaN(now.getTime())) {
-      return new Response("Invalid 'now' parameter", { status: 400 });
+    const match = url.pathname.match(/^\/open\/([^/]+)$/);
+    if (req.method === "GET" && match) {
+      return handleOpen(env, match[1]);
     }
-
-    const result = await checkMailAndNotify(env, now);
-    return new Response(result);
+    return new Response("Not found", { status: 404 });
   },
 
   async scheduled(
-    event: ScheduledController,
+    _event: ScheduledController,
     env: CloudflareBindings,
-    ctx: ExecutionContext,
+    _ctx: ExecutionContext,
   ): Promise<void> {
-    await checkMailAndNotify(env, new Date(event.scheduledTime));
+    await processInbox(env);
   },
 } satisfies ExportedHandler<CloudflareBindings>;

@@ -8,9 +8,13 @@
     "enabled": true,
   },
   "triggers": {
-    "crons": ["0 * * * *"],
+    "crons": ["*/20 * * * *"],
   },
+  "routes": [{ "pattern": "mailman.george.black", "custom_domain": true }],
   "ai": {
     "binding": "AI",
   },
+  "kv_namespaces": [
+    { "binding": "TOKENS", "id": "a4390dca991142368440bb8d4dd864f1" },
+  ],
 }
