@@ -8,7 +8,7 @@
     "deploy": "pnpm run build && wrangler deploy",
     "dryrun": "pnpm run build && wrangler deploy --dry-run",
     "typegen": "wrangler types",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "format": "prettier . --write"
   },
   "dependencies": {
@@ -31,10 +31,10 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.0",
+    "@typescript/native-preview": "beta",
     "@vitejs/plugin-react": "^6.0.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "typescript": "^6.0.3",
     "vite": "^8.0.8",
     "wrangler": "^4.83.0"
   },
