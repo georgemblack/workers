@@ -9,13 +9,13 @@
     "format": "prettier . --write"
   },
   "dependencies": {
-    "hono": "^4.12.14"
+    "hono": "^4.12.15"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@typescript/native-preview": "beta",
     "prettier": "3.8.3",
-    "wrangler": "^4.83.0"
+    "wrangler": "^4.85.0"
   },
   "volta": {
     "node": "24.14.0"
