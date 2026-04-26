@@ -1,0 +1,7 @@
+packages:
+  - 'goblin'
+  - 'gringotts'
+  - 'linkmgr'
+  - 'linkproc'
+  - 'mailman'
+  - 'peopledb'

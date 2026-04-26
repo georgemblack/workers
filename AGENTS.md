@@ -13,13 +13,22 @@ Each project has it's own `AGENTS.md` with unqiue instructions.
 
 ## Commands
 
-All projects use `pnpm`, and share the following commands (which should be run to make changes):
+All projects use `pnpm`, and share the following commands (which should be run to validate changes):
 
 * `pnpm run typecheck`
 * `pnpm run format`
 * `pnpm run dryrun`
 
 All projects deploy with `pnpm run deploy`, and Cloudflare types can be generated via `pnpm run typegen`.
+
+This repo uses pnpm workspaces. Use `-r` (recursive) to run a script in every package:
+
+```sh
+pnpm -r run typecheck
+pnpm -r run format
+pnpm -r run dryrun
+pnpm -r run deploy
+```
 
 ## Rules
 
