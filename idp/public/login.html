@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="center">
+      <div class="card">
+        <h1>Sign in</h1>
+        <p class="muted">Authenticate with your passkey to continue.</p>
+        <button id="login-btn">Sign in with passkey</button>
+        <div id="status" class="status"></div>
+        <p class="muted" style="margin-top: 1.5rem; font-size: 0.85rem">
+          No passkey yet? <a href="/register">Register one</a>.
+        </p>
+      </div>
+    </div>
+    <script type="module">
+      import { authenticate, showStatus, clearStatus } from "/webauthn.js";
+
+      const btn = document.getElementById("login-btn");
+      const status = document.getElementById("status");
+
+      const params = new URLSearchParams(location.search);
+      const rawNext = params.get("next");
+      // Only allow same-origin relative paths to prevent open-redirect phishing.
+      // Reject "//evil.com" and "/\evil.com" (protocol-relative) by requiring
+      // the second char to be neither "/" nor "\".
+      const next =
+        rawNext && /^\/[^/\\]/.test(rawNext) ? rawNext : "/admin";
+
+      async function preflight() {
+        const r = await fetch("/api/auth/state").then((r) => r.json());
+        if (r.authenticated) {
+          location.replace(next);
+          return;
+        }
+        if (!r.has_credential) {
+          showStatus(
+            status,
+            "No passkeys registered yet. Register one first.",
+            "error",
+          );
+          btn.disabled = true;
+        }
+      }
+
+      btn.addEventListener("click", async () => {
+        clearStatus(status);
+        btn.disabled = true;
+        try {
+          await authenticate();
+          showStatus(status, "Signed in. Redirecting…", "success");
+          location.replace(next);
+        } catch (e) {
+          showStatus(status, `Sign-in failed: ${e.message}`, "error");
+          btn.disabled = false;
+        }
+      });
+
+      preflight();
+    </script>
+  </body>
+</html>

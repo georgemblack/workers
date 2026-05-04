@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin · idp.george.black</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <nav>
+      <div class="brand">idp.george.black</div>
+      <div class="links">
+        <a href="/.well-known/openid-configuration" target="_blank"
+          >discovery</a
+        >
+        <a href="#" id="logout-link">sign out</a>
+      </div>
+    </nav>
+
+    <main>
+      <section>
+        <div class="toolbar">
+          <h2 style="margin: 0">OIDC Clients</h2>
+          <button
+            id="new-client-btn"
+            style="width: auto; padding: 0.4rem 0.8rem"
+          >
+            New client
+          </button>
+        </div>
+        <table id="clients-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>client_id</th>
+              <th>Redirect URIs</th>
+              <th>Auth method</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="clients-body"></tbody>
+        </table>
+
+        <div
+          id="new-client-form"
+          style="
+            display: none;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+          "
+        >
+          <h2 style="margin-top: 0">Register new client</h2>
+          <div class="field">
+            <label>Name</label>
+            <input id="client-name" type="text" placeholder="e.g. linkmgr" />
+          </div>
+          <div class="field">
+            <label>Redirect URIs (one per line)</label>
+            <textarea
+              id="client-redirects"
+              placeholder="https://example.com/auth/callback"
+            ></textarea>
+          </div>
+          <div class="field">
+            <label>Post-logout redirect URIs (one per line, optional)</label>
+            <textarea
+              id="client-logout-redirects"
+              placeholder="https://example.com/"
+            ></textarea>
+          </div>
+          <div class="field">
+            <label>Token endpoint auth method</label>
+            <select id="client-auth-method">
+              <option value="client_secret_basic">
+                client_secret_basic (confidential)
+              </option>
+              <option value="client_secret_post">client_secret_post</option>
+              <option value="none">none (public + PKCE)</option>
+            </select>
+          </div>
+          <div class="row">
+            <button id="save-client-btn" style="width: auto">Create</button>
+            <button
+              id="cancel-client-btn"
+              class="secondary"
+              style="width: auto"
+            >
+              Cancel
+            </button>
+          </div>
+          <div
+            id="new-client-result"
+            class="status"
+            style="margin-top: 1rem"
+          ></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="toolbar" style="margin-top: 2rem">
+          <h2 style="margin: 0">Passkeys</h2>
+          <button
+            id="add-passkey-btn"
+            style="width: auto; padding: 0.4rem 0.8rem"
+          >
+            Add passkey
+          </button>
+        </div>
+        <table id="creds-table">
+          <thead>
+            <tr>
+              <th>Label</th>
+              <th>Type</th>
+              <th>Created</th>
+              <th>Last used</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="creds-body"></tbody>
+        </table>
+      </section>
+
+      <div id="status" class="status"></div>
+    </main>
+
+    <script type="module">
+      import { register, logout, showStatus, clearStatus } from "/webauthn.js";
+
+      const status = document.getElementById("status");
+
+      async function requireAuth() {
+        const r = await fetch("/api/auth/state").then((r) => r.json());
+        if (!r.authenticated) {
+          location.replace("/login?next=/admin");
+          throw new Error("not authenticated");
+        }
+      }
+
+      async function loadClients() {
+        const r = await fetch("/api/admin/clients").then((r) => r.json());
+        const tbody = document.getElementById("clients-body");
+        tbody.innerHTML = "";
+        for (const c of r.clients) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escape(c.name)}</td>
+            <td><code>${escape(c.client_id)}</code></td>
+            <td>${c.redirect_uris.map((u) => `<div><code>${escape(u)}</code></div>`).join("")}</td>
+            <td>${escape(c.token_endpoint_auth_method)}</td>
+            <td><button class="danger" data-id="${escape(c.client_id)}">Delete</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        tbody.querySelectorAll("button.danger").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            if (!confirm(`Delete client ${btn.dataset.id}?`)) return;
+            await fetch(`/api/admin/clients/${btn.dataset.id}`, {
+              method: "DELETE",
+            });
+            await loadClients();
+          });
+        });
+      }
+
+      async function loadCredentials() {
+        const r = await fetch("/api/credentials").then((r) => r.json());
+        const tbody = document.getElementById("creds-body");
+        tbody.innerHTML = "";
+        for (const c of r.credentials) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escape(c.label || "(unlabeled)")}</td>
+            <td>${escape(c.device_type)}${c.backed_up ? " · synced" : ""}</td>
+            <td>${escape(c.created_at)}</td>
+            <td>${escape(c.last_used_at || "—")}</td>
+            <td><button class="danger" data-id="${escape(c.credential_id)}">Delete</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
+        tbody.querySelectorAll("button.danger").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            if (!confirm("Delete this passkey?")) return;
+            const resp = await fetch(
+              `/api/credentials/${encodeURIComponent(btn.dataset.id)}`,
+              { method: "DELETE" },
+            );
+            if (!resp.ok) {
+              const err = await resp.json();
+              showStatus(status, `Delete failed: ${err.error}`, "error");
+              return;
+            }
+            await loadCredentials();
+          });
+        });
+      }
+
+      function escape(s) {
+        return String(s ?? "").replace(
+          /[&<>"']/g,
+          (ch) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[ch],
+        );
+      }
+
+      // Wire up "new client" form
+      const newClientForm = document.getElementById("new-client-form");
+      document
+        .getElementById("new-client-btn")
+        .addEventListener("click", () => {
+          newClientForm.style.display = "block";
+        });
+      document
+        .getElementById("cancel-client-btn")
+        .addEventListener("click", () => {
+          newClientForm.style.display = "none";
+        });
+      document
+        .getElementById("save-client-btn")
+        .addEventListener("click", async () => {
+          const name = document.getElementById("client-name").value.trim();
+          const redirects = document
+            .getElementById("client-redirects")
+            .value.split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const logoutRedirects = document
+            .getElementById("client-logout-redirects")
+            .value.split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const method = document.getElementById("client-auth-method").value;
+
+          const resultEl = document.getElementById("new-client-result");
+          resultEl.className = "status";
+          if (!name || redirects.length === 0) {
+            showStatus(
+              resultEl,
+              "Name and at least one redirect URI required.",
+              "error",
+            );
+            return;
+          }
+          const resp = await fetch("/api/admin/clients", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              name,
+              redirect_uris: redirects,
+              post_logout_redirect_uris: logoutRedirects,
+              token_endpoint_auth_method: method,
+            }),
+          });
+          const body = await resp.json();
+          if (!resp.ok) {
+            showStatus(resultEl, body.error || "create failed", "error");
+            return;
+          }
+          let html = `Client created.<br>client_id: <code>${escape(body.client_id)}</code>`;
+          if (body.client_secret) {
+            html += `<br>client_secret: <code>${escape(body.client_secret)}</code><br><strong>Save this — it will not be shown again.</strong>`;
+          }
+          resultEl.innerHTML = html;
+          resultEl.className = "status show success";
+          await loadClients();
+        });
+
+      // Add passkey
+      document
+        .getElementById("add-passkey-btn")
+        .addEventListener("click", async () => {
+          const label = prompt("Label for the new passkey?") || undefined;
+          try {
+            await register({ label });
+            await loadCredentials();
+            showStatus(status, "Passkey added.", "success");
+          } catch (e) {
+            showStatus(status, `Failed: ${e.message}`, "error");
+          }
+        });
+
+      // Logout
+      document
+        .getElementById("logout-link")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          await logout();
+          location.replace("/login");
+        });
+
+      (async () => {
+        await requireAuth();
+        await loadClients();
+        await loadCredentials();
+      })();
+    </script>
+  </body>
+</html>

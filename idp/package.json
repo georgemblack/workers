@@ -1,0 +1,26 @@
+{
+  "name": "idp",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "dryrun": "wrangler deploy --dry-run",
+    "typecheck": "tsc --noEmit",
+    "typegen": "wrangler types --env-interface CloudflareBindings",
+    "format": "prettier . --write",
+    "db:migrate:local": "wrangler d1 migrations apply idp --local",
+    "db:migrate": "wrangler d1 migrations apply idp --remote",
+    "keygen": "node scripts/keygen.mjs"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.2.2",
+    "hono": "^4.12.16",
+    "jose": "^6.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.87.0"
+  }
+}

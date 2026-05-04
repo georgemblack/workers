@@ -1,6 +1,7 @@
 packages:
   - 'goblin'
   - 'gringotts'
+  - 'idp'
   - 'linkmgr'
   - 'linkproc'
   - 'mailman'

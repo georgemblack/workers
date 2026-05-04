@@ -1,0 +1,54 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "idp",
+	"main": "src/index.ts",
+	"account_id": "bc4564dd499c0a9b8a7bb79c9bd5ea6d",
+	"compatibility_date": "2026-05-03",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./public",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "none",
+	},
+	"observability": {
+		"enabled": true,
+	},
+	"upload_source_maps": true,
+	"vars": {
+		"ISSUER": "https://idp.george.black",
+		"RP_ID": "idp.george.black",
+		"RP_NAME": "George Black IdP",
+		"USER_HANDLE": "george",
+		"USER_NAME": "george",
+		"USER_DISPLAY_NAME": "George Black",
+		"SESSION_TTL_SECONDS": "43200",
+		"AUTH_CODE_TTL_SECONDS": "60",
+		"ACCESS_TOKEN_TTL_SECONDS": "3600",
+		"REFRESH_TOKEN_TTL_SECONDS": "2592000",
+		"ID_TOKEN_TTL_SECONDS": "3600",
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "idp",
+			"database_id": "8bd2f6a9-bf22-4d19-aba5-a387aa9d3407",
+			"migrations_dir": "./migrations",
+		}
+	],
+	"routes": [
+		{
+			"pattern": "idp.george.black",
+			"custom_domain": true,
+		},
+	],
+	/**
+   * Secrets (set via `wrangler secret put`):
+   *  - SIGNING_JWK         JSON of the ES256 private key (JWK)
+   *  - BOOTSTRAP_SECRET    One-time secret allowing initial passkey enrollment
+   *  - SESSION_SECRET      HMAC key for signing session cookies
+   *  - USER_EMAIL          Email address returned in the `email` claim
+   */
+}

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register passkey</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="center">
+      <div class="card">
+        <h1>Register a passkey</h1>
+        <p class="muted">
+          Use a hardware key, password manager, or device biometric to enroll a
+          passkey for this identity.
+        </p>
+
+        <div id="bootstrap-block" style="display: none">
+          <div class="field">
+            <label for="bootstrap">Bootstrap secret</label>
+            <input
+              id="bootstrap"
+              type="password"
+              autocomplete="off"
+              placeholder="Required for first registration"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="label">Label (optional)</label>
+          <input id="label" type="text" placeholder="e.g. MacBook Touch ID" />
+        </div>
+
+        <button id="register-btn">Register passkey</button>
+        <div id="status" class="status"></div>
+
+        <p class="muted" style="margin-top: 1.5rem; font-size: 0.85rem">
+          <a href="/login">Back to sign in</a>
+        </p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { register, showStatus, clearStatus } from "/webauthn.js";
+
+      const btn = document.getElementById("register-btn");
+      const status = document.getElementById("status");
+      const labelInput = document.getElementById("label");
+      const bootstrapInput = document.getElementById("bootstrap");
+      const bootstrapBlock = document.getElementById("bootstrap-block");
+
+      async function preflight() {
+        const r = await fetch("/api/auth/state").then((r) => r.json());
+        if (!r.has_credential) {
+          bootstrapBlock.style.display = "block";
+        } else if (!r.authenticated) {
+          showStatus(
+            status,
+            "A passkey already exists. Sign in first to add another.",
+            "error",
+          );
+          btn.disabled = true;
+        }
+      }
+
+      btn.addEventListener("click", async () => {
+        clearStatus(status);
+        btn.disabled = true;
+        try {
+          const opts = {};
+          if (bootstrapInput.value) opts.bootstrapSecret = bootstrapInput.value;
+          if (labelInput.value) opts.label = labelInput.value;
+          await register(opts);
+          showStatus(status, "Passkey registered. Redirecting…", "success");
+          setTimeout(() => (location.href = "/admin"), 800);
+        } catch (e) {
+          showStatus(status, `Registration failed: ${e.message}`, "error");
+          btn.disabled = false;
+        }
+      });
+
+      preflight();
+    </script>
+  </body>
+</html>
