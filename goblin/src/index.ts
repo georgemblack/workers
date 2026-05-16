@@ -3,10 +3,6 @@ interface QueueMessage {
   description: string;
 }
 
-interface AiResponse {
-  response: string;
-}
-
 interface Rule {
   merchant: string;
   category: string;
@@ -58,12 +54,12 @@ export default {
       const prompt = buildPrompt(description, examples);
 
       try {
-        const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fp8", {
+        const result = await env.AI.run("@cf/zai-org/glm-4.7-flash", {
           messages: [{ role: "user", content: prompt }],
           max_tokens: 64,
         });
 
-        const merchantName = (result as AiResponse).response?.trim();
+        const merchantName = result.choices[0]?.message.content?.trim();
         if (!merchantName) {
           console.error(`Empty AI response for transaction ${key}`);
           message.ack();
