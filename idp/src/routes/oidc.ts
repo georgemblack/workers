@@ -43,7 +43,13 @@ oidc.get("/.well-known/openid-configuration", async (c) => {
     grant_types_supported: ["authorization_code", "refresh_token"],
     subject_types_supported: ["public"],
     id_token_signing_alg_values_supported: ["ES256"],
-    scopes_supported: ["openid", "profile", "email", "offline_access"],
+    scopes_supported: [
+      "openid",
+      "profile",
+      "email",
+      "groups",
+      "offline_access",
+    ],
     token_endpoint_auth_methods_supported: [
       "client_secret_basic",
       "client_secret_post",
@@ -60,8 +66,16 @@ oidc.get("/.well-known/openid-configuration", async (c) => {
       "auth_time",
       "nonce",
       "name",
+      "given_name",
+      "middle_name",
+      "family_name",
       "preferred_username",
+      "locale",
+      "zoneinfo",
+      "website",
       "email",
+      "email_verified",
+      "groups",
     ],
   });
 });
@@ -404,11 +418,20 @@ function claimsForScope(
   const out: Record<string, unknown> = {};
   if (scopes.has("profile")) {
     out.name = env.USER_DISPLAY_NAME;
+    out.given_name = "George";
+    out.middle_name = "Matthew";
+    out.family_name = "Black";
     out.preferred_username = env.USER_NAME;
+    out.locale = "en-US";
+    out.zoneinfo = "America/Chicago";
+    out.website = "https://george.black";
   }
   if (scopes.has("email")) {
     out.email = env.USER_EMAIL;
     out.email_verified = true;
+  }
+  if (scopes.has("groups")) {
+    out.groups = ["MacMiniOwners", "CloudflareEmployees", "PorterRobinsonFans"];
   }
   return out;
 }
@@ -474,11 +497,9 @@ oidc.get("/logout", async (c) => {
       const key = await loadSigningKey(c.env);
       let claims: Record<string, unknown>;
       try {
-        ({ payload: claims } = await jwtVerify(
-          id_token_hint,
-          key.publicKey,
-          { issuer: c.env.ISSUER },
-        ));
+        ({ payload: claims } = await jwtVerify(id_token_hint, key.publicKey, {
+          issuer: c.env.ISSUER,
+        }));
       } catch (e) {
         // ID token hints are by definition stale — accept an expired token
         // as long as the signature and issuer are valid.

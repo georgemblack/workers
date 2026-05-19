@@ -40,9 +40,7 @@ export function configFromEnv(env: Cloudflare.Env): WebauthnConfig {
   };
 }
 
-export async function startRegistration(
-  env: Cloudflare.Env,
-): Promise<{
+export async function startRegistration(env: Cloudflare.Env): Promise<{
   options: PublicKeyCredentialCreationOptionsJSON;
   challengeId: string;
 }> {
@@ -115,9 +113,7 @@ export async function finishRegistration(
   return { ok: true };
 }
 
-export async function startAuthentication(
-  env: Cloudflare.Env,
-): Promise<{
+export async function startAuthentication(env: Cloudflare.Env): Promise<{
   options: PublicKeyCredentialRequestOptionsJSON;
   challengeId: string;
 }> {

@@ -29,8 +29,7 @@
       // Only allow same-origin relative paths to prevent open-redirect phishing.
       // Reject "//evil.com" and "/\evil.com" (protocol-relative) by requiring
       // the second char to be neither "/" nor "\".
-      const next =
-        rawNext && /^\/[^/\\]/.test(rawNext) ? rawNext : "/admin";
+      const next = rawNext && /^\/[^/\\]/.test(rawNext) ? rawNext : "/admin";
 
       async function preflight() {
         const r = await fetch("/api/auth/state").then((r) => r.json());
