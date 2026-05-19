@@ -32,7 +32,7 @@
           <thead>
             <tr>
               <th>Name</th>
-              <th>client_id</th>
+              <th>Client ID</th>
               <th>Redirect URIs</th>
               <th>Auth method</th>
               <th></th>
@@ -56,11 +56,8 @@
             <input id="client-name" type="text" placeholder="e.g. linkmgr" />
           </div>
           <div class="field">
-            <label>Redirect URIs (one per line)</label>
-            <textarea
-              id="client-redirects"
-              placeholder="https://example.com/auth/callback"
-            ></textarea>
+            <label>Access Auth Domains (one per line)</label>
+            <textarea id="client-auth-domains" placeholder="george"></textarea>
           </div>
           <div class="field">
             <label>Post-logout redirect URIs (one per line, optional)</label>
@@ -226,10 +223,14 @@
         .addEventListener("click", async () => {
           const name = document.getElementById("client-name").value.trim();
           const redirects = document
-            .getElementById("client-redirects")
+            .getElementById("client-auth-domains")
             .value.split("\n")
             .map((s) => s.trim())
-            .filter(Boolean);
+            .filter(Boolean)
+            .map(
+              (d) =>
+                `https://${d}.cloudflareaccess.com/cdn-cgi/access/callback`,
+            );
           const logoutRedirects = document
             .getElementById("client-logout-redirects")
             .value.split("\n")
@@ -242,7 +243,7 @@
           if (!name || redirects.length === 0) {
             showStatus(
               resultEl,
-              "Name and at least one redirect URI required.",
+              "Name and at least one auth domain required.",
               "error",
             );
             return;
@@ -266,6 +267,9 @@
           if (body.client_secret) {
             html += `<br>client_secret: <code>${escape(body.client_secret)}</code><br><strong>Save this — it will not be shown again.</strong>`;
           }
+          html += `<br><br>Authorization URL: <code>https://idp.george.black/authorize</code>`;
+          html += `<br>Token URL: <code>https://idp.george.black/token</code>`;
+          html += `<br>JWKS URL: <code>https://idp.george.black/.well-known/jwks.json</code>`;
           resultEl.innerHTML = html;
           resultEl.className = "status show success";
           await loadClients();
