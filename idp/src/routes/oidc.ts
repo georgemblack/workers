@@ -1,5 +1,4 @@
 import { Hono, type Context } from "hono";
-import { deleteCookie } from "hono/cookie";
 import {
   consumeAuthCode,
   consumeRefreshToken,
@@ -11,6 +10,7 @@ import {
 } from "../storage";
 import { loadSigningKey, signJwt } from "../keys";
 import {
+  destroySession,
   getSession,
   setTxCookie,
   readTxCookie,
@@ -22,6 +22,22 @@ import {
   randomToken,
   sha256Base64url,
 } from "../util";
+import {
+  ACCESS_TOKEN_TTL_SECONDS,
+  AUTH_CODE_TTL_SECONDS,
+  ID_TOKEN_TTL_SECONDS,
+  ISSUER,
+  REFRESH_TOKEN_TTL_SECONDS,
+  USER_DISPLAY_NAME,
+  USER_FAMILY_NAME,
+  USER_GIVEN_NAME,
+  USER_GROUPS,
+  USER_LOCALE,
+  USER_MIDDLE_NAME,
+  USER_NAME,
+  USER_WEBSITE,
+  USER_ZONEINFO,
+} from "../constants";
 
 type Ctx = Context<{ Bindings: Cloudflare.Env }>;
 
@@ -30,14 +46,13 @@ const PENDING_AUTH_COOKIE = "pending_auth";
 export const oidc = new Hono<{ Bindings: Cloudflare.Env }>();
 
 oidc.get("/.well-known/openid-configuration", async (c) => {
-  const issuer = c.env.ISSUER;
   return c.json({
-    issuer,
-    authorization_endpoint: `${issuer}/authorize`,
-    token_endpoint: `${issuer}/token`,
-    userinfo_endpoint: `${issuer}/userinfo`,
-    jwks_uri: `${issuer}/.well-known/jwks.json`,
-    end_session_endpoint: `${issuer}/logout`,
+    issuer: ISSUER,
+    authorization_endpoint: `${ISSUER}/authorize`,
+    token_endpoint: `${ISSUER}/token`,
+    userinfo_endpoint: `${ISSUER}/userinfo`,
+    jwks_uri: `${ISSUER}/.well-known/jwks.json`,
+    end_session_endpoint: `${ISSUER}/logout`,
     response_types_supported: ["code"],
     response_modes_supported: ["query"],
     grant_types_supported: ["authorization_code", "refresh_token"],
@@ -185,12 +200,11 @@ async function issueCodeAndRedirect(
     sub,
     auth_time: authTime,
   };
-  const ttl = parseInt(c.env.AUTH_CODE_TTL_SECONDS, 10);
-  await putAuthCode(c.env.DB, code, record, ttl);
+  await putAuthCode(c.env.DB, code, record, AUTH_CODE_TTL_SECONDS);
 
   const url = new URL(pending.redirect_uri);
   url.searchParams.set("code", code);
-  url.searchParams.set("iss", c.env.ISSUER);
+  url.searchParams.set("iss", ISSUER);
   if (pending.state) url.searchParams.set("state", pending.state);
   return c.redirect(url.toString());
 }
@@ -205,7 +219,7 @@ function errorRedirect(
   const url = new URL(redirect_uri);
   url.searchParams.set("error", error);
   if (description) url.searchParams.set("error_description", description);
-  url.searchParams.set("iss", c.env.ISSUER);
+  url.searchParams.set("iss", ISSUER);
   if (state) url.searchParams.set("state", state);
   return Response.redirect(url.toString(), 302);
 }
@@ -348,24 +362,20 @@ async function issueTokens(
     nonce?: string;
   },
 ): Promise<Response> {
-  const accessTtl = parseInt(c.env.ACCESS_TOKEN_TTL_SECONDS, 10);
-  const idTtl = parseInt(c.env.ID_TOKEN_TTL_SECONDS, 10);
-  const refreshTtl = parseInt(c.env.REFRESH_TOKEN_TTL_SECONDS, 10);
-
   const access_token = await signJwt(
     c.env,
     {
-      iss: c.env.ISSUER,
+      iss: ISSUER,
       sub: args.sub,
       aud: args.client_id,
       scope: args.scope,
       token_use: "access",
     },
-    accessTtl,
+    ACCESS_TOKEN_TTL_SECONDS,
   );
 
   const id_token_payload: Record<string, unknown> = {
-    iss: c.env.ISSUER,
+    iss: ISSUER,
     sub: args.sub,
     aud: args.client_id,
     auth_time: args.auth_time,
@@ -374,12 +384,12 @@ async function issueTokens(
   for (const [k, v] of Object.entries(claimsForScope(c.env, args.scope))) {
     id_token_payload[k] = v;
   }
-  const id_token = await signJwt(c.env, id_token_payload, idTtl);
+  const id_token = await signJwt(c.env, id_token_payload, ID_TOKEN_TTL_SECONDS);
 
   const response: Record<string, unknown> = {
     access_token,
     token_type: "Bearer",
-    expires_in: accessTtl,
+    expires_in: ACCESS_TOKEN_TTL_SECONDS,
     id_token,
     scope: args.scope,
   };
@@ -396,7 +406,7 @@ async function issueTokens(
         auth_time: args.auth_time,
         nonce: args.nonce,
       },
-      refreshTtl,
+      REFRESH_TOKEN_TTL_SECONDS,
     );
     response.refresh_token = refresh_token;
   }
@@ -417,21 +427,21 @@ function claimsForScope(
   const scopes = new Set(scope.split(" "));
   const out: Record<string, unknown> = {};
   if (scopes.has("profile")) {
-    out.name = env.USER_DISPLAY_NAME;
-    out.given_name = "George";
-    out.middle_name = "Matthew";
-    out.family_name = "Black";
-    out.preferred_username = env.USER_NAME;
-    out.locale = "en-US";
-    out.zoneinfo = "America/Chicago";
-    out.website = "https://george.black";
+    out.name = USER_DISPLAY_NAME;
+    out.given_name = USER_GIVEN_NAME;
+    out.middle_name = USER_MIDDLE_NAME;
+    out.family_name = USER_FAMILY_NAME;
+    out.preferred_username = USER_NAME;
+    out.locale = USER_LOCALE;
+    out.zoneinfo = USER_ZONEINFO;
+    out.website = USER_WEBSITE;
   }
   if (scopes.has("email")) {
     out.email = env.USER_EMAIL;
     out.email_verified = true;
   }
   if (scopes.has("groups")) {
-    out.groups = ["MacMiniOwners", "CloudflareEmployees", "PorterRobinsonFans"];
+    out.groups = USER_GROUPS;
   }
   return out;
 }
@@ -450,7 +460,7 @@ async function userinfo(c: Ctx): Promise<Response> {
     const { jwtVerify } = await import("jose");
     const key = await loadSigningKey(c.env);
     const { payload: p } = await jwtVerify(token, key.publicKey, {
-      issuer: c.env.ISSUER,
+      issuer: ISSUER,
     });
     payload = p as Record<string, unknown>;
   } catch {
@@ -498,7 +508,7 @@ oidc.get("/logout", async (c) => {
       let claims: Record<string, unknown>;
       try {
         ({ payload: claims } = await jwtVerify(id_token_hint, key.publicKey, {
-          issuer: c.env.ISSUER,
+          issuer: ISSUER,
         }));
       } catch (e) {
         // ID token hints are by definition stale — accept an expired token
@@ -530,7 +540,7 @@ oidc.get("/logout", async (c) => {
     }
   }
 
-  deleteCookie(c, "idp_session", { path: "/" });
+  destroySession(c);
 
   if (allowedRedirect) {
     const u = new URL(allowedRedirect);

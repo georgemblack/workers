@@ -1,5 +1,6 @@
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { Context } from "hono";
+import { SESSION_TTL_SECONDS } from "./constants";
 import { base64urlDecode, base64urlEncode, constantTimeEqual } from "./util";
 
 const SESSION_COOKIE = "idp_session";
@@ -61,16 +62,19 @@ export async function createSession(
   c: Context<{ Bindings: Cloudflare.Env }>,
   sub: string,
 ): Promise<void> {
-  const ttl = parseInt(c.env.SESSION_TTL_SECONDS, 10);
   const now = Math.floor(Date.now() / 1000);
-  const data: SessionData = { sub, iat: now, exp: now + ttl };
+  const data: SessionData = {
+    sub,
+    iat: now,
+    exp: now + SESSION_TTL_SECONDS,
+  };
   const token = await encodeSigned(c.env.SESSION_SECRET, data);
   setCookie(c, SESSION_COOKIE, token, {
     httpOnly: true,
     secure: true,
     sameSite: "Lax",
     path: "/",
-    maxAge: ttl,
+    maxAge: SESSION_TTL_SECONDS,
   });
 }
 

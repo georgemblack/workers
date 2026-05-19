@@ -19,39 +19,26 @@ import {
   updateCredentialCounter,
 } from "./storage";
 import { randomToken } from "./util";
-
-interface WebauthnConfig {
-  rpID: string;
-  rpName: string;
-  origin: string;
-  userHandle: string;
-  userName: string;
-  userDisplayName: string;
-}
-
-export function configFromEnv(env: Cloudflare.Env): WebauthnConfig {
-  return {
-    rpID: env.RP_ID,
-    rpName: env.RP_NAME,
-    origin: env.ISSUER,
-    userHandle: env.USER_HANDLE,
-    userName: env.USER_NAME,
-    userDisplayName: env.USER_DISPLAY_NAME,
-  };
-}
+import {
+  ISSUER,
+  RP_ID,
+  RP_NAME,
+  USER_DISPLAY_NAME,
+  USER_HANDLE,
+  USER_NAME,
+} from "./constants";
 
 export async function startRegistration(env: Cloudflare.Env): Promise<{
   options: PublicKeyCredentialCreationOptionsJSON;
   challengeId: string;
 }> {
-  const cfg = configFromEnv(env);
   const existing = await listCredentials(env.DB);
   const options = await generateRegistrationOptions({
-    rpName: cfg.rpName,
-    rpID: cfg.rpID,
-    userID: new TextEncoder().encode(cfg.userHandle) as Uint8Array<ArrayBuffer>,
-    userName: cfg.userName,
-    userDisplayName: cfg.userDisplayName,
+    rpName: RP_NAME,
+    rpID: RP_ID,
+    userID: new TextEncoder().encode(USER_HANDLE) as Uint8Array<ArrayBuffer>,
+    userName: USER_NAME,
+    userDisplayName: USER_DISPLAY_NAME,
     attestationType: "none",
     excludeCredentials: existing.map((c) => ({
       id: c.credential_id,
@@ -74,7 +61,6 @@ export async function finishRegistration(
   response: RegistrationResponseJSON,
   label: string | null,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const cfg = configFromEnv(env);
   const expectedChallenge = await consumeWebauthnChallenge(
     env.DB,
     `reg:${challengeId}`,
@@ -87,8 +73,8 @@ export async function finishRegistration(
     verification = await verifyRegistrationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: cfg.origin,
-      expectedRPID: cfg.rpID,
+      expectedOrigin: ISSUER,
+      expectedRPID: RP_ID,
       requireUserVerification: true,
     });
   } catch (e) {
@@ -117,10 +103,9 @@ export async function startAuthentication(env: Cloudflare.Env): Promise<{
   options: PublicKeyCredentialRequestOptionsJSON;
   challengeId: string;
 }> {
-  const cfg = configFromEnv(env);
   const credentials = await listCredentials(env.DB);
   const options = await generateAuthenticationOptions({
-    rpID: cfg.rpID,
+    rpID: RP_ID,
     userVerification: "required",
     allowCredentials: credentials.map((c) => ({
       id: c.credential_id,
@@ -137,7 +122,6 @@ export async function finishAuthentication(
   challengeId: string,
   response: AuthenticationResponseJSON,
 ): Promise<{ ok: true; sub: string } | { ok: false; error: string }> {
-  const cfg = configFromEnv(env);
   const expectedChallenge = await consumeWebauthnChallenge(
     env.DB,
     `auth:${challengeId}`,
@@ -153,8 +137,8 @@ export async function finishAuthentication(
     verification = await verifyAuthenticationResponse({
       response,
       expectedChallenge,
-      expectedOrigin: cfg.origin,
-      expectedRPID: cfg.rpID,
+      expectedOrigin: ISSUER,
+      expectedRPID: RP_ID,
       credential: {
         id: cred.credential_id,
         publicKey: cred.public_key as Uint8Array<ArrayBuffer>,
@@ -176,7 +160,7 @@ export async function finishAuthentication(
     verification.authenticationInfo.newCounter,
   );
 
-  return { ok: true, sub: cfg.userHandle };
+  return { ok: true, sub: USER_HANDLE };
 }
 
 type AuthenticatorTransportFuture =

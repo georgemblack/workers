@@ -12,6 +12,7 @@ import {
 } from "../webauthn";
 import { createSession, destroySession, getSession } from "../session";
 import { constantTimeEqual } from "../util";
+import { USER_HANDLE } from "../constants";
 
 export const auth = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -104,7 +105,7 @@ auth.post("/api/auth/register/verify", async (c) => {
   if (!result.ok) return c.json({ error: result.error }, 400);
 
   if (credentialCount === 0) {
-    await createSession(c, c.env.USER_HANDLE);
+    await createSession(c, USER_HANDLE);
   }
   return c.json({ ok: true });
 });
