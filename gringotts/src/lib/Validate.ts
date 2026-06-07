@@ -167,8 +167,12 @@ function validMonth(month: number): boolean {
 }
 
 function validYear(year: number): boolean {
+  const currentYear = new Date().getFullYear();
   return (
-    validNum(year) && Number.isInteger(year) && year >= 2022 && year <= 2026
+    validNum(year) &&
+    Number.isInteger(year) &&
+    year >= 2026 &&
+    year <= currentYear
   );
 }
 
