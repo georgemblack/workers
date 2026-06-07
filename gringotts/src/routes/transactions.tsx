@@ -19,6 +19,8 @@ import {
   AccountNames,
   Category,
   CategoryNames,
+  Group,
+  Groups,
   Month,
   Tag,
   Transaction,
@@ -104,7 +106,15 @@ function TransactionsPage() {
                 {transaction.month}/{transaction.day}/{transaction.year}
               </Table.Cell>
               <Table.Cell>
-                <Currency amount={transaction.amount} />
+                <span
+                  className={
+                    Groups[transaction.category as Category] === Group.INCOME
+                      ? "bg-green-300"
+                      : ""
+                  }
+                >
+                  <Currency amount={transaction.amount} />
+                </span>
               </Table.Cell>
               <Table.Cell>{transaction.merchant}</Table.Cell>
               <Table.Cell>
