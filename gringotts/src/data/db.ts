@@ -24,6 +24,7 @@ export interface TransactionFilter {
   year?: number;
   tag?: string;
   category?: string;
+  account?: string;
   skipped?: boolean;
   reviewed?: boolean;
 }
@@ -192,6 +193,10 @@ export const getTransactions = createServerFn({ method: "GET" })
     if (filter.category !== undefined) {
       conditions.push("category = ?");
       params.push(filter.category);
+    }
+    if (filter.account !== undefined) {
+      conditions.push("account = ?");
+      params.push(filter.account);
     }
 
     let sql = "SELECT * FROM transactions";

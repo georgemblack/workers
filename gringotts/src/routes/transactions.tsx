@@ -2,8 +2,10 @@ import { Button, Table } from "@cloudflare/kumo";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import AccountFilter from "@/components/AccountFilter";
 import CategoryFilter from "@/components/CategoryFilter";
 import Currency from "@/components/Currency";
+import EditTransactionDialog from "@/components/EditTransactionDialog";
 import MonthFilter from "@/components/MonthFilter";
 import TagFilter from "@/components/TagFilter";
 import YearFilter from "@/components/YearFilter";
@@ -13,6 +15,7 @@ import {
   getTransactions,
 } from "@/data/db";
 import {
+  Account,
   AccountNames,
   Category,
   CategoryNames,
@@ -29,6 +32,7 @@ export const Route = createFileRoute("/transactions")({
 function TransactionsPage() {
   const [tag, setTag] = useState<Tag | "Any">("Any");
   const [category, setCategory] = useState<Category | "Any">("Any");
+  const [account, setAccount] = useState<Account | "Any">("Any");
   const [month, setMonth] = useState<Month | "Any">("Any");
   const [year, setYear] = useState<number>(new Date().getFullYear());
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -49,13 +53,22 @@ function TransactionsPage() {
     if (category !== "Any") {
       query.category = category;
     }
+    if (account !== "Any") {
+      query.account = account;
+    }
 
     getTransactions({ data: query }).then(setTransactions);
-  }, [month, year, tag, category]);
+  }, [month, year, tag, category, account]);
 
   const handleDelete = async (id: number) => {
     await deleteTransaction({ data: id });
     setTransactions((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const handleSave = (updated: Transaction) => {
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === updated.id ? updated : t)),
+    );
   };
 
   const sorted = [...transactions].sort((a, b) => {
@@ -69,6 +82,7 @@ function TransactionsPage() {
       <div className="flex justify-end gap-2">
         <CategoryFilter value={category} onSelect={setCategory} />
         <TagFilter value={tag} onSelect={setTag} />
+        <AccountFilter value={account} onSelect={setAccount} />
         <MonthFilter value={month} onSelect={setMonth} />
         <YearFilter value={year} onSelect={setYear} />
       </div>
@@ -98,15 +112,21 @@ function TransactionsPage() {
               </Table.Cell>
               <Table.Cell>{AccountNames[transaction.account]}</Table.Cell>
               <Table.Cell>
-                <Button
-                  variant="destructive"
-                  size="xs"
-                  onClick={() => {
-                    if (transaction.id) handleDelete(transaction.id);
-                  }}
-                >
-                  Delete
-                </Button>
+                <div className="flex justify-end gap-2">
+                  <EditTransactionDialog
+                    transaction={transaction}
+                    onSave={handleSave}
+                  />
+                  <Button
+                    variant="destructive"
+                    size="xs"
+                    onClick={() => {
+                      if (transaction.id) handleDelete(transaction.id);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </Table.Cell>
             </Table.Row>
           ))}
