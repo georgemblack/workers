@@ -31,7 +31,7 @@ importers:
         version: 2.5.0(@date-fns/tz@1.4.1)(@phosphor-icons/react@2.1.10(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@types/react@19.2.14)(date-fns@4.1.0)(echarts@6.0.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       '@cloudflare/vite-plugin':
         specifier: ^1.33.2
-        version: 1.33.2(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1))(workerd@1.20260424.1)(wrangler@4.85.0)
+        version: 1.33.2(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1))(workerd@1.20260430.1)(wrangler@4.85.0)
       '@tailwindcss/vite':
         specifier: ^4.2.4
         version: 4.2.4(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1))
@@ -227,6 +227,15 @@ importers:
       wrangler:
         specifier: ^4.85.0
         version: 4.85.0
+
+  sundog:
+    devDependencies:
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
+      wrangler:
+        specifier: ^4.87.0
+        version: 4.87.0
 
 packages:
 
@@ -2735,19 +2744,6 @@ snapshots:
       unenv: 2.0.0-rc.24
     optionalDependencies:
       workerd: 1.20260430.1
-
-  '@cloudflare/vite-plugin@1.33.2(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1))(workerd@1.20260424.1)(wrangler@4.85.0)':
-    dependencies:
-      '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260424.1)
-      miniflare: 4.20260424.0
-      unenv: 2.0.0-rc.24
-      vite: 8.0.10(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1)
-      wrangler: 4.85.0
-      ws: 8.18.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - workerd
 
   '@cloudflare/vite-plugin@1.33.2(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.3)(jiti@2.6.1))(workerd@1.20260430.1)(wrangler@4.85.0)':
     dependencies:
