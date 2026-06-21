@@ -228,7 +228,7 @@ importers:
         specifier: ^4.85.0
         version: 4.85.0
 
-  sundog:
+  tacklebox:
     devDependencies:
       prettier:
         specifier: ^3.8.3

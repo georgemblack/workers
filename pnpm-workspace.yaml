@@ -5,7 +5,7 @@ packages:
   - 'linkmgr'
   - 'linkproc'
   - 'mailman'
-  - 'sundog'
+  - 'tacklebox'
 allowBuilds:
   esbuild: set this to true or false
   sharp: set this to true or false

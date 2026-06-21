@@ -1,5 +1,5 @@
 {
-  "name": "sundog",
+  "name": "tacklebox",
   "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",

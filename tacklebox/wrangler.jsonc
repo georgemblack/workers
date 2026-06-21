@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sundog",
-  "account_id": "bc4564dd499c0a9b8a7bb79c9bd5ea6d",
+  "name": "tacklebox",
+  "account_id": "d2c79054532b29379a02972214ef7e67",
   "compatibility_date": "2026-05-03",
   "assets": {
     "directory": "./public",
@@ -13,7 +13,7 @@
   },
   "routes": [
     {
-      "pattern": "sundogs.app",
+      "pattern": "tackleboxapp.net",
       "custom_domain": true,
     },
   ],

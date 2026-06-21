@@ -7,7 +7,7 @@ This project is a monorepo containing personal Cloudflare workers. Each top-leve
 * `linkproc`: Queue consumer that fetches link metadata via Browser Rendering API
 * `gringotts`: Web app for tracking finances and spending
 * `goblin`: Queue consumer that generates merchant suggestions for gringotts transactions via Workers AI
-* `sundog`: Static landing page for sundogs.app
+* `tacklebox`: Static landing page for tackleboxapp.net
 
 Each project has it's own `AGENTS.md` with unqiue instructions.
 
