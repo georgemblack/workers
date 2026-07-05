@@ -12,8 +12,10 @@ terminal display. Deployed to Cloudflare Workers, backed by D1.
   hour) is deleted. The calendar syncs as a flurry of these posts (one per
   event) each morning, all within seconds of each other, so a fresh sync clears
   out the previous one while its own posts survive together.
-- `GET /api/terminal` — the aggregated view. Returns the next upcoming event
-  with its day and time in US Central. More data will be added here over time.
+- `GET /api/terminal` — the aggregated view. Returns `nextEvent` (the soonest
+  timed, non all-day event that hasn't ended, with its day and time in US
+  Central) and `allDayEvent` (an all-day event happening right now, if any).
+  Either can be `null`. More data will be added here over time.
 
 ## One-time setup
 

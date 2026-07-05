@@ -23,12 +23,19 @@ export function centralStartDay(ms: number, now: number = Date.now()): string {
   }).format(ms);
 }
 
-// A 12-hour clock time in Central, e.g. "12:00 PM".
+// A 12-hour clock time in Central, formatted for display: minutes are dropped
+// when the time is on the hour, so noon reads "12 PM" and 3:30am "3:30 AM".
 export function centralStartTime(ms: number): string {
-  return new Intl.DateTimeFormat("en-US", {
+  const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: CENTRAL_TIME_ZONE,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  }).format(ms);
+  }).formatToParts(ms);
+  const part = (type: string) =>
+    parts.find((p) => p.type === type)?.value ?? "";
+  const hour = part("hour");
+  const minute = part("minute");
+  const period = part("dayPeriod");
+  return minute === "00" ? `${hour} ${period}` : `${hour}:${minute} ${period}`;
 }

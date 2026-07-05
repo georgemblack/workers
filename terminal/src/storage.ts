@@ -53,16 +53,31 @@ export async function addEvent(
   ]);
 }
 
-// The next event still on the calendar: the soonest one that hasn't ended yet.
+// The next timed (non all-day) event still on the calendar: the soonest one
+// that hasn't ended yet.
 export async function getNextEvent(
   db: D1Database,
   now: number,
 ): Promise<CalendarEvent | null> {
   const row = await db
     .prepare(
-      "SELECT * FROM calendar_events WHERE end_ms >= ? ORDER BY start_ms ASC LIMIT 1",
+      "SELECT * FROM calendar_events WHERE end_ms >= ? AND is_all_day = 0 ORDER BY start_ms ASC LIMIT 1",
     )
     .bind(now)
+    .first<CalendarEventRow>();
+  return row ? rowToEvent(row) : null;
+}
+
+// The all-day event happening right now, if any (started but not yet ended).
+export async function getCurrentAllDayEvent(
+  db: D1Database,
+  now: number,
+): Promise<CalendarEvent | null> {
+  const row = await db
+    .prepare(
+      "SELECT * FROM calendar_events WHERE is_all_day = 1 AND start_ms <= ? AND end_ms >= ? ORDER BY start_ms ASC LIMIT 1",
+    )
+    .bind(now, now)
     .first<CalendarEventRow>();
   return row ? rowToEvent(row) : null;
 }
