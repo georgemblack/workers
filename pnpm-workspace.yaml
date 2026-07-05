@@ -12,6 +12,7 @@ packages:
   - 'tbdev-workflow'
   - 'tbdev-rpc'
   - 'tbdev-tail'
+  - 'terminal'
 allowBuilds:
   esbuild: true
   sharp: true

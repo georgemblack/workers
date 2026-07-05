@@ -1,0 +1,24 @@
+{
+  "name": "terminal",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --minify",
+    "dryrun": "wrangler deploy --dry-run",
+    "typecheck": "tsc --noEmit",
+    "typegen": "wrangler types",
+    "format": "prettier . --write",
+    "db:create": "wrangler d1 create terminal",
+    "db:migrate:local": "wrangler d1 migrations apply terminal --local",
+    "db:migrate": "wrangler d1 migrations apply terminal --remote"
+  },
+  "dependencies": {
+    "hono": "^4.12.16"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "prettier": "^3.8.3",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.87.0"
+  }
+}
