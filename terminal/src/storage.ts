@@ -21,13 +21,12 @@ function rowToEvent(row: CalendarEventRow): CalendarEvent {
   };
 }
 
-// Replaces the stored calendar with a fresh week of events, then prunes any
-// event that has already ended. The whole thing runs as one batch so the table
-// is never left half-updated.
+// Completely replaces the stored calendar with the given events: the table ends
+// up holding exactly what was passed in. Runs as one batch so the table is never
+// left half-updated.
 export async function replaceEvents(
   db: D1Database,
   events: CalendarEvent[],
-  now: number,
 ): Promise<void> {
   const statements: D1PreparedStatement[] = [
     db.prepare("DELETE FROM calendar_events"),
@@ -46,10 +45,6 @@ export async function replaceEvents(
       ),
     );
   }
-
-  statements.push(
-    db.prepare("DELETE FROM calendar_events WHERE end_ms < ?").bind(now),
-  );
 
   await db.batch(statements);
 }

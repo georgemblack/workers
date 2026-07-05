@@ -4,18 +4,12 @@ import { replaceEvents, type CalendarEvent } from "../storage";
 export const calendar = new Hono<{ Bindings: Cloudflare.Env }>();
 
 // The shape of a single event as sent by the calendar source. Dates are ISO
-// strings that include a timezone offset, and isAllDay arrives as "Yes"/"No".
+// strings that include a timezone offset, and isAllDay is a boolean.
 interface IncomingEvent {
   title?: unknown;
   startDate?: unknown;
   endDate?: unknown;
   isAllDay?: unknown;
-}
-
-function parseAllDay(value: unknown): boolean {
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") return value.trim().toLowerCase() === "yes";
-  return false;
 }
 
 // Turns one incoming event into the form we store, or returns an error message
@@ -38,28 +32,46 @@ function parseEvent(raw: IncomingEvent): CalendarEvent | string {
     title: raw.title,
     startMs,
     endMs,
-    isAllDay: parseAllDay(raw.isAllDay),
+    isAllDay: raw.isAllDay === true,
   };
 }
 
-// Stores a week of calendar events, replacing whatever was there before and
-// dropping anything that has already ended.
-calendar.post("/api/calendar", async (c) => {
-  const body = await c.req.json().catch(() => null);
-  if (!body || !Array.isArray(body.events)) {
-    return c.json({ error: "expected an `events` array" }, 400);
+// Replaces the entire stored calendar with the events in this request.
+calendar.put("/api/calendar", async (c) => {
+  // Grab the raw body up front so we can log exactly what was sent whenever the
+  // request is rejected, even if the JSON itself is malformed.
+  const rawBody = await c.req.text();
+
+  const reject = (message: string) => {
+    console.error("invalid calendar payload:", message, "-", rawBody);
+    return c.json({ error: message }, 400);
+  };
+
+  let body: unknown;
+  try {
+    body = JSON.parse(rawBody);
+  } catch {
+    return reject("body must be valid JSON");
+  }
+
+  if (
+    typeof body !== "object" ||
+    body === null ||
+    !Array.isArray((body as { events?: unknown }).events)
+  ) {
+    return reject("expected an `events` array");
   }
 
   const events: CalendarEvent[] = [];
-  for (const raw of body.events as IncomingEvent[]) {
+  for (const raw of (body as { events: IncomingEvent[] }).events) {
     const parsed = parseEvent(raw);
     if (typeof parsed === "string") {
-      return c.json({ error: parsed }, 400);
+      return reject(parsed);
     }
     events.push(parsed);
   }
 
-  await replaceEvents(c.env.DB, events, Date.now());
+  await replaceEvents(c.env.DB, events);
 
   return c.json({ stored: events.length });
 });

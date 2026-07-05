@@ -5,10 +5,10 @@ terminal display. Deployed to Cloudflare Workers, backed by D1.
 
 ## Endpoints
 
-- `POST /api/calendar` — store a week of calendar events. Send a JSON body with
-  an `events` array; each event has a `title`, `startDate`, `endDate` (ISO
-  strings with a timezone offset), and `isAllDay` (`"Yes"`/`"No"`). Existing
-  events are replaced and anything that has already ended is pruned.
+- `PUT /api/calendar` — replace the entire stored calendar. Send a JSON body
+  with an `events` array; each event has a `title`, `startDate`, `endDate` (ISO
+  strings with a timezone offset), and `isAllDay` (boolean). The table ends up
+  holding exactly the events in this request.
 - `GET /api/terminal` — the aggregated view. Returns the next upcoming event
   with its day and time in US Central. More data will be added here over time.
 
