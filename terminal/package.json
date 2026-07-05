@@ -13,12 +13,13 @@
     "db:migrate": "wrangler d1 migrations apply terminal --remote"
   },
   "dependencies": {
-    "hono": "^4.12.16"
+    "hono": "^4.12.16",
+    "liquidjs": "^10.27.1"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "prettier": "^3.8.3",
     "typescript": "^5.7.2",
-    "wrangler": "^4.87.0"
+    "wrangler": "^4.107.0"
   }
 }

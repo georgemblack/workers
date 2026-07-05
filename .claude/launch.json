@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "terminal",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "terminal", "run", "dev"],
+      "port": 8787
+    }
+  ]
+}

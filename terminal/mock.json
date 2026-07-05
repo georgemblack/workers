@@ -1,0 +1,10 @@
+{
+  "nextEvent": {
+    "title": "Dentist Appointment",
+    "startDay": "Today",
+    "startTime": "6:26 PM"
+  },
+  "allDayEvent": {
+    "title": "Sarah's Birthday"
+  }
+}

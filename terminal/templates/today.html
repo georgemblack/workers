@@ -1,0 +1,82 @@
+<!-- TRMNL renders only the inner contents of <body>, so this file has no
+     <head>/<html>/<body>. Fonts and styles live inline instead, and everything
+     is scoped to .today so we don't depend on styling a <body> we don't own. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@600&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  .today,
+  .today * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  /* Fills the whole screen, with the title and time centered together. Pure
+     black on white for the crispest possible e-ink rendering. */
+  .today {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #fff;
+    color: #000;
+    text-align: center;
+    padding: 6vmin;
+  }
+
+  /* An outlined rounded-rect badge for an all-day event, sitting above the
+     title. A crisp black outline reads lighter than a solid fill while staying
+     sharp on the e-ink screen. */
+  .today .allday {
+    margin-bottom: 4vmin;
+    padding: 1.5vmin 4vmin;
+    border: 0.4vmin solid #000;
+    border-radius: 3vmin;
+    color: #000;
+    font-family: "Inter", sans-serif;
+    font-size: 4vmin;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* The event title, front and center. */
+  .today .title {
+    font-family: "Fraunces", serif;
+    font-size: 14vmin;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  /* The day and time, sitting just below the title. */
+  .today .when {
+    margin-top: 3vmin;
+    font-family: "Inter", sans-serif;
+    font-size: 5vmin;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* Shown when there is nothing coming up. */
+  .today .empty {
+    font-size: 10vmin;
+    color: #555;
+  }
+</style>
+
+<div class="today">
+  {% if allDayEvent %}
+  <div class="allday">{{ allDayEvent.title }}</div>
+  {% endif %} {% if nextEvent %}
+  <div class="title">{{ nextEvent.title }}</div>
+  <div class="when">
+    {{ nextEvent.startDay }} &middot; {{ nextEvent.startTime }}
+  </div>
+  {% else %}
+  <div class="title empty">Nothing coming up</div>
+  {% endif %}
+</div>

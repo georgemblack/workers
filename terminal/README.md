@@ -16,6 +16,10 @@ terminal display. Deployed to Cloudflare Workers, backed by D1.
   timed, non all-day event that hasn't ended, with its day and time in US
   Central) and `allDayEvent` (an all-day event happening right now, if any).
   Either can be `null`. More data will be added here over time.
+- `GET /preview/:name` — a development-only preview that renders a template from
+  `templates/` (e.g. `/preview/today`) using the mock data in `mock.json`, so
+  screens can be built and viewed in a browser. See
+  [`templates/CLAUDE.md`](templates/CLAUDE.md).
 
 ## One-time setup
 
