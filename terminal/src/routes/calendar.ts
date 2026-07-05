@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { replaceEvents, type CalendarEvent } from "../storage";
+import { addEvent, type CalendarEvent } from "../storage";
 
 export const calendar = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -36,8 +36,9 @@ function parseEvent(raw: IncomingEvent): CalendarEvent | string {
   };
 }
 
-// Replaces the entire stored calendar with the events in this request.
-calendar.put("/api/calendar", async (c) => {
+// Adds a single event to the calendar and drops any events left over from a
+// previous day's sync.
+calendar.post("/api/calendar", async (c) => {
   // Grab the raw body up front so we can log exactly what was sent whenever the
   // request is rejected, even if the JSON itself is malformed.
   const rawBody = await c.req.text();
@@ -54,24 +55,17 @@ calendar.put("/api/calendar", async (c) => {
     return reject("body must be valid JSON");
   }
 
-  if (
-    typeof body !== "object" ||
-    body === null ||
-    !Array.isArray((body as { events?: unknown }).events)
-  ) {
-    return reject("expected an `events` array");
+  const event = (body as { event?: unknown } | null)?.event;
+  if (typeof event !== "object" || event === null || Array.isArray(event)) {
+    return reject("expected a single `event` object");
   }
 
-  const events: CalendarEvent[] = [];
-  for (const raw of (body as { events: IncomingEvent[] }).events) {
-    const parsed = parseEvent(raw);
-    if (typeof parsed === "string") {
-      return reject(parsed);
-    }
-    events.push(parsed);
+  const parsed = parseEvent(event as IncomingEvent);
+  if (typeof parsed === "string") {
+    return reject(parsed);
   }
 
-  await replaceEvents(c.env.DB, events);
+  await addEvent(c.env.DB, parsed, Date.now());
 
-  return c.json({ stored: events.length });
+  return c.json({ ok: true });
 });

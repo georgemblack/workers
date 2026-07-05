@@ -1,3 +1,10 @@
+// A calendar sync arrives as a flurry of single-event posts within seconds of
+// each other. On each post we clear out any event older than this window, so a
+// fresh sync replaces the previous one while its own posts (all well inside the
+// window) survive together. Sized well above the flurry but well below the
+// once-a-day gap between syncs.
+const RESYNC_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
 export interface CalendarEvent {
   title: string;
   startMs: number;
@@ -21,32 +28,29 @@ function rowToEvent(row: CalendarEventRow): CalendarEvent {
   };
 }
 
-// Completely replaces the stored calendar with the given events: the table ends
-// up holding exactly what was passed in. Runs as one batch so the table is never
-// left half-updated.
-export async function replaceEvents(
+// Adds one event, recording when it was added, and clears out any events left
+// over from a previous sync (anything older than the resync window). Runs as one
+// batch so the table is never left half-updated.
+export async function addEvent(
   db: D1Database,
-  events: CalendarEvent[],
+  event: CalendarEvent,
+  now: number,
 ): Promise<void> {
-  const statements: D1PreparedStatement[] = [
-    db.prepare("DELETE FROM calendar_events"),
-  ];
-
-  const insert = db.prepare(
-    "INSERT INTO calendar_events (title, start_ms, end_ms, is_all_day) VALUES (?, ?, ?, ?)",
-  );
-  for (const event of events) {
-    statements.push(
-      insert.bind(
+  const cutoff = now - RESYNC_WINDOW_MS;
+  await db.batch([
+    db
+      .prepare(
+        "INSERT INTO calendar_events (title, start_ms, end_ms, is_all_day, added_at) VALUES (?, ?, ?, ?, ?)",
+      )
+      .bind(
         event.title,
         event.startMs,
         event.endMs,
         event.isAllDay ? 1 : 0,
+        now,
       ),
-    );
-  }
-
-  await db.batch(statements);
+    db.prepare("DELETE FROM calendar_events WHERE added_at < ?").bind(cutoff),
+  ]);
 }
 
 // The next event still on the calendar: the soonest one that hasn't ended yet.

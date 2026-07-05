@@ -5,10 +5,13 @@ terminal display. Deployed to Cloudflare Workers, backed by D1.
 
 ## Endpoints
 
-- `PUT /api/calendar` — replace the entire stored calendar. Send a JSON body
-  with an `events` array; each event has a `title`, `startDate`, `endDate` (ISO
-  strings with a timezone offset), and `isAllDay` (boolean). The table ends up
-  holding exactly the events in this request.
+- `POST /api/calendar` — add a single calendar event. Send a JSON body with a
+  top-level `event` object that has a `title`, `startDate`, `endDate` (ISO
+  strings with a timezone offset), and `isAllDay` (boolean). The event is stored
+  with the time it was added, and any event older than the resync window (1
+  hour) is deleted. The calendar syncs as a flurry of these posts (one per
+  event) each morning, all within seconds of each other, so a fresh sync clears
+  out the previous one while its own posts survive together.
 - `GET /api/terminal` — the aggregated view. Returns the next upcoming event
   with its day and time in US Central. More data will be added here over time.
 
