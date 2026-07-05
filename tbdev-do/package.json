@@ -1,0 +1,20 @@
+{
+  "name": "tbdev-do",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dryrun": "wrangler deploy --dry-run",
+    "typegen": "wrangler types",
+    "typecheck": "tsgo --noEmit",
+    "format": "prettier . --write"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "@types/node": "^25.6.0",
+    "@typescript/native-preview": "beta",
+    "prettier": "^3.8.3",
+    "wrangler": "^4.85.0"
+  }
+}

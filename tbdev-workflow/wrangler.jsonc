@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tbdev-workflow",
+  "main": "src/index.ts",
+  "account_id": "bc4564dd499c0a9b8a7bb79c9bd5ea6d",
+  "compatibility_date": "2026-07-03",
+  "observability": {
+    "enabled": true,
+  },
+  "workflows": [
+    {
+      "binding": "WORKFLOW",
+      "name": "tbdev-workflow",
+      "class_name": "TbdevWorkflow",
+    },
+  ],
+}

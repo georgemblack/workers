@@ -237,6 +237,114 @@ importers:
         specifier: ^4.87.0
         version: 4.87.0
 
+  tbdev:
+    devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier@3.8.3)
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.6.0
+      '@typescript/native-preview':
+        specifier: beta
+        version: 7.0.0-dev.20260421.2
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
+      wrangler:
+        specifier: ^4.85.0
+        version: 4.87.0
+
+  tbdev-do:
+    devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier@3.8.3)
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.6.0
+      '@typescript/native-preview':
+        specifier: beta
+        version: 7.0.0-dev.20260421.2
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
+      wrangler:
+        specifier: ^4.85.0
+        version: 4.87.0
+
+  tbdev-queue-consumer:
+    devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier@3.8.3)
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.6.0
+      '@typescript/native-preview':
+        specifier: beta
+        version: 7.0.0-dev.20260421.2
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
+      wrangler:
+        specifier: ^4.85.0
+        version: 4.87.0
+
+  tbdev-rpc:
+    devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier@3.8.3)
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.6.0
+      '@typescript/native-preview':
+        specifier: beta
+        version: 7.0.0-dev.20260421.2
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
+      wrangler:
+        specifier: ^4.85.0
+        version: 4.87.0
+
+  tbdev-tail:
+    devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier@3.8.3)
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.6.0
+      '@typescript/native-preview':
+        specifier: beta
+        version: 7.0.0-dev.20260421.2
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
+      wrangler:
+        specifier: ^4.85.0
+        version: 4.87.0
+
+  tbdev-workflow:
+    devDependencies:
+      '@trivago/prettier-plugin-sort-imports':
+        specifier: ^6.0.2
+        version: 6.0.2(prettier@3.8.3)
+      '@types/node':
+        specifier: ^25.6.0
+        version: 25.6.0
+      '@typescript/native-preview':
+        specifier: beta
+        version: 7.0.0-dev.20260421.2
+      prettier:
+        specifier: ^3.8.3
+        version: 3.8.3
+      wrangler:
+        specifier: ^4.85.0
+        version: 4.87.0
+
 packages:
 
   '@babel/code-frame@7.27.1':
@@ -2294,6 +2402,7 @@ packages:
   tsconfck@3.1.6:
     resolution: {integrity: sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==}
     engines: {node: ^18 || >=20}
+    deprecated: unmaintained
     hasBin: true
     peerDependencies:
       typescript: ^5.0.0
