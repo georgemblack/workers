@@ -1,13 +1,13 @@
-<!-- TRMNL renders only the inner contents of <body>, so this file has no
-     <head>/<html>/<body>. Fonts and styles live inline instead, and everything
-     is scoped to .today so we don't depend on styling a <body> we don't own. -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link
-  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@600&display=swap"
-  rel="stylesheet"
-/>
 <style>
+  /* Inter Variable, the face the TRMNL framework uses on high-res displays. */
+  @font-face {
+    font-family: "Inter Variable";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("https://trmnl.com/fonts/Inter.ttf") format("truetype");
+  }
+
   .today,
   .today * {
     margin: 0;
@@ -25,29 +25,36 @@
     min-height: 100vh;
     background: #fff;
     color: #000;
+    font-family: "Inter Variable", Inter, sans-serif;
+    -webkit-font-smoothing: antialiased;
     text-align: center;
     padding: 6vmin;
   }
 
   /* An outlined rounded-rect badge for an all-day event, sitting above the
-     title. A crisp black outline reads lighter than a solid fill while staying
-     sharp on the e-ink screen. */
-  .today .allday {
+     title. Mirrors the framework's `label` role: Inter at a medium weight. A
+     crisp black outline reads lighter than a solid fill while staying sharp. */
+  .today .label {
     margin-bottom: 4vmin;
     padding: 1.5vmin 4vmin;
-    border: 0.4vmin solid #000;
+    border: 0.35vmin solid #000;
     border-radius: 3vmin;
-    color: #000;
-    font-family: "Inter", sans-serif;
-    font-size: 4vmin;
-    letter-spacing: 0.1em;
+    font-size: 3.4vmin;
+    /* Set the variable-font axis, not just font-weight. On the device the
+       framework pins `font-variation-settings` on text, which overrides a plain
+       `font-weight`, so weight only sticks if we set the axis directly. */
+    font-weight: 500;
+    font-variation-settings: "wght" 500;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  /* The event title, front and center. */
+  /* The event title, front and center. The framework's `title` role lightens as
+     it grows, so a large title uses a lighter weight than a small one. */
   .today .title {
-    font-family: "Fraunces", serif;
-    font-size: 14vmin;
+    font-size: 12vmin;
+    font-weight: 800;
+    font-variation-settings: "wght" 800;
     line-height: 1.05;
     text-wrap: balance;
   }
@@ -55,28 +62,30 @@
   /* The day and time, sitting just below the title. */
   .today .when {
     margin-top: 3vmin;
-    font-family: "Inter", sans-serif;
-    font-size: 5vmin;
-    letter-spacing: 0.15em;
+    font-size: 4.5vmin;
+    font-weight: 500;
+    font-variation-settings: "wght" 500;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
-  /* Shown when there is nothing coming up. */
+  /* Shown when there is nothing coming up. A lighter weight, not gray, keeps it
+     distinct without muddy dithering on the e-ink screen. */
   .today .empty {
-    font-size: 10vmin;
-    color: #555;
+    font-weight: 300;
+    font-variation-settings: "wght" 300;
   }
 </style>
 
-<div class="today">
+<div class="today screen--fonts-trmnl">
   {% if allDayEvent %}
-  <div class="allday">{{ allDayEvent.title }}</div>
+  <div class="label">{{ allDayEvent.title }}</div>
   {% endif %} {% if nextEvent %}
-  <div class="title">{{ nextEvent.title }}</div>
-  <div class="when">
+  <div class="title text--center">{{ nextEvent.title }}</div>
+  <div class="when text--center">
     {{ nextEvent.startDay }} &middot; {{ nextEvent.startTime }}
   </div>
   {% else %}
-  <div class="title empty">Nothing coming up</div>
+  <div class="title empty text--center">Nothing coming up</div>
   {% endif %}
 </div>
