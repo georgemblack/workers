@@ -14,7 +14,5 @@
   "ai": {
     "binding": "AI",
   },
-  "kv_namespaces": [
-    { "binding": "TOKENS", "id": "a4390dca991142368440bb8d4dd864f1" },
-  ],
+  "kv_namespaces": [{ "binding": "TOKENS", "id": "a4390dca991142368440bb8d4dd864f1" }],
 }

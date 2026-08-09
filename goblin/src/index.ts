@@ -23,9 +23,7 @@ async function getMerchantExamples(db: D1Database): Promise<string[]> {
 }
 
 async function getRules(db: D1Database): Promise<Map<string, string>> {
-  const result = await db
-    .prepare("SELECT merchant, category FROM rules")
-    .all<Rule>();
+  const result = await db.prepare("SELECT merchant, category FROM rules").all<Rule>();
   const map = new Map<string, string>();
   for (const row of result.results) {
     map.set(row.merchant, row.category);
@@ -67,9 +65,7 @@ export default {
         }
 
         const category = rules.get(merchantName) ?? null;
-        await env.DB.prepare(
-          "UPDATE transactions SET merchant = ?, category = ? WHERE key = ?",
-        )
+        await env.DB.prepare("UPDATE transactions SET merchant = ?, category = ? WHERE key = ?")
           .bind(merchantName, category, key)
           .run();
 

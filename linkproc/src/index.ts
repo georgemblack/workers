@@ -87,8 +87,7 @@ async function fetchMetadata(
 export default {
   async queue(batch: MessageBatch, env: Env): Promise<void> {
     for (const message of batch.messages) {
-      const { url: rawUrl, title: providedTitle } =
-        message.body as QueueMessage;
+      const { url: rawUrl, title: providedTitle } = message.body as QueueMessage;
       const url = sanitizeUrl(rawUrl);
       const { title: fetchedTitle, description } = await fetchMetadata(
         env.CF_ACCOUNT_ID,
@@ -96,9 +95,7 @@ export default {
         url,
       );
 
-      await env.DB.prepare(
-        "INSERT INTO links (url, title, description) VALUES (?, ?, ?)",
-      )
+      await env.DB.prepare("INSERT INTO links (url, title, description) VALUES (?, ?, ?)")
         .bind(
           url,
           providedTitle && !isUrl(providedTitle) ? providedTitle : fetchedTitle,

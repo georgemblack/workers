@@ -8,11 +8,7 @@ export default defineConfig({
     options: { typeAware: true, typeCheck: true },
   },
   fmt: {
-    importOrder: ["^(@/|[./])"],
-    importOrderSeparation: true,
-    printWidth: 80,
-    sortPackageJson: false,
-    ignorePatterns: ["*.gen.ts", "pnpm-lock.yaml", "worker-configuration.d.ts"],
+    ignorePatterns: ["*.gen.ts", "worker-configuration.d.ts"],
   },
   test: {
     passWithNoTests: true,

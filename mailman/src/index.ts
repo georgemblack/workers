@@ -33,11 +33,7 @@ async function getMailboxIds(
     body: JSON.stringify({
       using: ["urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"],
       methodCalls: [
-        [
-          "Mailbox/query",
-          { accountId: session.accountId, filter: { role: "inbox" } },
-          "0",
-        ],
+        ["Mailbox/query", { accountId: session.accountId, filter: { role: "inbox" } }, "0"],
         [
           "Mailbox/query",
           {
@@ -60,8 +56,7 @@ async function getMailboxIds(
   });
   const data = (await res.json()) as any;
   const inboxIds: string[] = data.methodResponses[0][1].ids;
-  const notifCandidates: { id: string; name: string }[] =
-    data.methodResponses[2][1].list ?? [];
+  const notifCandidates: { id: string; name: string }[] = data.methodResponses[2][1].list ?? [];
   if (!inboxIds?.length) throw new Error(`Mailbox with role=inbox not found`);
   const notif = notifCandidates.find((m) => m.name === NOTIFICATIONS_NAME);
   if (!notif) throw new Error(`Mailbox "${NOTIFICATIONS_NAME}" not found`);
@@ -110,9 +105,7 @@ async function getUnreadInboxEmails(
   const list: any[] = data.methodResponses[1][1].list ?? [];
   return list.map((email) => {
     const bodyPartId = email.textBody?.[0]?.partId;
-    const bodyText = bodyPartId
-      ? email.bodyValues?.[bodyPartId]?.value || ""
-      : "";
+    const bodyText = bodyPartId ? email.bodyValues?.[bodyPartId]?.value || "" : "";
     return {
       id: email.id,
       from: email.from?.[0]?.name || email.from?.[0]?.email || "Unknown",
@@ -197,9 +190,7 @@ async function setEmailMailbox(
   const data = (await res.json()) as any;
   const notUpdated = data.methodResponses[0][1].notUpdated;
   if (notUpdated && notUpdated[emailId]) {
-    throw new Error(
-      `Email/set notUpdated for ${emailId}: ${JSON.stringify(notUpdated[emailId])}`,
-    );
+    throw new Error(`Email/set notUpdated for ${emailId}: ${JSON.stringify(notUpdated[emailId])}`);
   }
 }
 
@@ -264,10 +255,7 @@ async function processInbox(env: CloudflareBindings): Promise<void> {
   }
 }
 
-async function handleOpen(
-  env: CloudflareBindings,
-  token: string,
-): Promise<Response> {
+async function handleOpen(env: CloudflareBindings, token: string): Promise<Response> {
   const emailId = await env.TOKENS.get(token);
   if (!emailId) return new Response("Not found", { status: 404 });
 
