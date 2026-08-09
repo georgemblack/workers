@@ -32,8 +32,7 @@ export function centralStartTime(ms: number): string {
     minute: "2-digit",
     hour12: true,
   }).formatToParts(ms);
-  const part = (type: string) =>
-    parts.find((p) => p.type === type)?.value ?? "";
+  const part = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
   const hour = part("hour");
   const minute = part("minute");
   const period = part("dayPeriod");

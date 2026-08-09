@@ -1,8 +1,4 @@
-import {
-  WorkflowEntrypoint,
-  WorkflowStep,
-  WorkflowEvent,
-} from "cloudflare:workers";
+import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from "cloudflare:workers";
 
 export class TbdevWorkflow extends WorkflowEntrypoint<Env> {
   async run(event: WorkflowEvent<unknown>, step: WorkflowStep) {

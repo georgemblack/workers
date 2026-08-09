@@ -30,7 +30,7 @@ function ReviewForm({
   // look up the matching rule on mount to auto-fill the category.
   useEffect(() => {
     if (merchant && !category) {
-      getRule({ data: merchant }).then((rule) => {
+      void getRule({ data: merchant }).then((rule) => {
         if (rule) setCategory(rule.category as Category);
       });
     }

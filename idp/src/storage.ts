@@ -6,10 +6,7 @@ export interface Client {
   name: string;
   redirect_uris: string[];
   post_logout_redirect_uris: string[];
-  token_endpoint_auth_method:
-    | "client_secret_basic"
-    | "client_secret_post"
-    | "none";
+  token_endpoint_auth_method: "client_secret_basic" | "client_secret_post" | "none";
   created_at: string;
 }
 
@@ -36,10 +33,7 @@ function rowToClient(row: ClientRow): Client {
   };
 }
 
-export async function getClient(
-  db: D1Database,
-  clientId: string,
-): Promise<Client | null> {
+export async function getClient(db: D1Database, clientId: string): Promise<Client | null> {
   const row = await db
     .prepare("SELECT * FROM clients WHERE client_id = ?")
     .bind(clientId)
@@ -81,14 +75,8 @@ export async function createClient(
     .run();
 }
 
-export async function deleteClient(
-  db: D1Database,
-  clientId: string,
-): Promise<void> {
-  await db
-    .prepare("DELETE FROM clients WHERE client_id = ?")
-    .bind(clientId)
-    .run();
+export async function deleteClient(db: D1Database, clientId: string): Promise<void> {
+  await db.prepare("DELETE FROM clients WHERE client_id = ?").bind(clientId).run();
 }
 
 export async function hashSecret(secret: string): Promise<string> {
@@ -120,10 +108,7 @@ interface CredentialRow {
 }
 
 function rowToCredential(row: CredentialRow): CredentialRecord {
-  const pk =
-    row.public_key instanceof Uint8Array
-      ? row.public_key
-      : new Uint8Array(row.public_key);
+  const pk = row.public_key instanceof Uint8Array ? row.public_key : new Uint8Array(row.public_key);
   return {
     credential_id: row.credential_id,
     public_key: pk,
@@ -137,9 +122,7 @@ function rowToCredential(row: CredentialRow): CredentialRecord {
   };
 }
 
-export async function listCredentials(
-  db: D1Database,
-): Promise<CredentialRecord[]> {
+export async function listCredentials(db: D1Database): Promise<CredentialRecord[]> {
   const { results } = await db
     .prepare("SELECT * FROM credentials ORDER BY created_at DESC")
     .all<CredentialRow>();
@@ -158,9 +141,7 @@ export async function getCredential(
 }
 
 export async function countCredentials(db: D1Database): Promise<number> {
-  const row = await db
-    .prepare("SELECT COUNT(*) AS c FROM credentials")
-    .first<{ c: number }>();
+  const row = await db.prepare("SELECT COUNT(*) AS c FROM credentials").first<{ c: number }>();
   return row?.c ?? 0;
 }
 
@@ -198,14 +179,8 @@ export async function updateCredentialCounter(
     .run();
 }
 
-export async function deleteCredential(
-  db: D1Database,
-  credentialId: string,
-): Promise<void> {
-  await db
-    .prepare("DELETE FROM credentials WHERE credential_id = ?")
-    .bind(credentialId)
-    .run();
+export async function deleteCredential(db: D1Database, credentialId: string): Promise<void> {
+  await db.prepare("DELETE FROM credentials WHERE credential_id = ?").bind(credentialId).run();
 }
 
 export interface AuthCodeRecord {
@@ -227,9 +202,7 @@ export async function putAuthCode(
 ): Promise<void> {
   const expiresAt = Math.floor(Date.now() / 1000) + ttl;
   await db
-    .prepare(
-      "INSERT INTO auth_codes (code, payload, expires_at) VALUES (?, ?, ?)",
-    )
+    .prepare("INSERT INTO auth_codes (code, payload, expires_at) VALUES (?, ?, ?)")
     .bind(code, JSON.stringify(data), expiresAt)
     .run();
 }
@@ -240,9 +213,7 @@ export async function consumeAuthCode(
 ): Promise<AuthCodeRecord | null> {
   const now = Math.floor(Date.now() / 1000);
   const row = await db
-    .prepare(
-      "DELETE FROM auth_codes WHERE code = ? AND expires_at > ? RETURNING payload",
-    )
+    .prepare("DELETE FROM auth_codes WHERE code = ? AND expires_at > ? RETURNING payload")
     .bind(code, now)
     .first<{ payload: string }>();
   if (!row) return null;
@@ -265,9 +236,7 @@ export async function putRefreshToken(
 ): Promise<void> {
   const expiresAt = Math.floor(Date.now() / 1000) + ttl;
   await db
-    .prepare(
-      "INSERT INTO refresh_tokens (token, payload, expires_at) VALUES (?, ?, ?)",
-    )
+    .prepare("INSERT INTO refresh_tokens (token, payload, expires_at) VALUES (?, ?, ?)")
     .bind(token, JSON.stringify(data), expiresAt)
     .run();
 }
@@ -278,9 +247,7 @@ export async function consumeRefreshToken(
 ): Promise<RefreshTokenRecord | null> {
   const now = Math.floor(Date.now() / 1000);
   const row = await db
-    .prepare(
-      "DELETE FROM refresh_tokens WHERE token = ? AND expires_at > ? RETURNING payload",
-    )
+    .prepare("DELETE FROM refresh_tokens WHERE token = ? AND expires_at > ? RETURNING payload")
     .bind(token, now)
     .first<{ payload: string }>();
   if (!row) return null;
@@ -295,22 +262,15 @@ export async function putWebauthnChallenge(
 ): Promise<void> {
   const expiresAt = Math.floor(Date.now() / 1000) + ttl;
   await db
-    .prepare(
-      "INSERT INTO webauthn_challenges (id, challenge, expires_at) VALUES (?, ?, ?)",
-    )
+    .prepare("INSERT INTO webauthn_challenges (id, challenge, expires_at) VALUES (?, ?, ?)")
     .bind(id, challenge, expiresAt)
     .run();
 }
 
-export async function consumeWebauthnChallenge(
-  db: D1Database,
-  id: string,
-): Promise<string | null> {
+export async function consumeWebauthnChallenge(db: D1Database, id: string): Promise<string | null> {
   const now = Math.floor(Date.now() / 1000);
   const row = await db
-    .prepare(
-      "DELETE FROM webauthn_challenges WHERE id = ? AND expires_at > ? RETURNING challenge",
-    )
+    .prepare("DELETE FROM webauthn_challenges WHERE id = ? AND expires_at > ? RETURNING challenge")
     .bind(id, now)
     .first<{ challenge: string }>();
   return row?.challenge ?? null;

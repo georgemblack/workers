@@ -18,18 +18,11 @@ async function hmacKey(secret: string): Promise<CryptoKey> {
 
 async function sign(secret: string, payload: string): Promise<string> {
   const key = await hmacKey(secret);
-  const sig = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(payload),
-  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
   return base64urlEncode(new Uint8Array(sig));
 }
 
-export async function encodeSigned(
-  secret: string,
-  data: unknown,
-): Promise<string> {
+export async function encodeSigned(secret: string, data: unknown): Promise<string> {
   const payload = base64urlEncode(JSON.stringify(data));
   const sig = await sign(secret, payload);
   return `${payload}.${sig}`;
@@ -116,9 +109,6 @@ export async function readTxCookie<T = unknown>(
   return decodeSigned<T>(c.env.SESSION_SECRET, token);
 }
 
-export function clearTxCookie(
-  c: Context<{ Bindings: Cloudflare.Env }>,
-  name: string,
-): void {
+export function clearTxCookie(c: Context<{ Bindings: Cloudflare.Env }>, name: string): void {
   deleteCookie(c, TX_COOKIE_PREFIX + name, { path: "/" });
 }

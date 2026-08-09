@@ -11,8 +11,8 @@
       <div class="card">
         <h1>Register a passkey</h1>
         <p class="muted">
-          Use a hardware key, password manager, or device biometric to enroll a
-          passkey for this identity.
+          Use a hardware key, password manager, or device biometric to enroll a passkey for this
+          identity.
         </p>
 
         <div id="bootstrap-block" style="display: none">
@@ -55,11 +55,7 @@
         if (!r.has_credential) {
           bootstrapBlock.style.display = "block";
         } else if (!r.authenticated) {
-          showStatus(
-            status,
-            "A passkey already exists. Sign in first to add another.",
-            "error",
-          );
+          showStatus(status, "A passkey already exists. Sign in first to add another.", "error");
           btn.disabled = true;
         }
       }

@@ -24,17 +24,12 @@ function Autosuggest({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
-          if (e.key === "ArrowRight" && consolidated.length > 0)
-            onChange(consolidated[0]);
+          if (e.key === "ArrowRight" && consolidated.length > 0) onChange(consolidated[0]);
         }}
       />
       <div className="mt-1 flex h-8 flex-nowrap gap-1 overflow-hidden">
         {consolidated.map((suggestion) => (
-          <span
-            key={suggestion}
-            className="cursor-pointer"
-            onClick={() => onChange(suggestion)}
-          >
+          <span key={suggestion} className="cursor-pointer" onClick={() => onChange(suggestion)}>
             <Badge variant="outline">{suggestion}</Badge>
           </span>
         ))}

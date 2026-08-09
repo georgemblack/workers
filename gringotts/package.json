@@ -3,13 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev --port 3000",
-    "build": "vite build",
-    "deploy": "pnpm run build && wrangler deploy",
-    "dryrun": "pnpm run build && wrangler deploy --dry-run",
+    "dev": "vp dev --port 3000",
+    "build": "vp build",
+    "deploy": "vp build && wrangler deploy",
+    "dryrun": "vp build && wrangler deploy --dry-run",
     "typegen": "wrangler types -c ./wrangler.jsonc",
     "typecheck": "tsgo --noEmit",
-    "format": "prettier . --write"
+    "format": "vp fmt ."
   },
   "dependencies": {
     "@cloudflare/kumo": "^2.9.0",
@@ -25,19 +25,18 @@
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/node": "^25.6.0",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.0",
     "@typescript/native-preview": "beta",
     "@vitejs/plugin-react": "^6.0.1",
-    "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.7.3",
-    "vite": "^8.0.10",
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
+    "vite-plus": "0.2.8",
     "wrangler": "^4.85.0"
   },
   "volta": {
     "node": "24.14.0"
-  }
+  },
+  "packageManager": "pnpm@11.17.0"
 }

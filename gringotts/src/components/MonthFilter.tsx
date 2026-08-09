@@ -10,10 +10,7 @@ function MonthFilter({
   onSelect: (month: Month | "Any") => void;
 }) {
   return (
-    <Select
-      value={value as string}
-      onValueChange={(v) => onSelect(v as Month | "Any")}
-    >
+    <Select value={value as string} onValueChange={(v) => onSelect(v as Month | "Any")}>
       <Select.Option value="Any">Any</Select.Option>
       {Object.values(Month).map((month) => (
         <Select.Option key={month} value={month}>

@@ -7,7 +7,7 @@
     "dryrun": "wrangler deploy --dry-run",
     "typecheck": "tsc --noEmit",
     "typegen": "wrangler types",
-    "format": "prettier . --write",
+    "format": "vp fmt .",
     "db:create": "wrangler d1 create terminal",
     "db:migrate:local": "wrangler d1 migrations apply terminal --local",
     "db:migrate": "wrangler d1 migrations apply terminal --remote"
@@ -20,6 +20,15 @@
     "@types/node": "^25.6.0",
     "prettier": "^3.8.3",
     "typescript": "^5.7.2",
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
+    "vite-plus": "0.2.8",
     "wrangler": "^4.107.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.20.0",
+      "onFail": "download"
+    }
   }
 }

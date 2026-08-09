@@ -3,13 +3,7 @@ import { useEffect, useState } from "react";
 import Autosuggest from "@/components/Autosuggest";
 import { Tag, TagNames, getProperTag } from "@/lib/Types";
 
-function TagField({
-  value,
-  onSelect,
-}: {
-  value: Tag | null;
-  onSelect: (tag: Tag) => void;
-}) {
+function TagField({ value, onSelect }: { value: Tag | null; onSelect: (tag: Tag) => void }) {
   const initialInput = value ? TagNames[value] : "";
   const [input, setInput] = useState<string>(initialInput);
 

@@ -27,9 +27,7 @@ function AddPage() {
   const [category, setCategory] = useState<Category | null>(null);
   const [tag, setTag] = useState<Tag | null>(null);
   const [notes, setNotes] = useState<string>("");
-  const [account, setAccount] = useState<Account>(
-    Account.CAPITAL_ONE_QUICKSILVER,
-  );
+  const [account, setAccount] = useState<Account>(Account.CAPITAL_ONE_QUICKSILVER);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

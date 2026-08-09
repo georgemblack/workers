@@ -25,9 +25,7 @@ function SummaryPage() {
   const [summary, setSummary] = useState<TransactionSummary>({ items: [] });
 
   const rows = (group: Group) => {
-    const categories = Object.values(Category).filter(
-      (c) => Groups[c] === group,
-    );
+    const categories = Object.values(Category).filter((c) => Groups[c] === group);
 
     return categories.map((category) => {
       const columns: React.ReactNode[] = [];
@@ -138,7 +136,7 @@ function SummaryPage() {
   };
 
   useEffect(() => {
-    getSummary({ data: year }).then((result) => setSummary(result));
+    void getSummary({ data: year }).then((result) => setSummary(result));
   }, [year]);
 
   return (

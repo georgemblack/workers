@@ -19,9 +19,7 @@ export const Route = createFileRoute("/review")({
 
 function ReviewPage() {
   const initialData = Route.useLoaderData();
-  const [transactions, setTransactions] = useState<Transaction[]>(
-    initialData.transactions,
-  );
+  const [transactions, setTransactions] = useState<Transaction[]>(initialData.transactions);
   const [amount, setAmount] = useState<string>("");
 
   const handleComplete = (id: number) => {

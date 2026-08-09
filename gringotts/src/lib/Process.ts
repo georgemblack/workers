@@ -45,11 +45,7 @@ export function process(
   csv = csv.trim();
 
   // Parse Capital One credit CSV
-  if (
-    [Account.CAPITAL_ONE_SAVOR, Account.CAPITAL_ONE_QUICKSILVER].includes(
-      account,
-    )
-  ) {
+  if ([Account.CAPITAL_ONE_SAVOR, Account.CAPITAL_ONE_QUICKSILVER].includes(account)) {
     const result = parse<C1CreditRecord>(csv, { header: true });
     const valid = result.data.filter(valid1CreditRecord);
     invalidCount = result.data.length - valid.length;
@@ -90,12 +86,8 @@ export function process(
 /**
  * Convert a record from a C1 credit account to a standard transaction.
  */
-export function c1CreditRecordToTransaction(
-  record: C1CreditRecord,
-  account: Account,
-): Transaction {
-  const amount =
-    record.Debit !== "" ? Number(record.Debit) : Number(record.Credit);
+export function c1CreditRecordToTransaction(record: C1CreditRecord, account: Account): Transaction {
+  const amount = record.Debit !== "" ? Number(record.Debit) : Number(record.Credit);
   const credit = record.Debit !== "" ? Bool.FALSE : Bool.TRUE;
 
   return {
@@ -129,8 +121,7 @@ export function c1CheckingRecordToTransaction(
   record: C1CheckingRecord,
   account: Account,
 ): Transaction {
-  const credit =
-    record["Transaction Type"] === "Credit" ? Bool.TRUE : Bool.FALSE;
+  const credit = record["Transaction Type"] === "Credit" ? Bool.TRUE : Bool.FALSE;
   const amount = Number(record["Transaction Amount"]);
 
   return {
@@ -154,9 +145,7 @@ export function c1CheckingRecordsToTransactions(
   records: C1CheckingRecord[],
   account: Account,
 ): Transaction[] {
-  return records.map((record) =>
-    c1CheckingRecordToTransaction(record, account),
-  );
+  return records.map((record) => c1CheckingRecordToTransaction(record, account));
 }
 
 /**
@@ -167,8 +156,7 @@ export function appleCardCreditRecordToTransaction(
   account: Account,
 ): Transaction {
   // If amount is negative, it's a credit
-  const credit =
-    record["Amount (USD)"].startsWith("-") === true ? Bool.TRUE : Bool.FALSE;
+  const credit = record["Amount (USD)"].startsWith("-") === true ? Bool.TRUE : Bool.FALSE;
 
   // Remove negative sign from amount if it's a credit
   const amount =
@@ -197,9 +185,7 @@ export function appleCardCreditRecordsToTransactions(
   records: AppleCardCreditRecord[],
   account: Account,
 ): Transaction[] {
-  return records.map((record) =>
-    appleCardCreditRecordToTransaction(record, account),
-  );
+  return records.map((record) => appleCardCreditRecordToTransaction(record, account));
 }
 
 /**
@@ -209,8 +195,7 @@ export function appleCardSavingsRecordToTransaction(
   record: AppleCardSavingsRecord,
   account: Account,
 ): Transaction {
-  const credit =
-    record["Transaction Type"] === "Credit" ? Bool.TRUE : Bool.FALSE;
+  const credit = record["Transaction Type"] === "Credit" ? Bool.TRUE : Bool.FALSE;
 
   return {
     key: generateRecordId(record),
@@ -233,9 +218,7 @@ export function appleCardSavingsRecordsToTransactions(
   records: AppleCardSavingsRecord[],
   account: Account,
 ): Transaction[] {
-  return records.map((record) =>
-    appleCardSavingsRecordToTransaction(record, account),
-  );
+  return records.map((record) => appleCardSavingsRecordToTransaction(record, account));
 }
 
 /*

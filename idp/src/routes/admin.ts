@@ -1,10 +1,5 @@
 import { Hono } from "hono";
-import {
-  createClient,
-  deleteClient,
-  hashSecret,
-  listClients,
-} from "../storage";
+import { createClient, deleteClient, hashSecret, listClients } from "../storage";
 import { getSession } from "../session";
 import { randomToken } from "../util";
 
@@ -36,17 +31,10 @@ admin.post("/api/admin/clients", async (c) => {
     name: string;
     redirect_uris: string[];
     post_logout_redirect_uris?: string[];
-    token_endpoint_auth_method?:
-      | "client_secret_basic"
-      | "client_secret_post"
-      | "none";
+    token_endpoint_auth_method?: "client_secret_basic" | "client_secret_post" | "none";
   };
 
-  if (
-    !body.name ||
-    !Array.isArray(body.redirect_uris) ||
-    body.redirect_uris.length === 0
-  ) {
+  if (!body.name || !Array.isArray(body.redirect_uris) || body.redirect_uris.length === 0) {
     return c.json({ error: "name and redirect_uris required" }, 400);
   }
   for (const uri of body.redirect_uris) {
@@ -89,9 +77,7 @@ admin.post("/api/admin/clients", async (c) => {
     redirect_uris: body.redirect_uris,
     post_logout_redirect_uris: body.post_logout_redirect_uris ?? [],
     token_endpoint_auth_method: method,
-    note: client_secret
-      ? "Save the client_secret now — it will not be shown again."
-      : undefined,
+    note: client_secret ? "Save the client_secret now — it will not be shown again." : undefined,
   });
 });
 

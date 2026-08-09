@@ -1,9 +1,5 @@
 import { Hono } from "hono";
-import {
-  countCredentials,
-  deleteCredential,
-  listCredentials,
-} from "../storage";
+import { countCredentials, deleteCredential, listCredentials } from "../storage";
 import {
   finishAuthentication,
   finishRegistration,
@@ -39,11 +35,7 @@ auth.post("/api/auth/login/verify", async (c) => {
     challengeId: string;
     response: Parameters<typeof finishAuthentication>[2];
   };
-  const result = await finishAuthentication(
-    c.env,
-    body.challengeId,
-    body.response,
-  );
+  const result = await finishAuthentication(c.env, body.challengeId, body.response);
   if (!result.ok) return c.json({ error: result.error }, 400);
   await createSession(c, result.sub);
   return c.json({ ok: true });
@@ -62,10 +54,7 @@ auth.post("/api/auth/register/options", async (c) => {
     if (!session) return c.json({ error: "unauthorized" }, 401);
   } else {
     const provided = c.req.header("x-bootstrap-secret") ?? "";
-    if (
-      !c.env.BOOTSTRAP_SECRET ||
-      !constantTimeEqual(provided, c.env.BOOTSTRAP_SECRET)
-    ) {
+    if (!c.env.BOOTSTRAP_SECRET || !constantTimeEqual(provided, c.env.BOOTSTRAP_SECRET)) {
       return c.json({ error: "bootstrap_required" }, 401);
     }
   }
@@ -88,10 +77,7 @@ auth.post("/api/auth/register/verify", async (c) => {
   }
   if (credentialCount === 0) {
     const provided = c.req.header("x-bootstrap-secret") ?? "";
-    if (
-      !c.env.BOOTSTRAP_SECRET ||
-      !constantTimeEqual(provided, c.env.BOOTSTRAP_SECRET)
-    ) {
+    if (!c.env.BOOTSTRAP_SECRET || !constantTimeEqual(provided, c.env.BOOTSTRAP_SECRET)) {
       return c.json({ error: "bootstrap_required" }, 401);
     }
   }

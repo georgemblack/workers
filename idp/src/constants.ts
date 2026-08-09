@@ -11,11 +11,7 @@ export const USER_FAMILY_NAME = "Black";
 export const USER_LOCALE = "en-US";
 export const USER_ZONEINFO = "America/Chicago";
 export const USER_WEBSITE = "https://george.black";
-export const USER_GROUPS = [
-  "MacMiniOwners",
-  "CloudflareEmployees",
-  "PorterRobinsonFans",
-];
+export const USER_GROUPS = ["MacMiniOwners", "CloudflareEmployees", "PorterRobinsonFans"];
 
 export const SESSION_TTL_SECONDS = 43200;
 export const AUTH_CODE_TTL_SECONDS = 60;

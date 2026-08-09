@@ -18,9 +18,7 @@ publicJwk.kid = jwk.kid;
 publicJwk.alg = "ES256";
 publicJwk.use = "sig";
 
-console.error(
-  "# Public JWK (for reference; published at /.well-known/jwks.json):",
-);
+console.error("# Public JWK (for reference; published at /.well-known/jwks.json):");
 console.error(JSON.stringify(publicJwk, null, 2));
 console.error("");
 console.error("# Private JWK — pipe to: wrangler secret put SIGNING_JWK");

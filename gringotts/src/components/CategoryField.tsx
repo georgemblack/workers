@@ -29,9 +29,7 @@ function CategoryField({
   return (
     <Autosuggest
       value={input}
-      suggestions={Object.keys(Category).map(
-        (key) => CategoryNames[key as Category],
-      )}
+      suggestions={Object.keys(Category).map((key) => CategoryNames[key as Category])}
       placeholder="Category"
       onChange={handleChange}
     />

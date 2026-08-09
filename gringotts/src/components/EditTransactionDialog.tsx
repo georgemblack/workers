@@ -28,12 +28,10 @@ function EditTransactionDialog({
   );
   const [account, setAccount] = useState<Account>(transaction.account);
   const [notes, setNotes] = useState<string>(transaction.notes ?? "");
-  const [tag, setTag] = useState<Tag | null>(
-    (transaction.tags?.[0] as Tag) ?? null,
-  );
+  const [tag, setTag] = useState<Tag | null>((transaction.tags?.[0] as Tag) ?? null);
 
   useEffect(() => {
-    if (open) getMerchants().then(setMerchants);
+    if (open) void getMerchants().then(setMerchants);
   }, [open]);
 
   const reset = () => {

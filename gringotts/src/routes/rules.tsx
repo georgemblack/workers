@@ -32,15 +32,13 @@ function RulesPage() {
           {rules.map((rule) => (
             <Table.Row key={rule.id}>
               <Table.Cell>{rule.merchant}</Table.Cell>
-              <Table.Cell>
-                {CategoryNames[rule.category as Category]}
-              </Table.Cell>
+              <Table.Cell>{CategoryNames[rule.category as Category]}</Table.Cell>
               <Table.Cell className="flex justify-end">
                 <Button
                   variant="destructive"
                   size="xs"
                   onClick={() => {
-                    if (rule.id) handleDelete(rule.id);
+                    if (rule.id) void handleDelete(rule.id);
                   }}
                 >
                   Delete

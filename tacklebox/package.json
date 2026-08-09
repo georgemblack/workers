@@ -6,10 +6,19 @@
     "dryrun": "wrangler deploy --dry-run",
     "typecheck": "echo 'no types'",
     "typegen": "wrangler types",
-    "format": "prettier . --write"
+    "format": "vp fmt ."
   },
   "devDependencies": {
     "prettier": "^3.8.3",
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
+    "vite-plus": "0.2.8",
     "wrangler": "^4.87.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.20.0",
+      "onFail": "download"
+    }
   }
 }

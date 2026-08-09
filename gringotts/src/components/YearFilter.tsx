@@ -1,17 +1,8 @@
 import { Select } from "@cloudflare/kumo";
 
-function YearFilter({
-  value,
-  onSelect,
-}: {
-  value: number;
-  onSelect: (year: number) => void;
-}) {
+function YearFilter({ value, onSelect }: { value: number; onSelect: (year: number) => void }) {
   const currentYear = new Date().getFullYear();
-  const years = Array.from(
-    { length: currentYear - 2026 + 1 },
-    (_, i) => 2026 + i,
-  );
+  const years = Array.from({ length: currentYear - 2026 + 1 }, (_, i) => 2026 + i);
 
   return (
     <Select value={String(value)} onValueChange={(v) => onSelect(Number(v))}>

@@ -54,10 +54,7 @@ function encodeRegistrationCredential(cred) {
       attestationObject: bytesToB64url(r.attestationObject),
       transports: r.getTransports ? r.getTransports() : [],
       publicKeyAlgorithm: r.getPublicKeyAlgorithm && r.getPublicKeyAlgorithm(),
-      publicKey:
-        r.getPublicKey && r.getPublicKey()
-          ? bytesToB64url(r.getPublicKey())
-          : undefined,
+      publicKey: r.getPublicKey && r.getPublicKey() ? bytesToB64url(r.getPublicKey()) : undefined,
       authenticatorData:
         r.getAuthenticatorData && r.getAuthenticatorData()
           ? bytesToB64url(r.getAuthenticatorData())

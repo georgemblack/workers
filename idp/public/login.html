@@ -38,11 +38,7 @@
           return;
         }
         if (!r.has_credential) {
-          showStatus(
-            status,
-            "No passkeys registered yet. Register one first.",
-            "error",
-          );
+          showStatus(status, "No passkeys registered yet. Register one first.", "error");
           btn.disabled = true;
         }
       }

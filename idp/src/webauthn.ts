@@ -19,14 +19,7 @@ import {
   updateCredentialCounter,
 } from "./storage";
 import { randomToken } from "./util";
-import {
-  ISSUER,
-  RP_ID,
-  RP_NAME,
-  USER_DISPLAY_NAME,
-  USER_HANDLE,
-  USER_NAME,
-} from "./constants";
+import { ISSUER, RP_ID, RP_NAME, USER_DISPLAY_NAME, USER_HANDLE, USER_NAME } from "./constants";
 
 export async function startRegistration(env: Cloudflare.Env): Promise<{
   options: PublicKeyCredentialCreationOptionsJSON;
@@ -61,12 +54,8 @@ export async function finishRegistration(
   response: RegistrationResponseJSON,
   label: string | null,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const expectedChallenge = await consumeWebauthnChallenge(
-    env.DB,
-    `reg:${challengeId}`,
-  );
-  if (!expectedChallenge)
-    return { ok: false, error: "Challenge not found or expired" };
+  const expectedChallenge = await consumeWebauthnChallenge(env.DB, `reg:${challengeId}`);
+  if (!expectedChallenge) return { ok: false, error: "Challenge not found or expired" };
 
   let verification;
   try {
@@ -122,12 +111,8 @@ export async function finishAuthentication(
   challengeId: string,
   response: AuthenticationResponseJSON,
 ): Promise<{ ok: true; sub: string } | { ok: false; error: string }> {
-  const expectedChallenge = await consumeWebauthnChallenge(
-    env.DB,
-    `auth:${challengeId}`,
-  );
-  if (!expectedChallenge)
-    return { ok: false, error: "Challenge not found or expired" };
+  const expectedChallenge = await consumeWebauthnChallenge(env.DB, `auth:${challengeId}`);
+  if (!expectedChallenge) return { ok: false, error: "Challenge not found or expired" };
 
   const cred = await getCredential(env.DB, response.id);
   if (!cred) return { ok: false, error: "Unknown credential" };
@@ -151,8 +136,7 @@ export async function finishAuthentication(
     return { ok: false, error: (e as Error).message };
   }
 
-  if (!verification.verified)
-    return { ok: false, error: "Verification failed" };
+  if (!verification.verified) return { ok: false, error: "Verification failed" };
 
   await updateCredentialCounter(
     env.DB,

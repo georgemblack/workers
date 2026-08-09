@@ -10,10 +10,7 @@ function AccountFilter({
   onSelect: (account: Account | "Any") => void;
 }) {
   return (
-    <Select
-      value={value as string}
-      onValueChange={(v) => onSelect(v as Account | "Any")}
-    >
+    <Select value={value as string} onValueChange={(v) => onSelect(v as Account | "Any")}>
       <Select.Option value="Any">Any</Select.Option>
       {Object.values(Account).map((account) => (
         <Select.Option key={account} value={account}>

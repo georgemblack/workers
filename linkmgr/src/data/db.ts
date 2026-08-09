@@ -9,14 +9,12 @@ export interface Link {
   created_at: string;
 }
 
-export const listLinks = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Link[]> => {
-    const result = await env.DB.prepare(
-      "SELECT id, url, title, description, created_at FROM links ORDER BY created_at DESC LIMIT 100",
-    ).all<Link>();
-    return result.results;
-  },
-);
+export const listLinks = createServerFn({ method: "GET" }).handler(async (): Promise<Link[]> => {
+  const result = await env.DB.prepare(
+    "SELECT id, url, title, description, created_at FROM links ORDER BY created_at DESC LIMIT 100",
+  ).all<Link>();
+  return result.results;
+});
 
 export const deleteLink = createServerFn({ method: "POST" })
   .inputValidator((id: number) => id)

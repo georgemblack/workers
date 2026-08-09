@@ -10,10 +10,7 @@ function TagFilter({
   onSelect: (tag: Tag | "Any") => void;
 }) {
   return (
-    <Select
-      value={value as string}
-      onValueChange={(v) => onSelect(v as Tag | "Any")}
-    >
+    <Select value={value as string} onValueChange={(v) => onSelect(v as Tag | "Any")}>
       <Select.Option value="Any">Any</Select.Option>
       {Object.values(Tag).map((tag) => (
         <Select.Option key={tag} value={tag}>

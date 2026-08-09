@@ -75,17 +75,14 @@ export function validC1CheckingRecord(record: C1CheckingRecord): boolean {
     validStr(record["Transaction Amount"]) &&
     record["Transaction Amount"] !== "" &&
     validStr(record["Transaction Type"]) &&
-    (record["Transaction Type"] === "Debit" ||
-      record["Transaction Type"] === "Credit") &&
+    (record["Transaction Type"] === "Debit" || record["Transaction Type"] === "Credit") &&
     validStr(record["Transaction Description"]) &&
     record["Transaction Description"] !== "" &&
     validStr(record.Balance)
   );
 }
 
-export function validAppleCardCreditRecord(
-  record: AppleCardCreditRecord,
-): boolean {
+export function validAppleCardCreditRecord(record: AppleCardCreditRecord): boolean {
   const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/; // MM/DD/YYYY
 
   return (
@@ -108,9 +105,7 @@ export function validAppleCardCreditRecord(
   );
 }
 
-export function validAppleCardSavingsRecord(
-  record: AppleCardSavingsRecord,
-): boolean {
+export function validAppleCardSavingsRecord(record: AppleCardSavingsRecord): boolean {
   const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/; // MM/DD/YYYY
 
   return (
@@ -140,12 +135,7 @@ function validNullableStr(field: string | null | undefined): boolean {
 }
 
 function validNum(field: number): boolean {
-  return (
-    field !== undefined &&
-    field !== null &&
-    typeof field === "number" &&
-    !isNaN(field)
-  );
+  return field !== undefined && field !== null && typeof field === "number" && !isNaN(field);
 }
 
 function validNumStr(field: string): boolean {
@@ -161,19 +151,12 @@ function validDay(day: number): boolean {
 }
 
 function validMonth(month: number): boolean {
-  return (
-    validNum(month) && Number.isInteger(month) && month >= 1 && month <= 12
-  );
+  return validNum(month) && Number.isInteger(month) && month >= 1 && month <= 12;
 }
 
 function validYear(year: number): boolean {
   const currentYear = new Date().getFullYear();
-  return (
-    validNum(year) &&
-    Number.isInteger(year) &&
-    year >= 2026 &&
-    year <= currentYear
-  );
+  return validNum(year) && Number.isInteger(year) && year >= 2026 && year <= currentYear;
 }
 
 function validAccount(account: string): boolean {

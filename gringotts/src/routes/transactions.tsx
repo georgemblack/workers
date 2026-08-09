@@ -9,11 +9,7 @@ import EditTransactionDialog from "@/components/EditTransactionDialog";
 import MonthFilter from "@/components/MonthFilter";
 import TagFilter from "@/components/TagFilter";
 import YearFilter from "@/components/YearFilter";
-import {
-  TransactionFilter,
-  deleteTransaction,
-  getTransactions,
-} from "@/data/db";
+import { TransactionFilter, deleteTransaction, getTransactions } from "@/data/db";
 import {
   Account,
   AccountNames,
@@ -59,7 +55,7 @@ function TransactionsPage() {
       query.account = account;
     }
 
-    getTransactions({ data: query }).then(setTransactions);
+    void getTransactions({ data: query }).then(setTransactions);
   }, [month, year, tag, category, account]);
 
   const handleDelete = async (id: number) => {
@@ -68,9 +64,7 @@ function TransactionsPage() {
   };
 
   const handleSave = (updated: Transaction) => {
-    setTransactions((prev) =>
-      prev.map((t) => (t.id === updated.id ? updated : t)),
-    );
+    setTransactions((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
   };
 
   const sorted = [...transactions].sort((a, b) => {
@@ -108,30 +102,23 @@ function TransactionsPage() {
               <Table.Cell>
                 <span
                   className={
-                    Groups[transaction.category as Category] === Group.INCOME
-                      ? "bg-green-300"
-                      : ""
+                    Groups[transaction.category as Category] === Group.INCOME ? "bg-green-300" : ""
                   }
                 >
                   <Currency amount={transaction.amount} />
                 </span>
               </Table.Cell>
               <Table.Cell>{transaction.merchant}</Table.Cell>
-              <Table.Cell>
-                {CategoryNames[transaction.category as Category]}
-              </Table.Cell>
+              <Table.Cell>{CategoryNames[transaction.category as Category]}</Table.Cell>
               <Table.Cell>{AccountNames[transaction.account]}</Table.Cell>
               <Table.Cell>
                 <div className="flex justify-end gap-2">
-                  <EditTransactionDialog
-                    transaction={transaction}
-                    onSave={handleSave}
-                  />
+                  <EditTransactionDialog transaction={transaction} onSave={handleSave} />
                   <Button
                     variant="destructive"
                     size="xs"
                     onClick={() => {
-                      if (transaction.id) handleDelete(transaction.id);
+                      if (transaction.id) void handleDelete(transaction.id);
                     }}
                   >
                     Delete

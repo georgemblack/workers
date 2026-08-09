@@ -31,34 +31,21 @@ function rowToEvent(row: CalendarEventRow): CalendarEvent {
 // Adds one event, recording when it was added, and clears out any events left
 // over from a previous sync (anything older than the resync window). Runs as one
 // batch so the table is never left half-updated.
-export async function addEvent(
-  db: D1Database,
-  event: CalendarEvent,
-  now: number,
-): Promise<void> {
+export async function addEvent(db: D1Database, event: CalendarEvent, now: number): Promise<void> {
   const cutoff = now - RESYNC_WINDOW_MS;
   await db.batch([
     db
       .prepare(
         "INSERT INTO calendar_events (title, start_ms, end_ms, is_all_day, added_at) VALUES (?, ?, ?, ?, ?)",
       )
-      .bind(
-        event.title,
-        event.startMs,
-        event.endMs,
-        event.isAllDay ? 1 : 0,
-        now,
-      ),
+      .bind(event.title, event.startMs, event.endMs, event.isAllDay ? 1 : 0, now),
     db.prepare("DELETE FROM calendar_events WHERE added_at < ?").bind(cutoff),
   ]);
 }
 
 // The next timed (non all-day) event still on the calendar: the soonest one
 // that hasn't ended yet.
-export async function getNextEvent(
-  db: D1Database,
-  now: number,
-): Promise<CalendarEvent | null> {
+export async function getNextEvent(db: D1Database, now: number): Promise<CalendarEvent | null> {
   const row = await db
     .prepare(
       "SELECT * FROM calendar_events WHERE end_ms >= ? AND is_all_day = 0 ORDER BY start_ms ASC LIMIT 1",

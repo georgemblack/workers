@@ -102,6 +102,10 @@ function bindTransaction(tx: Transaction) {
   ];
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 // Merchants
 
 export const getMerchants = createServerFn({ method: "GET" }).handler(
@@ -109,9 +113,7 @@ export const getMerchants = createServerFn({ method: "GET" }).handler(
     const result = await env.DB.prepare(
       "SELECT DISTINCT merchant FROM transactions WHERE merchant IS NOT NULL ORDER BY merchant",
     ).all();
-    return result.results.map(
-      (row: Record<string, unknown>) => row.merchant as string,
-    );
+    return result.results.map((row: Record<string, unknown>) => row.merchant as string);
   },
 );
 
@@ -120,22 +122,16 @@ export const getMerchants = createServerFn({ method: "GET" }).handler(
 export const getRule = createServerFn({ method: "GET" })
   .inputValidator((merchant: string) => merchant)
   .handler(async ({ data: merchant }): Promise<Rule | null> => {
-    const result = await env.DB.prepare(
-      "SELECT * FROM rules WHERE merchant = ?",
-    )
+    const result = await env.DB.prepare("SELECT * FROM rules WHERE merchant = ?")
       .bind(merchant)
       .first<RuleRow>();
     return result ? rowToRule(result) : null;
   });
 
-export const getRules = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Rule[]> => {
-    const result = await env.DB.prepare(
-      "SELECT * FROM rules ORDER BY merchant",
-    ).all<RuleRow>();
-    return result.results.map(rowToRule);
-  },
-);
+export const getRules = createServerFn({ method: "GET" }).handler(async (): Promise<Rule[]> => {
+  const result = await env.DB.prepare("SELECT * FROM rules ORDER BY merchant").all<RuleRow>();
+  return result.results.map(rowToRule);
+});
 
 export const saveRule = createServerFn({ method: "POST" })
   .inputValidator((rule: { merchant: string; category: string }) => rule)
@@ -149,14 +145,12 @@ export const saveRule = createServerFn({ method: "POST" })
       return { success: false, message: "Error saving rule: invalid rule" };
     }
     try {
-      await env.DB.prepare(
-        "INSERT INTO rules (merchant, category) VALUES (?, ?)",
-      )
+      await env.DB.prepare("INSERT INTO rules (merchant, category) VALUES (?, ?)")
         .bind(rule.merchant, rule.category)
         .run();
       return { success: true, message: "Saved rule" };
     } catch (error) {
-      return { success: false, message: `Error saving rule: ${error}` };
+      return { success: false, message: `Error saving rule: ${errorMessage(error)}` };
     }
   });
 
@@ -211,9 +205,7 @@ export const getTransactions = createServerFn({ method: "GET" })
     let transactions = result.results.map(rowToTransaction);
 
     if (filter.tag) {
-      transactions = transactions.filter((t: Transaction) =>
-        t.tags?.includes(filter.tag!),
-      );
+      transactions = transactions.filter((t: Transaction) => t.tags?.includes(filter.tag!));
     }
 
     return transactions;
@@ -234,7 +226,7 @@ export const saveTransaction = createServerFn({ method: "POST" })
         .run();
       return { success: true, message: "Saved transaction" };
     } catch (error) {
-      return { success: false, message: `Error saving transaction: ${error}` };
+      return { success: false, message: `Error saving transaction: ${errorMessage(error)}` };
     }
   });
 
@@ -246,10 +238,8 @@ function buildMessage(
   const parts: string[] = [];
   parts.push(`Imported ${savedCount} transactions`);
   if (skippedCount > 0) parts.push(`${skippedCount} duplicates skipped`);
-  if (processResult.mergedCount > 0)
-    parts.push(`${processResult.mergedCount} merged`);
-  if (processResult.invalidCount > 0)
-    parts.push(`${processResult.invalidCount} invalid`);
+  if (processResult.mergedCount > 0) parts.push(`${processResult.mergedCount} merged`);
+  if (processResult.invalidCount > 0) parts.push(`${processResult.invalidCount} invalid`);
   return parts.join(", ");
 }
 
@@ -258,9 +248,7 @@ export const importCSV = createServerFn({ method: "POST" })
   .handler(async ({ data: { csv, account } }): Promise<string> => {
     const processResult = process(csv, account as Account);
 
-    const invalid = processResult.transactions.filter(
-      (t) => !validTransaction(t),
-    );
+    const invalid = processResult.transactions.filter((t) => !validTransaction(t));
     if (invalid.length > 0) {
       return `Error: ${invalid.length} transactions are not valid`;
     }
@@ -282,11 +270,8 @@ export const importCSV = createServerFn({ method: "POST" })
       }
     }
 
-    const newTransactions = processResult.transactions.filter(
-      (tx) => !existingKeys.has(tx.key),
-    );
-    const skippedCount =
-      processResult.transactions.length - newTransactions.length;
+    const newTransactions = processResult.transactions.filter((tx) => !existingKeys.has(tx.key));
+    const skippedCount = processResult.transactions.length - newTransactions.length;
 
     if (newTransactions.length === 0) {
       return buildMessage(0, skippedCount, processResult);
@@ -301,7 +286,7 @@ export const importCSV = createServerFn({ method: "POST" })
       );
       await env.DB.batch(stmts);
     } catch (error) {
-      return `Error saving transactions: ${error}`;
+      return `Error saving transactions: ${errorMessage(error)}`;
     }
 
     // Queue merchant suggestion jobs for unmatched transactions missing a merchant
@@ -314,7 +299,7 @@ export const importCSV = createServerFn({ method: "POST" })
           })),
         );
       } catch (error) {
-        console.error(`Error queuing merchant suggestions: ${error}`);
+        console.error(`Error queuing merchant suggestions: ${errorMessage(error)}`);
       }
     }
 
@@ -346,7 +331,7 @@ export const updateTransaction = createServerFn({ method: "POST" })
     } catch (error) {
       return {
         success: false,
-        message: `Error updating transaction: ${error}`,
+        message: `Error updating transaction: ${errorMessage(error)}`,
       };
     }
   });
@@ -354,9 +339,7 @@ export const updateTransaction = createServerFn({ method: "POST" })
 export const deleteTransaction = createServerFn({ method: "POST" })
   .inputValidator((id: number) => id)
   .handler(async ({ data: id }): Promise<void> => {
-    await env.DB.prepare("DELETE FROM transactions WHERE id = ?")
-      .bind(id)
-      .run();
+    await env.DB.prepare("DELETE FROM transactions WHERE id = ?").bind(id).run();
   });
 
 // Summary
@@ -386,16 +369,12 @@ export const getSummary = createServerFn({ method: "GET" })
       );
 
       const income = transactionsForMonth
-        .filter(
-          (t: Transaction) => Groups[t.category as Category] === Group.INCOME,
-        )
+        .filter((t: Transaction) => Groups[t.category as Category] === Group.INCOME)
         .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
 
       const spending = transactionsForMonth
         .filter((t: Transaction) =>
-          [Group.ESSENTIAL, Group.ELECTIVE].includes(
-            Groups[t.category as Category],
-          ),
+          [Group.ESSENTIAL, Group.ELECTIVE].includes(Groups[t.category as Category]),
         )
         .reduce((acc: number, t: Transaction) => acc + t.amount, 0);
 

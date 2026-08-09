@@ -9,19 +9,8 @@ import {
   type AuthCodeRecord,
 } from "../storage";
 import { loadSigningKey, signJwt } from "../keys";
-import {
-  destroySession,
-  getSession,
-  setTxCookie,
-  readTxCookie,
-  clearTxCookie,
-} from "../session";
-import {
-  constantTimeEqual,
-  nowSeconds,
-  randomToken,
-  sha256Base64url,
-} from "../util";
+import { destroySession, getSession, setTxCookie, readTxCookie, clearTxCookie } from "../session";
+import { constantTimeEqual, nowSeconds, randomToken, sha256Base64url } from "../util";
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   AUTH_CODE_TTL_SECONDS,
@@ -58,18 +47,8 @@ oidc.get("/.well-known/openid-configuration", async (c) => {
     grant_types_supported: ["authorization_code", "refresh_token"],
     subject_types_supported: ["public"],
     id_token_signing_alg_values_supported: ["ES256"],
-    scopes_supported: [
-      "openid",
-      "profile",
-      "email",
-      "groups",
-      "offline_access",
-    ],
-    token_endpoint_auth_methods_supported: [
-      "client_secret_basic",
-      "client_secret_post",
-      "none",
-    ],
+    scopes_supported: ["openid", "profile", "email", "groups", "offline_access"],
+    token_endpoint_auth_methods_supported: ["client_secret_basic", "client_secret_post", "none"],
     code_challenge_methods_supported: ["S256"],
     authorization_response_iss_parameter_supported: true,
     claims_supported: [
@@ -139,13 +118,7 @@ oidc.get("/authorize", async (c) => {
     return errorRedirect(c, redirect_uri, "invalid_scope", state);
   }
   if (!code_challenge || code_challenge_method !== "S256") {
-    return errorRedirect(
-      c,
-      redirect_uri,
-      "invalid_request",
-      state,
-      "PKCE S256 required",
-    );
+    return errorRedirect(c, redirect_uri, "invalid_request", state, "PKCE S256 required");
   }
 
   const pending: PendingAuth = {
@@ -162,9 +135,7 @@ oidc.get("/authorize", async (c) => {
   const session = await getSession(c);
   const sessionAge = session ? nowSeconds() - session.iat : Infinity;
   const needsLogin =
-    !session ||
-    prompt === "login" ||
-    (max_age !== null && sessionAge > parseInt(max_age, 10));
+    !session || prompt === "login" || (max_age !== null && sessionAge > parseInt(max_age, 10));
 
   if (needsLogin) {
     await setTxCookie(c, PENDING_AUTH_COOKIE, pending, 600);
@@ -224,23 +195,24 @@ function errorRedirect(
   return Response.redirect(url.toString(), 302);
 }
 
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
 oidc.post("/token", async (c) => {
   const body = await c.req.parseBody();
-  const grant_type = String(body.grant_type ?? "");
+  const grant_type = stringValue(body.grant_type);
 
   const auth = await authenticateClient(c, body);
   if (!auth.ok) {
-    return c.json(
-      { error: "invalid_client", error_description: auth.error },
-      401,
-    );
+    return c.json({ error: "invalid_client", error_description: auth.error }, 401);
   }
   const client = auth.client;
 
   if (grant_type === "authorization_code") {
-    const code = String(body.code ?? "");
-    const redirect_uri = String(body.redirect_uri ?? "");
-    const code_verifier = String(body.code_verifier ?? "");
+    const code = stringValue(body.code);
+    const redirect_uri = stringValue(body.redirect_uri);
+    const code_verifier = stringValue(body.code_verifier);
 
     const record = await consumeAuthCode(c.env.DB, code);
     if (!record) {
@@ -253,23 +225,14 @@ oidc.post("/token", async (c) => {
       );
     }
     if (record.client_id !== client.client_id) {
-      return c.json(
-        { error: "invalid_grant", error_description: "client mismatch" },
-        400,
-      );
+      return c.json({ error: "invalid_grant", error_description: "client mismatch" }, 400);
     }
     if (record.redirect_uri !== redirect_uri) {
-      return c.json(
-        { error: "invalid_grant", error_description: "redirect_uri mismatch" },
-        400,
-      );
+      return c.json({ error: "invalid_grant", error_description: "redirect_uri mismatch" }, 400);
     }
     const challenge = await sha256Base64url(code_verifier);
     if (!constantTimeEqual(challenge, record.code_challenge)) {
-      return c.json(
-        { error: "invalid_grant", error_description: "PKCE failed" },
-        400,
-      );
+      return c.json({ error: "invalid_grant", error_description: "PKCE failed" }, 400);
     }
 
     return await issueTokens(c, {
@@ -282,7 +245,7 @@ oidc.post("/token", async (c) => {
   }
 
   if (grant_type === "refresh_token") {
-    const refresh_token = String(body.refresh_token ?? "");
+    const refresh_token = stringValue(body.refresh_token);
     const record = await consumeRefreshToken(c.env.DB, refresh_token);
     if (!record) {
       return c.json({ error: "invalid_grant" }, 400);
@@ -290,7 +253,7 @@ oidc.post("/token", async (c) => {
     if (record.client_id !== client.client_id) {
       return c.json({ error: "invalid_grant" }, 400);
     }
-    const requestedScope = body.scope ? String(body.scope) : record.scope;
+    const requestedScope = stringValue(body.scope) || record.scope;
     const allowed = record.scope.split(" ");
     for (const s of requestedScope.split(" ")) {
       if (!allowed.includes(s)) {
@@ -330,8 +293,8 @@ async function authenticateClient(
       return { ok: false, error: "malformed Authorization header" };
     }
   } else {
-    if (body.client_id) client_id = String(body.client_id);
-    if (body.client_secret) client_secret = String(body.client_secret);
+    client_id = stringValue(body.client_id) || undefined;
+    client_secret = stringValue(body.client_secret) || undefined;
   }
 
   if (!client_id) return { ok: false, error: "missing client_id" };
@@ -343,10 +306,7 @@ async function authenticateClient(
   }
   if (!client_secret) return { ok: false, error: "missing client_secret" };
   const provided = await hashSecret(client_secret);
-  if (
-    !client.client_secret_hash ||
-    !constantTimeEqual(provided, client.client_secret_hash)
-  ) {
+  if (!client.client_secret_hash || !constantTimeEqual(provided, client.client_secret_hash)) {
     return { ok: false, error: "invalid client_secret" };
   }
   return { ok: true, client };
@@ -420,10 +380,7 @@ async function issueTokens(
   });
 }
 
-function claimsForScope(
-  env: Cloudflare.Env,
-  scope: string,
-): Record<string, unknown> {
+function claimsForScope(env: Cloudflare.Env, scope: string): Record<string, unknown> {
   const scopes = new Set(scope.split(" "));
   const out: Record<string, unknown> = {};
   if (scopes.has("profile")) {
@@ -475,8 +432,8 @@ async function userinfo(c: Ctx): Promise<Response> {
     return invalidToken("unknown audience");
   }
 
-  const sub = String(payload.sub);
-  const scope = String(payload.scope ?? "");
+  const sub = stringValue(payload.sub);
+  const scope = stringValue(payload.scope);
   return c.json({
     sub,
     ...claimsForScope(c.env, scope),
@@ -494,9 +451,7 @@ function invalidToken(description: string): Response {
 
 oidc.get("/logout", async (c) => {
   const url = new URL(c.req.url);
-  const post_logout_redirect_uri = url.searchParams.get(
-    "post_logout_redirect_uri",
-  );
+  const post_logout_redirect_uri = url.searchParams.get("post_logout_redirect_uri");
   const state = url.searchParams.get("state");
   const id_token_hint = url.searchParams.get("id_token_hint");
 
@@ -528,10 +483,7 @@ oidc.get("/logout", async (c) => {
             : null;
       if (aud) {
         const client = await getClient(c.env.DB, aud);
-        if (
-          client &&
-          client.post_logout_redirect_uris.includes(post_logout_redirect_uri)
-        ) {
+        if (client && client.post_logout_redirect_uris.includes(post_logout_redirect_uri)) {
           allowedRedirect = post_logout_redirect_uri;
         }
       }

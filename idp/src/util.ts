@@ -1,6 +1,4 @@
-export function base64urlEncode(
-  data: ArrayBuffer | Uint8Array | string,
-): string {
+export function base64urlEncode(data: ArrayBuffer | Uint8Array | string): string {
   let bytes: Uint8Array;
   if (typeof data === "string") {
     bytes = new TextEncoder().encode(data);
@@ -10,12 +8,8 @@ export function base64urlEncode(
     bytes = data;
   }
   let binary = "";
-  for (let i = 0; i < bytes.length; i++)
-    binary += String.fromCharCode(bytes[i]);
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 export function base64urlDecode(input: string): Uint8Array {
@@ -38,15 +32,12 @@ export function randomToken(length = 32): string {
 }
 
 export async function sha256(data: string | Uint8Array): Promise<Uint8Array> {
-  const bytes =
-    typeof data === "string" ? new TextEncoder().encode(data) : data;
+  const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
   const buf = await crypto.subtle.digest("SHA-256", bytes);
   return new Uint8Array(buf);
 }
 
-export async function sha256Base64url(
-  data: string | Uint8Array,
-): Promise<string> {
+export async function sha256Base64url(data: string | Uint8Array): Promise<string> {
   return base64urlEncode(await sha256(data));
 }
 
