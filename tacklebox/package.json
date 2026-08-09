@@ -4,12 +4,10 @@
   "scripts": {
     "deploy": "wrangler deploy",
     "dryrun": "wrangler deploy --dry-run",
-    "typecheck": "echo 'no types'",
-    "typegen": "wrangler types",
-    "format": "vp fmt ."
+    "check": "vp check",
+    "typegen": "wrangler types"
   },
   "devDependencies": {
-    "prettier": "^3.8.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
     "vite-plus": "0.2.8",
     "wrangler": "^4.87.0"

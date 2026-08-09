@@ -37,8 +37,7 @@ pnpm run db:migrate
 ## Development
 
 ```sh
-pnpm run typecheck
-pnpm run format
+pnpm run check
 pnpm run dryrun
 pnpm run deploy
 ```

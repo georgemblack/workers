@@ -5,9 +5,8 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
     "dryrun": "wrangler deploy --dry-run",
-    "typecheck": "tsc --noEmit",
+    "check": "vp check",
     "typegen": "wrangler types --env-interface CloudflareBindings",
-    "format": "vp fmt .",
     "db:migrate:local": "wrangler d1 migrations apply idp --local",
     "db:migrate": "wrangler d1 migrations apply idp --remote",
     "keygen": "node scripts/keygen.mjs"
@@ -19,8 +18,6 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "prettier": "^3.8.3",
-    "typescript": "^5.7.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
     "vite-plus": "0.2.8",
     "wrangler": "^4.87.0"

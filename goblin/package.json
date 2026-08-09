@@ -7,12 +7,10 @@
     "deploy": "wrangler deploy",
     "dryrun": "wrangler deploy --dry-run",
     "typegen": "wrangler types",
-    "typecheck": "tsgo --noEmit",
-    "format": "vp fmt ."
+    "check": "vp check"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "@typescript/native-preview": "beta",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
     "wrangler": "^4.85.0",
     "vite-plus": "0.2.8"
