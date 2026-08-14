@@ -24,4 +24,6 @@
   "observability": {
     "enabled": true,
   },
+  "workers_dev": false,
+  "preview_urls": false,
 }

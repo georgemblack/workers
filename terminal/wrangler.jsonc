@@ -9,6 +9,8 @@
     "enabled": true,
   },
   "upload_source_maps": true,
+  "workers_dev": true,
+  "preview_urls": true,
   // Bundle HTML templates as text so the preview route can import and render
   // them. They're imported as strings, not served as static assets.
   "rules": [{ "type": "Text", "globs": ["**/*.html"], "fallthrough": true }],
