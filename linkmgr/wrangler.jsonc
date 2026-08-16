@@ -20,6 +20,10 @@
       },
     ],
   },
+  "vars": {
+    "CF_ACCESS_TEAM_DOMAIN": "https://georgeblack.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "ba12a44eede385f51d8985a99ba9163bce0f6b6f5db5f4d1e2817a16732255e8",
+  },
   "observability": {
     "enabled": true,
   },
