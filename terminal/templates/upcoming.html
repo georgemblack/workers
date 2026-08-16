@@ -1,0 +1,27 @@
+<!--
+  Upcoming-event list for the kitchen TRMNL. The shared terminal payload
+  supplies at most five events in `upcomingEvents`.
+-->
+<div class="layout upcoming">
+  <div class="flex flex--col flex--top flex--stretch-x gap--large">
+    {% if upcomingEvents.size > 0 %}
+    <div class="flex flex--col flex--stretch-x gap--medium">
+      {% for event in upcomingEvents %}
+      <div class="item">
+        <div class="content">
+          <span class="title title--large">{{ event.title }}</span>
+          <div class="flex gap--small">
+            <span class="label label--underline">{{ event.startDay }}</span>
+            {% if event.startTime %}
+            <span class="label label--underline">{{ event.startTime }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <span class="value value--xxlarge">Nothing coming up</span>
+    {% endif %}
+  </div>
+</div>

@@ -6,10 +6,12 @@ file here is one screen.
 ## How they work
 
 - Templates are [LiquidJS](https://liquidjs.com). They receive the JSON returned
-  by `GET /api/terminal` as their variables. Right now that's `nextEvent` (with
-  `title`, `startDay`, `startTime`) and `allDayEvent` (with `title`) — either can
-  be `null`, so guard with `{% if %}`. New fields appear here automatically as
-  the terminal view grows.
+  by `GET /api/terminal` as their variables. Right now that's `upcomingEvents`
+  (an array of up to five objects with `title`, `startDay`, and optional
+  `startTime`), `nextTimedEvent` (the next timed event, or `null`), and
+  `allDayEvent` (with `title`, or `null`). Guard empty lists and nullable fields
+  with `{% if %}`. New fields appear here automatically as the terminal view
+  grows.
 - This worker does **not** render templates in production. Another system fetches
   `/api/terminal` and renders the template itself. The files here are the source
   of truth we copy over.

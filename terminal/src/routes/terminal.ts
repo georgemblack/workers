@@ -1,24 +1,29 @@
 import { Hono } from "hono";
-import { getCurrentAllDayEvent, getNextEvent } from "../storage";
+import { getCurrentAllDayEvent, getNextTimedEvent, getUpcomingEvents } from "../storage";
 import { centralStartDay, centralStartTime } from "../time";
 
 export const terminal = new Hono<{ Bindings: Cloudflare.Env }>();
 
-// The aggregated view shown on the terminal display. Both the JSON endpoint and
-// the template preview render from this, so what you preview matches what the
-// display gets. This payload is expected to grow over time.
+// The aggregated view shown on the terminal display. Both template previews
+// render from this payload, so the browser previews match what the display gets.
 export async function getTerminalData(db: D1Database, now: number) {
-  const [nextEvent, allDayEvent] = await Promise.all([
-    getNextEvent(db, now),
+  const [upcomingEvents, nextTimedEvent, allDayEvent] = await Promise.all([
+    getUpcomingEvents(db, now),
+    getNextTimedEvent(db, now),
     getCurrentAllDayEvent(db, now),
   ]);
 
   return {
-    nextEvent: nextEvent
+    upcomingEvents: upcomingEvents.map((event) => ({
+      title: event.title,
+      startDay: centralStartDay(event.startMs, now),
+      startTime: event.isAllDay ? null : centralStartTime(event.startMs),
+    })),
+    nextTimedEvent: nextTimedEvent
       ? {
-          title: nextEvent.title,
-          startDay: centralStartDay(nextEvent.startMs, now),
-          startTime: centralStartTime(nextEvent.startMs),
+          title: nextTimedEvent.title,
+          startDay: centralStartDay(nextTimedEvent.startMs, now),
+          startTime: centralStartTime(nextTimedEvent.startMs),
         }
       : null,
     allDayEvent: allDayEvent ? { title: allDayEvent.title } : null,

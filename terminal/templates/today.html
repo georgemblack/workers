@@ -24,13 +24,13 @@
 </style>
 
 <div class="layout layout--col layout--center gap--large text--center today">
-  {% if allDayEvent %}
+  {% assign nextEvent = nextTimedEvent %} {% if allDayEvent %}
   <span class="all-day label label--outline label--large rounded--full">
     {{ allDayEvent.title }}
   </span>
   {% endif %} {% if nextEvent %}
   <span class="event-title value value--xxlarge">{{ nextEvent.title }}</span>
-  <span class="label label--xlarge label--gray">
+  <span class="label label--xxlarge label--gray">
     {{ nextEvent.startDay }} &middot; {{ nextEvent.startTime }}
   </span>
   {% else %}

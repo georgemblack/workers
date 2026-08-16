@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { Liquid } from "liquidjs";
 import todayTemplate from "../../templates/today.html";
+import upcomingTemplate from "../../templates/upcoming.html";
 import mockData from "../../mock.json";
 
 export const preview = new Hono<{ Bindings: Cloudflare.Env }>();
@@ -9,6 +10,7 @@ export const preview = new Hono<{ Bindings: Cloudflare.Env }>();
 // templates to this map as they're created.
 const templates: Record<string, string> = {
   today: todayTemplate,
+  upcoming: upcomingTemplate,
 };
 
 const engine = new Liquid();

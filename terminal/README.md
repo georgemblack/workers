@@ -12,13 +12,13 @@ terminal display. Deployed to Cloudflare Workers, backed by D1.
   hour) is deleted. The calendar syncs as a flurry of these posts (one per
   event) each morning, all within seconds of each other, so a fresh sync clears
   out the previous one while its own posts survive together.
-- `GET /api/terminal` — the aggregated view. Returns `nextEvent` (the soonest
-  timed, non all-day event that hasn't ended, with its day and time in US
-  Central) and `allDayEvent` (an all-day event happening right now, if any).
-  Either can be `null`. More data will be added here over time.
+- `GET /api/terminal` — the aggregated view. Returns `upcomingEvents` (up to
+  five events that haven't ended, with their days and optional times in US
+  Central), `nextTimedEvent` (the soonest timed event, if any), and
+  `allDayEvent` (an all-day event happening right now, if any).
 - `GET /preview/:name` — a development-only preview that renders a template from
-  `templates/` (e.g. `/preview/today`) using the mock data in `mock.json`, so
-  screens can be built and viewed in a browser. See
+  `templates/` (e.g. `/preview/today` or `/preview/upcoming`) using the mock
+  data in `mock.json`, so screens can be built and viewed in a browser. See
   [`templates/CLAUDE.md`](templates/CLAUDE.md).
 
 ## One-time setup

@@ -1,5 +1,32 @@
 {
-  "nextEvent": {
+  "upcomingEvents": [
+    {
+      "title": "Sarah's Birthday",
+      "startDay": "Today",
+      "startTime": null
+    },
+    {
+      "title": "Dentist Appointment",
+      "startDay": "Today",
+      "startTime": "6:26 PM"
+    },
+    {
+      "title": "Team Planning",
+      "startDay": "Monday",
+      "startTime": "9 AM"
+    },
+    {
+      "title": "Pick up dry cleaning",
+      "startDay": "Tuesday",
+      "startTime": "12:30 PM"
+    },
+    {
+      "title": "Dinner with Maya",
+      "startDay": "Wednesday",
+      "startTime": "7 PM"
+    }
+  ],
+  "nextTimedEvent": {
     "title": "Dentist Appointment",
     "startDay": "Today",
     "startTime": "6:26 PM"

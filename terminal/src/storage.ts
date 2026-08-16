@@ -4,6 +4,7 @@
 // window) survive together. Sized well above the flurry but well below the
 // once-a-day gap between syncs.
 const RESYNC_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_UPCOMING_EVENTS = 5;
 
 export interface CalendarEvent {
   title: string;
@@ -43,9 +44,21 @@ export async function addEvent(db: D1Database, event: CalendarEvent, now: number
   ]);
 }
 
-// The next timed (non all-day) event still on the calendar: the soonest one
-// that hasn't ended yet.
-export async function getNextEvent(db: D1Database, now: number): Promise<CalendarEvent | null> {
+// The next few calendar events still in progress or ahead, ordered by start
+// time. This includes all-day events.
+export async function getUpcomingEvents(db: D1Database, now: number): Promise<CalendarEvent[]> {
+  const { results } = await db
+    .prepare("SELECT * FROM calendar_events WHERE end_ms >= ? ORDER BY start_ms ASC LIMIT ?")
+    .bind(now, MAX_UPCOMING_EVENTS)
+    .all<CalendarEventRow>();
+  return results.map(rowToEvent);
+}
+
+// The next timed event remains separate for the single-event today screen.
+export async function getNextTimedEvent(
+  db: D1Database,
+  now: number,
+): Promise<CalendarEvent | null> {
   const row = await db
     .prepare(
       "SELECT * FROM calendar_events WHERE end_ms >= ? AND is_all_day = 0 ORDER BY start_ms ASC LIMIT 1",
