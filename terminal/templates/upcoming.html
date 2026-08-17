@@ -9,11 +9,11 @@
       {% for event in upcomingEvents %}
       <div class="item">
         <div class="content">
-          <span class="title title--large">{{ event.title }}</span>
+          <span class="title title--xlarge">{{ event.title }}</span>
           <div class="flex gap--small">
-            <span class="label label--underline">{{ event.startDay }}</span>
+            <span class="label label--large label--underline">{{ event.startDay }}</span>
             {% if event.startTime %}
-            <span class="label label--underline">{{ event.startTime }}</span>
+            <span class="label label--large label--underline">{{ event.startTime }}</span>
             {% endif %}
           </div>
         </div>
