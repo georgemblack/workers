@@ -120,7 +120,7 @@ export const getMerchants = createServerFn({ method: "GET" }).handler(
 // Rules
 
 export const getRule = createServerFn({ method: "GET" })
-  .inputValidator((merchant: string) => merchant)
+  .validator((merchant: string) => merchant)
   .handler(async ({ data: merchant }): Promise<Rule | null> => {
     const result = await env.DB.prepare("SELECT * FROM rules WHERE merchant = ?")
       .bind(merchant)
@@ -134,7 +134,7 @@ export const getRules = createServerFn({ method: "GET" }).handler(async (): Prom
 });
 
 export const saveRule = createServerFn({ method: "POST" })
-  .inputValidator((rule: { merchant: string; category: string }) => rule)
+  .validator((rule: { merchant: string; category: string }) => rule)
   .handler(async ({ data: rule }): Promise<DBResult> => {
     if (
       !validRule({
@@ -155,7 +155,7 @@ export const saveRule = createServerFn({ method: "POST" })
   });
 
 export const deleteRule = createServerFn({ method: "POST" })
-  .inputValidator((id: number) => id)
+  .validator((id: number) => id)
   .handler(async ({ data: id }): Promise<void> => {
     await env.DB.prepare("DELETE FROM rules WHERE id = ?").bind(id).run();
   });
@@ -163,7 +163,7 @@ export const deleteRule = createServerFn({ method: "POST" })
 // Transactions
 
 export const getTransactions = createServerFn({ method: "GET" })
-  .inputValidator((filter: TransactionFilter) => filter)
+  .validator((filter: TransactionFilter) => filter)
   .handler(async ({ data: filter }): Promise<Transaction[]> => {
     const conditions: string[] = [];
     const params: unknown[] = [];
@@ -212,7 +212,7 @@ export const getTransactions = createServerFn({ method: "GET" })
   });
 
 export const saveTransaction = createServerFn({ method: "POST" })
-  .inputValidator((tx: Transaction) => tx)
+  .validator((tx: Transaction) => tx)
   .handler(async ({ data: tx }): Promise<DBResult> => {
     if (!validTransaction(tx)) {
       return {
@@ -244,7 +244,7 @@ function buildMessage(
 }
 
 export const importCSV = createServerFn({ method: "POST" })
-  .inputValidator((input: { csv: string; account: string }) => input)
+  .validator((input: { csv: string; account: string }) => input)
   .handler(async ({ data: { csv, account } }): Promise<string> => {
     const processResult = process(csv, account as Account);
 
@@ -307,7 +307,7 @@ export const importCSV = createServerFn({ method: "POST" })
   });
 
 export const updateTransaction = createServerFn({ method: "POST" })
-  .inputValidator((tx: Transaction) => tx)
+  .validator((tx: Transaction) => tx)
   .handler(async ({ data: tx }): Promise<DBResult> => {
     if (!tx.id) {
       return {
@@ -337,7 +337,7 @@ export const updateTransaction = createServerFn({ method: "POST" })
   });
 
 export const deleteTransaction = createServerFn({ method: "POST" })
-  .inputValidator((id: number) => id)
+  .validator((id: number) => id)
   .handler(async ({ data: id }): Promise<void> => {
     await env.DB.prepare("DELETE FROM transactions WHERE id = ?").bind(id).run();
   });
@@ -345,7 +345,7 @@ export const deleteTransaction = createServerFn({ method: "POST" })
 // Summary
 
 export const getSummary = createServerFn({ method: "GET" })
-  .inputValidator((year: number) => year)
+  .validator((year: number) => year)
   .handler(async ({ data: year }): Promise<Summary> => {
     const dbResult = await env.DB.prepare(
       "SELECT * FROM transactions WHERE year = ? AND skipped = 0 AND reviewed = 1",

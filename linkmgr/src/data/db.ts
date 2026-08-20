@@ -17,13 +17,13 @@ export const listLinks = createServerFn({ method: "GET" }).handler(async (): Pro
 });
 
 export const deleteLink = createServerFn({ method: "POST" })
-  .inputValidator((id: number) => id)
+  .validator((id: number) => id)
   .handler(async ({ data: id }): Promise<void> => {
     await env.DB.prepare("DELETE FROM links WHERE id = ?").bind(id).run();
   });
 
 export const addLink = createServerFn({ method: "POST" })
-  .inputValidator((url: string) => url)
+  .validator((url: string) => url)
   .handler(async ({ data: url }): Promise<void> => {
     await env.LINK_QUEUE.send({ url });
   });
