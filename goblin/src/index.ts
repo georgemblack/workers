@@ -18,6 +18,22 @@ interface ChatCompletionResult {
   usage?: unknown;
 }
 
+function getErrorDetails(err: unknown): Record<string, unknown> {
+  if (!(err instanceof Error)) {
+    return { error: err };
+  }
+
+  const error = err as Error & { code?: unknown };
+  return {
+    errorName: error.name,
+    errorMessage: error.message,
+    errorCode: error.code,
+    errorCause:
+      error.cause instanceof Error ? `${error.cause.name}: ${error.cause.message}` : error.cause,
+    errorStack: error.stack,
+  };
+}
+
 async function getMerchantExamples(db: D1Database): Promise<string[]> {
   const result = await db
     .prepare(
@@ -64,7 +80,7 @@ export default {
       try {
         const result = (await env.AI.run("@cf/zai-org/glm-5.3-flash", {
           messages: [{ role: "user", content: prompt }],
-          max_completion_tokens: 512,
+          max_completion_tokens: 64,
           reasoning_effort: "low",
         })) as ChatCompletionResult;
 
@@ -85,7 +101,13 @@ export default {
 
         message.ack();
       } catch (err) {
-        console.error(`Failed to process transaction ${key}:`, err);
+        console.error({
+          event: "transaction-processing-failed",
+          transactionKey: key,
+          queueMessageId: message.id,
+          attempt: message.attempts,
+          ...getErrorDetails(err),
+        });
         message.retry();
       }
     }
