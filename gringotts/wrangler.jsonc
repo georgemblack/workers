@@ -23,7 +23,7 @@
   },
   "vars": {
     "CF_ACCESS_TEAM_DOMAIN": "https://georgeblack.cloudflareaccess.com",
-    "CF_ACCESS_AUD": "f27fb64ff93c1b3f85e8590eceaab8612ab1215793072d79de0661495835e4c5",
+    "CF_ACCESS_AUD": "c2ed398e3ec42165ed921659968bd8da5f64e544c1049a41832c96e3873d35f8"
   },
   "observability": {
     "enabled": true,
