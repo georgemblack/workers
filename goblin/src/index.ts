@@ -98,7 +98,12 @@ export default {
 
         const merchantName = result.choices?.[0]?.message?.content?.trim();
         if (!merchantName) {
-          console.error(`Empty AI response for transaction ${key}`, {
+          console.error({
+            message: "Workers AI returned an empty merchant name",
+            event: "empty-ai-response",
+            transactionKey: key,
+            queueMessageId: message.id,
+            attempt: message.attempts,
             finishReason: result.choices?.[0]?.finish_reason,
             usage: result.usage,
           });
@@ -114,6 +119,7 @@ export default {
         message.ack();
       } catch (err) {
         console.error({
+          message: "Failed to process transaction",
           event: "transaction-processing-failed",
           transactionKey: key,
           queueMessageId: message.id,
