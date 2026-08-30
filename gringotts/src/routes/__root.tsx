@@ -58,6 +58,7 @@ function RootComponent() {
           <Link to="/transactions">Transactions</Link>
           <Link to="/summary">Summary</Link>
           <Link to="/rules">Rules</Link>
+          <Link to="/controls">Controls</Link>
         </nav>
       </header>
       <div style={{ marginBottom: "4em" }}>

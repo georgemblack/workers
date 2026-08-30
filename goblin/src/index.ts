@@ -8,6 +8,16 @@ interface Rule {
   category: string;
 }
 
+interface ChatCompletionResult {
+  choices?: {
+    message?: {
+      content?: string | null;
+    };
+    finish_reason?: string;
+  }[];
+  usage?: unknown;
+}
+
 async function getMerchantExamples(db: D1Database): Promise<string[]> {
   const result = await db
     .prepare(
@@ -52,15 +62,19 @@ export default {
       const prompt = buildPrompt(description, examples);
 
       try {
-        const result = await env.AI.run("@cf/zai-org/glm-4.7-flash", {
+        const result = (await env.AI.run("@cf/zai-org/glm-5.3-flash", {
           messages: [{ role: "user", content: prompt }],
-          max_tokens: 64,
-        });
+          max_completion_tokens: 512,
+          reasoning_effort: "low",
+        })) as ChatCompletionResult;
 
-        const merchantName = result.choices[0]?.message.content?.trim();
+        const merchantName = result.choices?.[0]?.message?.content?.trim();
         if (!merchantName) {
-          console.error(`Empty AI response for transaction ${key}`);
-          message.ack();
+          console.error(`Empty AI response for transaction ${key}`, {
+            finishReason: result.choices?.[0]?.finish_reason,
+            usage: result.usage,
+          });
+          message.retry();
           continue;
         }
 

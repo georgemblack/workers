@@ -306,6 +306,40 @@ export const importCSV = createServerFn({ method: "POST" })
     return buildMessage(newTransactions.length, skippedCount, processResult);
   });
 
+export const requeueUnreviewedTransactions = createServerFn({ method: "POST" }).handler(
+  async (): Promise<string> => {
+    const result = await env.DB.prepare(
+      "SELECT key, description FROM transactions WHERE reviewed = 0 ORDER BY id",
+    ).all<{ key: string; description: string }>();
+
+    if (result.results.length === 0) {
+      return "No un-reviewed transactions to re-queue";
+    }
+
+    const BATCH_LIMIT = 100;
+    let queuedCount = 0;
+
+    try {
+      for (let i = 0; i < result.results.length; i += BATCH_LIMIT) {
+        const batch = result.results.slice(i, i + BATCH_LIMIT);
+        await env.QUEUE.sendBatch(
+          batch.map((transaction) => ({
+            body: {
+              key: transaction.key,
+              description: transaction.description,
+            },
+          })),
+        );
+        queuedCount += batch.length;
+      }
+    } catch (error) {
+      return `Re-queued ${queuedCount} transactions before an error occurred: ${errorMessage(error)}`;
+    }
+
+    return `Re-queued ${queuedCount} un-reviewed transactions`;
+  },
+);
+
 export const updateTransaction = createServerFn({ method: "POST" })
   .validator((tx: Transaction) => tx)
   .handler(async ({ data: tx }): Promise<DBResult> => {
