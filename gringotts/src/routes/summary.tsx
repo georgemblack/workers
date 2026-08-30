@@ -62,10 +62,12 @@ function SummaryPage() {
       );
     });
 
-    let classes = "font-bold bg-green-100";
-    if (group === Group.ESSENTIAL) classes = "font-bold bg-pink-100";
-    if (group === Group.ELECTIVE) classes = "font-bold bg-orange-100";
-    if (group === Group.INVESTMENT) classes = "font-bold bg-blue-100";
+    // Kumo's default row variant adds an `even:bg-kumo-tint` zebra stripe.
+    // These totals are intentionally highlighted, regardless of row position.
+    let classes = "font-bold !bg-green-100";
+    if (group === Group.ESSENTIAL) classes = "font-bold !bg-pink-100";
+    if (group === Group.ELECTIVE) classes = "font-bold !bg-orange-100";
+    if (group === Group.INVESTMENT) classes = "font-bold !bg-blue-100";
 
     return (
       <Table.Row className={classes}>
@@ -126,7 +128,7 @@ function SummaryPage() {
       );
     });
     rowElements.push(
-      <Table.Row key="takehome" className="bg-emerald-300 font-bold">
+      <Table.Row key="takehome" className="!bg-emerald-300 font-bold">
         <Table.Cell>Take Home</Table.Cell>
         {columns}
       </Table.Row>,
