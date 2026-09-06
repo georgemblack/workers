@@ -11,7 +11,7 @@
     "check": "vp check"
   },
   "dependencies": {
-    "@cloudflare/kumo": "^2.11.0",
+    "@cloudflare/kumo": "^2.13.1",
     "@cloudflare/vite-plugin": "^1.33.2",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-router": "^1.170.31",
