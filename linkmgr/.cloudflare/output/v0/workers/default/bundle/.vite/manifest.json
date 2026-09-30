@@ -1,0 +1,121 @@
+{
+  "/Users/george/Developer/Repos/workers/linkmgr/src/styles.css": {
+    "file": "assets/styles-Dqntyz2A.css",
+    "src": "/Users/george/Developer/Repos/workers/linkmgr/src/styles.css"
+  },
+  "___23tanstack-start-server-fn-resolver-BoRTwhzi.js": {
+    "file": "assets/__23tanstack-start-server-fn-resolver-BoRTwhzi.js",
+    "name": "__23tanstack-start-server-fn-resolver",
+    "dynamicImports": [
+      "src/data/db.ts?tss-serverfn-split"
+    ]
+  },
+  "_createMiddleware-CVmn2f4F.js": {
+    "file": "assets/createMiddleware-CVmn2f4F.js",
+    "name": "createMiddleware"
+  },
+  "_createServerFn-_qmadsC3.js": {
+    "file": "assets/createServerFn-_qmadsC3.js",
+    "name": "createServerFn"
+  },
+  "_manifest-HOyrWNoX.js": {
+    "file": "assets/manifest-HOyrWNoX.js",
+    "name": "manifest",
+    "imports": [
+      "___23tanstack-start-server-fn-resolver-BoRTwhzi.js",
+      "_createServerFn-_qmadsC3.js"
+    ]
+  },
+  "_react-dom-Br9z4qFX.js": {
+    "file": "assets/react-dom-Br9z4qFX.js",
+    "name": "react-dom",
+    "imports": [
+      "___23tanstack-start-server-fn-resolver-BoRTwhzi.js"
+    ]
+  },
+  "_routes-BSbgQOze.js": {
+    "file": "assets/routes-BSbgQOze.js",
+    "name": "routes",
+    "imports": [
+      "___23tanstack-start-server-fn-resolver-BoRTwhzi.js",
+      "_createServerFn-_qmadsC3.js"
+    ],
+    "dynamicImports": [
+      "src/routes/index.tsx?tsr-split=component"
+    ]
+  },
+  "node_modules/.pnpm/@tanstack+start-server-core@1.169.30/node_modules/@tanstack/start-server-core/dist/esm/empty-plugin-adapters.js": {
+    "file": "assets/empty-plugin-adapters-DRuEkfCT.js",
+    "name": "empty-plugin-adapters",
+    "src": "node_modules/.pnpm/@tanstack+start-server-core@1.169.30/node_modules/@tanstack/start-server-core/dist/esm/empty-plugin-adapters.js",
+    "isDynamicEntry": true
+  },
+  "src/data/db.ts?tss-serverfn-split": {
+    "file": "assets/db-DyHO_nj_.js",
+    "name": "db",
+    "src": "src/data/db.ts?tss-serverfn-split",
+    "isDynamicEntry": true,
+    "imports": [
+      "_createServerFn-_qmadsC3.js"
+    ]
+  },
+  "src/router.tsx": {
+    "file": "assets/router-DbV-wxk3.js",
+    "name": "router",
+    "src": "src/router.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "___23tanstack-start-server-fn-resolver-BoRTwhzi.js",
+      "_manifest-HOyrWNoX.js",
+      "_routes-BSbgQOze.js"
+    ],
+    "assets": [
+      "assets/styles-Dqntyz2A.css"
+    ]
+  },
+  "src/routes/index.tsx?tsr-split=component": {
+    "file": "assets/routes-DRWOL3xw.js",
+    "name": "routes",
+    "src": "src/routes/index.tsx?tsr-split=component",
+    "isDynamicEntry": true,
+    "imports": [
+      "___23tanstack-start-server-fn-resolver-BoRTwhzi.js",
+      "_routes-BSbgQOze.js",
+      "_react-dom-Br9z4qFX.js"
+    ]
+  },
+  "src/start.ts": {
+    "file": "assets/start-JOcaOqcB.js",
+    "name": "start",
+    "src": "src/start.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "_createMiddleware-CVmn2f4F.js"
+    ]
+  },
+  "tanstack-start-manifest:v": {
+    "file": "assets/_tanstack-start-manifest_v-Cv1GbSu6.js",
+    "name": "_tanstack-start-manifest_v",
+    "src": "tanstack-start-manifest:v",
+    "isDynamicEntry": true
+  },
+  "virtual:cloudflare/worker-entry": {
+    "file": "index.js",
+    "name": "index",
+    "src": "virtual:cloudflare/worker-entry",
+    "isEntry": true,
+    "imports": [
+      "___23tanstack-start-server-fn-resolver-BoRTwhzi.js",
+      "_manifest-HOyrWNoX.js",
+      "_createServerFn-_qmadsC3.js",
+      "_react-dom-Br9z4qFX.js",
+      "_createMiddleware-CVmn2f4F.js"
+    ],
+    "dynamicImports": [
+      "tanstack-start-manifest:v",
+      "src/router.tsx",
+      "src/start.ts",
+      "node_modules/.pnpm/@tanstack+start-server-core@1.169.30/node_modules/@tanstack/start-server-core/dist/esm/empty-plugin-adapters.js"
+    ]
+  }
+}

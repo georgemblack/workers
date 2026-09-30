@@ -10,7 +10,7 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "types": ["./worker-configuration.d.ts", "node"]
+    "types": ["./.cloudflare/types/index.d.ts", "node"]
   },
   "include": ["src/**/*.ts"]
 }

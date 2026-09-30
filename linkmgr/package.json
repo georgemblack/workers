@@ -5,14 +5,14 @@
   "scripts": {
     "dev": "vp dev --port 3000",
     "build": "vp build",
-    "deploy": "vp build && wrangler deploy",
-    "dryrun": "vp build && wrangler deploy --dry-run",
-    "typegen": "wrangler types",
+    "deploy": "vp build && cf deploy --prebuilt",
+    "dryrun": "vp build && cf deploy --prebuilt --dry-run",
+    "typegen": "cf workers types",
     "check": "vp check"
   },
   "dependencies": {
     "@cloudflare/kumo": "^2.13.1",
-    "@cloudflare/vite-plugin": "^1.32.3",
+    "@cloudflare/vite-plugin": "^1.62.0",
     "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-devtools": "^0.10.10",
     "@tanstack/react-router": "^1.170.31",
@@ -30,9 +30,9 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
+    "cf": "1.0.0-beta.5",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
-    "vite-plus": "0.2.8",
-    "wrangler": "^4.83.0"
+    "vite-plus": "0.2.8"
   },
   "devEngines": {
     "packageManager": {

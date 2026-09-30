@@ -1,0 +1,1 @@
+import{h as e}from"./db-CMCBJ72F.js";import{t}from"./select-ndqpqpmqtmn497rq-Biq67ZUQ.js";import{n,t as r}from"./Types-BhIXMQ6t.js";var i=e();function a({value:e,onSelect:a}){return(0,i.jsx)(t,{value:e,onValueChange:e=>a(e),children:Object.values(r).map(e=>(0,i.jsx)(t.Option,{value:e,children:n[e]},e))})}export{a as t};

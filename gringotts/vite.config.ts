@@ -9,10 +9,10 @@ const config = defineConfig({
     tsconfigPaths: true,
   },
   fmt: {
-    ignorePatterns: ["worker-configuration.d.ts", "src/routeTree.gen.ts"],
+    ignorePatterns: [".cloudflare/**", "src/routeTree.gen.ts"],
   },
   lint: {
-    ignorePatterns: ["worker-configuration.d.ts", "src/routeTree.gen.ts"],
+    ignorePatterns: [".cloudflare/**", "src/routeTree.gen.ts"],
     options: { typeAware: true, typeCheck: true },
   },
   test: {
@@ -22,7 +22,11 @@ const config = defineConfig({
     if (process.env.VITEST) return [];
 
     return [
-      cloudflare({ viteEnvironment: { name: "ssr" } }),
+      cloudflare({
+        viteEnvironment: { name: "ssr" },
+        // Read cloudflare.config.ts and write build output for the cf CLI.
+        experimental: { newConfig: { cfBuildOutput: true, types: { generate: false } } },
+      }),
       tailwindcss(),
       tanstackStart(),
       viteReact(),

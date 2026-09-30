@@ -1,0 +1,1 @@
+import{h as e}from"./db-CMCBJ72F.js";import{t}from"./select-ndqpqpmqtmn497rq-Biq67ZUQ.js";var n=e();function r({value:e,onSelect:r}){let i=new Date().getFullYear(),a=Array.from({length:i-2026+1},(e,t)=>2026+t);return(0,n.jsx)(t,{value:String(e),onValueChange:e=>r(Number(e)),children:a.map(e=>(0,n.jsx)(t.Option,{value:String(e),children:e},e))})}export{r as t};

@@ -2,14 +2,14 @@
   "name": "terminal",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify",
-    "dryrun": "wrangler deploy --dry-run",
+    "dev": "cf dev",
+    "deploy": "cf deploy",
+    "dryrun": "cf deploy --dry-run",
     "check": "vp check",
-    "typegen": "wrangler types",
-    "db:create": "wrangler d1 create terminal",
-    "db:migrate:local": "wrangler d1 migrations apply terminal --local",
-    "db:migrate": "wrangler d1 migrations apply terminal --remote"
+    "typegen": "cf workers types",
+    "db:create": "cf d1 create terminal",
+    "db:migrate:local": "cf d1 migrations apply bd7922ee-45a9-4b71-ae7c-b2255c2ce1c2 --local",
+    "db:migrate": "cf d1 migrations apply bd7922ee-45a9-4b71-ae7c-b2255c2ce1c2"
   },
   "dependencies": {
     "hono": "^4.12.16",
@@ -17,9 +17,10 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "cf": "1.0.0-beta.5",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
     "vite-plus": "0.2.8",
-    "wrangler": "^4.107.0"
+    "wrangler": "^4.143.0"
   },
   "devEngines": {
     "packageManager": {

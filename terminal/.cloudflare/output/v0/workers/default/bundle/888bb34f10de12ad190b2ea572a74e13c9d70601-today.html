@@ -1,0 +1,39 @@
+<!--
+  Next-event screen for the kitchen TRMNL. Built from TRMNL framework classes so
+  it matches the device's native look. TRMNL wraps this markup in its own
+  screen/view and injects the framework CSS in production, so this file is only
+  the layout and its contents — no screen/view wrappers.
+
+  The small scoped <style> below is a deliberate exception (see templates/
+  CLAUDE.md): two things the framework actively fights and can't express with
+  utility classes alone.
+-->
+<style>
+  /* Big `value` text is auto-lightened by the framework via
+     font-variation-settings, which overrides `font--bold`. Set the weight axis
+     directly so the title actually renders thick on the device. */
+  .today .event-title {
+    font-variation-settings: "wght" 800;
+  }
+
+  /* The label element pins its own padding, so the px--/py-- utilities don't
+     take. Give the all-day badge room to breathe around its text. */
+  .today .all-day {
+    padding: 14px 34px;
+  }
+</style>
+
+<div class="layout layout--col layout--center gap--large text--center today">
+  {% assign nextEvent = nextTimedEvent %} {% if allDayEvent %}
+  <span class="all-day label label--outline label--large rounded--full">
+    {{ allDayEvent.title }}
+  </span>
+  {% endif %} {% if nextEvent %}
+  <span class="event-title value value--xxlarge">{{ nextEvent.title }}</span>
+  <span class="label label--xxlarge label--gray">
+    {{ nextEvent.startDay }} &middot; {{ nextEvent.startTime }}
+  </span>
+  {% else %}
+  <span class="value value--xxlarge">Nothing coming up</span>
+  {% endif %}
+</div>

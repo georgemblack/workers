@@ -1,0 +1,1 @@
+import{h as e}from"./db-CMCBJ72F.js";var t=e();function n({amount:e}){let n=new Intl.NumberFormat(`en-US`,{style:`currency`,currency:`USD`}).format(e);return(0,t.jsx)(`span`,{children:n})}export{n as t};
