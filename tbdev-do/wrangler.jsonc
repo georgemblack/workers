@@ -19,11 +19,8 @@
       },
     ],
   },
-  "migrations": [
-    {
-      "tag": "v1",
-      "new_classes": ["TbdevDurableObject"],
-      "new_sqlite_classes": ["TbdevSqliteDurableObject"],
-    },
-  ],
+  "exports": {
+    "TbdevDurableObject": { "type": "durable-object", "storage": "legacy-kv" },
+    "TbdevSqliteDurableObject": { "type": "durable-object", "storage": "sqlite" },
+  },
 }

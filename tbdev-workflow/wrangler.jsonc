@@ -7,11 +7,7 @@
   "observability": {
     "enabled": true,
   },
-  "workflows": [
-    {
-      "binding": "WORKFLOW",
-      "name": "tbdev-workflow",
-      "class_name": "TbdevWorkflow",
-    },
-  ],
+  "exports": {
+    "TbdevWorkflow": { "type": "workflow", "name": "tbdev-workflow" },
+  },
 }
