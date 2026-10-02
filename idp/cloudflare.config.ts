@@ -1,7 +1,8 @@
 import { bindings, defineConfig } from "cf/config";
 
 /**
- * Secrets (set via `cf workers secrets update`):
+ * Secrets (set via `cf workers secrets update`). They must be declared in
+ * `env` below, otherwise `cf deploy` removes them from the deployed worker:
  *  - SIGNING_JWK         JSON of the ES256 private key (JWK)
  *  - BOOTSTRAP_SECRET    One-time secret allowing initial passkey enrollment
  *  - SESSION_SECRET      HMAC key for signing session cookies
@@ -30,6 +31,10 @@ export default defineConfig({
         id: "8bd2f6a9-bf22-4d19-aba5-a387aa9d3407",
       }),
       ASSETS: bindings.assets(),
+      SIGNING_JWK: bindings.secret(),
+      BOOTSTRAP_SECRET: bindings.secret(),
+      SESSION_SECRET: bindings.secret(),
+      USER_EMAIL: bindings.secret(),
     },
   },
 });
