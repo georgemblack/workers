@@ -8,7 +8,7 @@ import {
   moveAndMarkRead,
 } from "./fastmail";
 import { sendNotification } from "./notify";
-import { type Action, type Category, decide } from "./rules";
+import { type Category, decide, type Mailbox } from "./rules";
 import { getSeen, markSeen } from "./state";
 
 // Everything learned about one email while processing it, written out as a single log entry.
@@ -19,7 +19,8 @@ type EmailLog = {
   outcome?: "kept" | "moved" | "notified" | "error";
   matches?: Category[];
   probabilities?: Partial<Record<Category, number>>;
-  action?: Action;
+  category?: Category;
+  mailbox?: Mailbox;
   notification?: string;
   error?: string;
 };
@@ -66,7 +67,8 @@ async function processEmail(
     log.outcome = "kept";
     return;
   }
-  log.action = action;
+  log.category = action.category;
+  log.mailbox = action.mailbox;
 
   if (action.notify) {
     // Fall back to the sender and subject if the model returns nothing.

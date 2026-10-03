@@ -1,5 +1,5 @@
 import type { Email } from "./fastmail";
-import { CATEGORIES, type Category } from "./rules";
+import { CATEGORIES, type Category, MATCH_THRESHOLD } from "./rules";
 
 const CLASSIFY_MODEL = "@cf/cloudflare/clef";
 const SUMMARY_MODEL = "@cf/openai/gpt-oss-20b";
@@ -16,7 +16,7 @@ type ClefModels = {
   };
 };
 
-export type Classification = {
+type Classification = {
   matches: Set<Category>;
   probabilities: Partial<Record<Category, number>>;
 };
@@ -42,7 +42,7 @@ export async function classify(env: CloudflareBindings, email: Email): Promise<C
       throw new Error(`Clef returned no answer for "${category}"`);
     }
     probabilities[category] = Math.round(probability * 1000) / 1000;
-    if (probability > CATEGORIES[category].threshold) matches.add(category);
+    if (probability > MATCH_THRESHOLD) matches.add(category);
   }
   return { matches, probabilities };
 }
@@ -51,7 +51,7 @@ export async function classify(env: CloudflareBindings, email: Email): Promise<C
 export async function summarize(env: CloudflareBindings, email: Email): Promise<string> {
   const response = await env.AI.run(SUMMARY_MODEL, {
     instructions:
-      "Summarize the email as a single short sentence suitable for an iOS push notification. Respond with only the sentence: no quotes, no emoji, no preamble. For bank/credit card transactions include the card name, amount, and merchant. For orders and shipping include the order status and item(s).",
+      "Summarize the email as a single short sentence suitable for an iOS push notification. Respond with only the sentence: no quotes, no emoji, no preamble. For bank/credit card transactions include the card name, amount, and merchant. For orders and shipping include the order status and item(s). For bills include the amount and due date. For travel include the trip and date.",
     input: `From: ${email.from}\nSubject: ${email.subject}\n\n${email.body.substring(0, 4000)}`,
     reasoning: { effort: "low" },
   });

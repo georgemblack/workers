@@ -1,55 +1,70 @@
-// Clef scores each category from 0 to 1, and a category counts as matched above its threshold.
-// Categories that move mail out of the inbox need high confidence, while "action required"
-// (which keeps mail in the inbox) needs less, so uncertain emails stay in the inbox.
-const MOVE_THRESHOLD = 0.8;
-const KEEP_THRESHOLD = 0.4;
+// Clef scores each category from 0 to 1, and a category counts as matched above this threshold.
+// It's set high so that when Clef is unsure, the email stays in the inbox.
+export const MATCH_THRESHOLD = 0.8;
 
 export type Mailbox = "archive" | "purgatory";
 
 type Rule = {
   // The yes/no question Clef answers about the email.
   question: string;
-  threshold: number;
-  // What to do with a matching email. Leaving this out keeps it unread in the inbox.
-  move?: { mailbox: Mailbox; emoji: string; shouldNotify?: () => boolean };
+  // Where a matching email is moved (and marked as read).
+  mailbox: Mailbox;
+  // Shown at the start of the notification.
+  emoji: string;
+  // Defaults to always notifying.
+  shouldNotify?: () => boolean;
 };
 
 // Listed in priority order: an email is handled by the first category it matches.
-// Emails that match nothing stay unread in the inbox.
+// Archive categories come first, then Purgatory. Emails that match nothing stay unread in the inbox.
 export const CATEGORIES = {
-  action_required: {
+  bill: {
     question:
-      "Does this email require the recipient to take action, such as replying to someone, paying a bill, signing something, confirming an appointment, or fixing an account problem? Receipts, routine alerts, ads, and newsletters don't count.",
-    threshold: KEEP_THRESHOLD,
+      "Is this email a bill, invoice, statement, or payment reminder for the recipient, such as an amount due or an upcoming payment?",
+    mailbox: "archive",
+    emoji: "🧾",
   },
   order: {
     question:
       "Is this email about an order the recipient placed, such as a confirmation, receipt, shipping or delivery update, or return/refund?",
-    threshold: MOVE_THRESHOLD,
-    move: { mailbox: "archive", emoji: "📦" },
+    mailbox: "archive",
+    emoji: "📦",
+  },
+  travel: {
+    question:
+      "Is this email about a trip or reservation the recipient booked, such as a flight, hotel, rental car, or restaurant confirmation, itinerary change, or check-in reminder?",
+    mailbox: "archive",
+    emoji: "✈️",
   },
   capital_one: {
     question:
       "Is this a Capital One alert about a purchase or transaction on the recipient's card or account?",
-    threshold: MOVE_THRESHOLD,
-    move: { mailbox: "purgatory", emoji: "💳" },
+    mailbox: "purgatory",
+    emoji: "💳",
+  },
+  security: {
+    question:
+      "Is this an automated security or account alert, such as a new sign-in, new device, password change, or change to account settings? One-time verification codes don't count.",
+    mailbox: "purgatory",
+    emoji: "🔐",
   },
   terms: {
     question:
       "Is this a company announcing changes to its terms of service, privacy policy, or user agreement?",
-    threshold: MOVE_THRESHOLD,
-    move: { mailbox: "purgatory", emoji: "📜" },
+    mailbox: "purgatory",
+    emoji: "📜",
   },
   promo: {
     question: "Is this email an ad, sale, offer, or other marketing message, or a newsletter?",
-    threshold: MOVE_THRESHOLD,
-    move: { mailbox: "purgatory", emoji: "📰" },
+    mailbox: "purgatory",
+    emoji: "📰",
   },
   capmetro: {
     question:
       "Is this a CapMetro (Austin transit) service alert about MetroRail, such as delays, disruptions, or schedule changes?",
-    threshold: MOVE_THRESHOLD,
-    move: { mailbox: "purgatory", emoji: "🚆", shouldNotify: isWednesdayOrThursday },
+    mailbox: "purgatory",
+    emoji: "🚆",
+    shouldNotify: isWednesdayOrThursday,
   },
 } satisfies Record<string, Rule>;
 
@@ -66,8 +81,7 @@ export type Action = {
 export function decide(matches: Set<Category>): Action | null {
   for (const [category, rule] of Object.entries(CATEGORIES) as [Category, Rule][]) {
     if (!matches.has(category)) continue;
-    if (!rule.move) return null;
-    const { mailbox, emoji, shouldNotify } = rule.move;
+    const { mailbox, emoji, shouldNotify } = rule;
     return { category, mailbox, emoji, notify: shouldNotify?.() ?? true };
   }
   return null;
