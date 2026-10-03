@@ -6,15 +6,25 @@
   "compatibility_date": "2026-03-01",
   "observability": {
     "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+    },
+    "issues": {
+      "enabled": true,
+    },
   },
   "workers_dev": false,
   "preview_urls": false,
   "triggers": {
-    "crons": ["*/20 * * * *"],
+    "crons": ["*/10 * * * *"],
   },
   "routes": [{ "pattern": "mailman.george.black", "custom_domain": true }],
   "ai": {
     "binding": "AI",
   },
-  "kv_namespaces": [{ "binding": "TOKENS", "id": "a4390dca991142368440bb8d4dd864f1" }],
+  "kv_namespaces": [{ "binding": "STATE", "id": "a4390dca991142368440bb8d4dd864f1" }],
+  "secrets": {
+    "required": ["FASTMAIL_API_KEY", "NOTIFICATION_WEBHOOK_URL"],
+  },
 }

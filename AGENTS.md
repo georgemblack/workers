@@ -2,7 +2,7 @@
 
 This project is a monorepo containing personal Cloudflare workers. Each top-level directory contains a worker:
 
-* `mailman`: Fetches email, summarizes it, and sends push notifications
+* `mailman`: Sorts incoming email with Workers AI, files it, and sends push notifications
 * `linkmgr`: Web app for collecting and displaying interesting links
 * `linkproc`: Queue consumer that fetches link metadata via Browser Rendering API
 * `gringotts`: Web app for tracking finances and spending

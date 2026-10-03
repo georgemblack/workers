@@ -2,16 +2,15 @@
   "compilerOptions": {
     "target": "es2024",
     "lib": ["es2024"],
-    "jsx": "react-jsx",
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": false,
     "noEmit": true,
     "isolatedModules": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "strict": true,
     "types": ["./worker-configuration.d.ts", "node"]
-  }
+  },
+  "include": ["src/**/*.ts"]
 }
