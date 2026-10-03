@@ -23,7 +23,7 @@
   "ai": {
     "binding": "AI",
   },
-  "kv_namespaces": [{ "binding": "STATE", "id": "a4390dca991142368440bb8d4dd864f1" }],
+  "kv_namespaces": [{ "binding": "STATE", "id": "a134a310029e4f2aa01cdc9599a78dde" }],
   "secrets": {
     "required": ["FASTMAIL_API_KEY", "NOTIFICATION_WEBHOOK_URL"],
   },
