@@ -77,16 +77,62 @@ it("adds current deadlines and suppresses obsolete summaries, reasons, and compl
   expect(view.highlights[0].reason).toBe("Past its deadline");
   expect(view.groups.every((g) => g.summary === "")).toBe(true);
   expect(
-    view.groups
-      .flatMap((g) => [
+    [
+      ...view.highlights.map((h) => h.item),
+      ...view.groups.flatMap((g) => [
         ...g.featured,
         ...g.remaining,
         ...g.waiting,
         ...g.optional,
-      ])
+      ]),
+    ]
       .map((i) => i.id)
       .sort(),
   ).toEqual(["diapers", "warranty"]);
+});
+it("shows highlighted items once while preserving area summaries and totals", () => {
+  const items = [
+    item("doula", { priority: "high" }),
+    item("supplies"),
+    item("warranty", {
+      area_id: "kia",
+      status: "waiting",
+      due_date: "2026-10-23",
+    }),
+    item("trashcan", {
+      area_id: "home",
+      priority: "low",
+      due_date: "2026-10-23",
+    }),
+  ];
+  const view = buildDashboard(
+    items,
+    defaultAreas,
+    saved(["doula", "supplies"]),
+    1,
+    "America/Chicago",
+    now,
+  );
+  const displayedIds = [
+    ...view.highlights.map((h) => h.item.id),
+    ...view.groups.flatMap((g) =>
+      [...g.featured, ...g.remaining, ...g.waiting, ...g.optional].map(
+        (i) => i.id,
+      ),
+    ),
+  ];
+  expect(displayedIds.sort()).toEqual(items.map((i) => i.id).sort());
+  expect(view.groups.find((g) => g.id === "baby")).toMatchObject({
+    summary: "Support arrangements remain",
+    count: 2,
+    highlighted_count: 1,
+  });
+  expect(view.groups.find((g) => g.id === "kia")).toMatchObject({
+    count: 1,
+    highlighted_count: 1,
+    waiting: [],
+  });
+  expect(view.groups.find((g) => g.id === "home")?.optional).toEqual([]);
 });
 it("honors explicit area moves and keeps new, unplanned items accessible", () => {
   const items = [

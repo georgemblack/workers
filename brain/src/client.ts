@@ -80,7 +80,7 @@ function dashboardHTML() {
       dashboard.highlights
         .map(
           (h) =>
-            "<div>" +
+            '<div class="focus-item">' +
             itemHTML(h.item) +
             '<p class="focus-reason">' +
             esc(h.reason) +
@@ -100,6 +100,9 @@ function dashboardHTML() {
             group.count +
             " " +
             (group.count === 1 ? "item" : "items") +
+            (group.highlighted_count
+              ? " · " + group.highlighted_count + " shown above"
+              : "") +
             "</span></div>" +
             (group.summary
               ? '<p class="area-summary">' + esc(group.summary) + "</p>"

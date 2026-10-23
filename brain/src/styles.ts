@@ -95,7 +95,15 @@ h2 {
   font-size: 15px;
   margin: 0;
 }
-.focus .item:last-child,
+.focus-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.focus .item {
+  padding: 0;
+  border: 0;
+}
+.focus-item:last-child,
 .area .item:last-child {
   border-bottom: 0;
 }
@@ -123,6 +131,7 @@ h2 {
 .area-count {
   font-size: 12px;
   color: var(--muted);
+  text-align: right;
 }
 .fold {
   margin: 12px 0 0;

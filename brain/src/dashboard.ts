@@ -166,7 +166,8 @@ export function buildDashboard(
     const members = open.filter((i) => areaFor(i) === id).sort(compare);
     if (!members.length) return [];
     const planned = saved?.plan.groups.find((g) => g.area_id === id);
-    const actionable = members.filter(
+    const listed = members.filter((i) => !highlights.has(i.id));
+    const actionable = listed.filter(
       (i) => !["waiting", "someday"].includes(i.status) && i.priority !== "low",
     );
     const ranked = [
@@ -186,13 +187,14 @@ export function buildDashboard(
         summary: saved?.revision === revision ? (planned?.summary ?? "") : "",
         featured,
         remaining: actionable.filter((i) => !featured.includes(i)),
-        waiting: members.filter((i) => i.status === "waiting"),
-        optional: members.filter(
+        waiting: listed.filter((i) => i.status === "waiting"),
+        optional: listed.filter(
           (i) =>
             i.status !== "waiting" &&
             (i.status === "someday" || i.priority === "low"),
         ),
         count: members.length,
+        highlighted_count: members.length - listed.length,
       },
     ];
   });

@@ -100,7 +100,7 @@ This first version has no external action tools, scheduled notifications, or aut
 
 ## Dashboard
 
-The homepage highlights current important work and explicit deadlines, then groups everything into stable life areas. Each area's next actions are visible; more work, waiting items, and optional/someday work expand separately. An item's own priority and status determine emphasis, independently of its parent project.
+The homepage highlights current important work and explicit deadlines, then groups everything into stable life areas. Highlighted items appear only in the attention block; area totals include them and indicate how many are shown above. Each area's other next actions are visible; more work, waiting items, and optional/someday work expand separately. An item's own priority and status determine emphasis, independently of its parent project.
 
 The read-only organizer runs through the existing Luna/Gateway binding in a durable Lifecycle job. It refreshes after task/context changes (coalesced while Pi processes a message), and every six hours for date-sensitive planning. `brain_dashboard` tracks the data revision and last valid plan; publication rejects results generated against an older revision. Task writes increment that revision transactionally. Invalid/model-failed refreshes retry after five minutes and preserve the last plan. The UI resolves IDs to current records, suppresses outdated summaries/reasons, and always includes current explicit deadlines and a fallback area for unplanned items.
 
