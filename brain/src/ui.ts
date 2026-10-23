@@ -37,7 +37,7 @@ h2 { font-size: 13px; font-weight: 600; color: var(--muted); margin: 32px 0 8px;
 .meta, .why { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
 summary { cursor: pointer; }
 .message-text { white-space: pre-wrap; overflow-wrap: anywhere; }
-.empty, .speaker, .activity { color: var(--muted); font-size: 13px; }
+.empty, .speaker { color: var(--muted); font-size: 13px; }
 .message { margin: 24px 0; }
 .message > .message-text { width: fit-content; max-width: 90%; margin-left: auto; padding: 10px 14px; border-radius: 16px; background: var(--line); }
 .message > .speaker { text-align: right; }
@@ -60,8 +60,6 @@ textarea { min-height: 90px; resize: vertical; }
 .composer button { margin-top: 8px; }
 #error { color: #b95043; white-space: pre-wrap; }
 #error:empty { display: none; }
-#activity { margin-top: 12px; }
-.activity { margin: 10px 0; }
 @media (max-width: 480px) { main { padding-top: 24px; } }
 </style>
 </head>
@@ -77,7 +75,6 @@ textarea { min-height: 90px; resize: vertical; }
 <textarea id="chat-text" aria-label="Message brain" placeholder="Message…" required maxlength="16000"></textarea>
 <button type="submit">Send</button>
 </form>
-<details><summary>Activity</summary><div id="activity"></div></details>
 </div>
 </main>
 <a id="chat-button" class="chat-button" href="/chat">Chat</a>
@@ -90,7 +87,6 @@ async function api(path,method='GET',body){const res=await fetch(path,{method,he
 function itemHTML(item){const parent=state.items.find(x=>x.id===item.parent_id);return '<article class="item"><div class="item-line"><span class="title">'+esc(item.title)+'</span></div>'+(parent?'<div class="meta">↳ '+esc(parent.title)+'</div>':'')+(item.timing||item.due_date||item.scheduled_at?'<div class="meta">'+esc(item.due_date||item.scheduled_at||item.timing)+(item.timing_source==='inherited'?' · from related plans':'')+'</div>':'')+(item.needs_clarification?'<p class="why">Needs your input: '+esc(item.needs_clarification)+'</p>':'')+'</article>'}
 function dashboardHTML(){const dashboard=state.dashboard;if(!dashboard)return '<p class="empty">'+(state.items.some(i=>!['done','dropped'].includes(i.status))?'Organizing your list…':'Nothing on your list.')+'</p>';const fold=(group,key,label,items)=>items.length?'<details class="fold" id="fold-'+esc(group.id)+'-'+key+'"><summary>'+label+' · '+items.length+'</summary>'+items.map(itemHTML).join('')+'</details>':'';const focus=dashboard.highlights.length?'<section class="focus"><h2>Needs your attention</h2>'+dashboard.highlights.map(h=>'<div>'+itemHTML(h.item)+'<p class="focus-reason">'+esc(h.reason)+'</p></div>').join('')+'</section>':'';return focus+dashboard.groups.map(group=>'<section class="area"><div class="area-heading"><h2>'+esc(group.title)+'</h2><span class="area-count">'+group.count+' '+(group.count===1?'item':'items')+'</span></div>'+(group.summary?'<p class="area-summary">'+esc(group.summary)+'</p>':'')+group.featured.map(itemHTML).join('')+fold(group,'remaining','More to do',group.remaining)+fold(group,'waiting','Waiting',group.waiting)+fold(group,'optional','Later & optional',group.optional)+'</section>').join('')||'<p class="empty">Nothing on your list.</p>'}
 function render(){const expanded=[...(document.querySelectorAll?.('#sections details[id][open]')||[])].map(el=>el.id);$('sections').innerHTML=dashboardHTML();for(const id of expanded){const el=document.getElementById(id);if(el)el.open=true}
-$('activity').innerHTML=state.changes.slice(0,8).map(change=>{const record=JSON.parse(change.after_data);return '<div class="activity">'+esc(record.title)+'<br><span class="chip">'+esc(record.status||'Context updated')+'</span> · '+new Date(change.created_at).toLocaleDateString()+'</div>'}).join('')||'Your updates will appear here.';
 const pending=state.messages.filter(m=>m.result.status==='parked');$('retry').hidden=!pending.length;
 $('messages').innerHTML=state.messages.map(m=>'<article class="message"><div class="speaker">You · '+esc(m.source)+' · '+new Date(m.created_at).toLocaleString()+'</div><div class="message-text">'+esc(m.text)+'</div><div class="reply"><div class="speaker">brain</div><div class="markdown">'+(m.html||esc(m.result.text||(m.result.status==='unanswered'?'Could not finish: '+(m.result.reason||'unknown error')+'. Send a follow-up to try again.':m.result.status==='parked'?'Processing paused.':'Working on it…')))+'</div></div></article>').join('')||'';
 }
