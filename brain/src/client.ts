@@ -2,7 +2,8 @@ export const clientScript = String.raw`
 const $ = (id) => document.getElementById(id);
 let state = { items: [], messages: [] },
   sending = false,
-  refreshing = false;
+  refreshing = false,
+  chatLoaded = false;
 const esc = (value) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -117,6 +118,11 @@ function dashboardHTML() {
   );
 }
 function render() {
+  const followChat =
+    chat &&
+    (!chatLoaded ||
+      window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 80);
   const expanded = [
     ...(document.querySelectorAll?.("#sections details[id][open]") || []),
   ].map((el) => el.id);
@@ -154,6 +160,10 @@ function render() {
           "</div></div></article>",
       )
       .join("") || "";
+  if (chat) {
+    chatLoaded = true;
+    if (followChat) window.scrollTo(0, document.documentElement.scrollHeight);
+  }
 }
 async function refresh() {
   if (refreshing) return;
