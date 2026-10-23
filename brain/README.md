@@ -63,10 +63,10 @@ curl https://brain.georgeblack.workers.dev/api/messages \
   -H 'Content-Type: application/json' \
   -H 'CF-Access-Client-Id: YOUR_CLIENT_ID' \
   -H 'CF-Access-Client-Secret: YOUR_CLIENT_SECRET' \
-  --data '{"id":"shortcut-unique-id","text":"I need to buy size 1 diapers","source":"apple-shortcuts"}'
+  --data '{"text":"I need to buy size 1 diapers"}'
 ```
 
-Returns `202 {"id":"...","accepted":true}` after Pi durably accepts the input. Keep the same ID for network retries; a conflicting body under that ID is rejected. Accepted means saved for processing, not successfully interpreted. Pi handles processing, model retries, queued follow-ups, and recovery via Lifecycle alarms independently of the HTTP request lifetime. Browser polling reads current state; it is not required to run accepted work.
+Only `text` is required. Brain generates an ID and defaults the source to `apple-shortcuts`. Returns `202 {"id":"...","accepted":true}` after Pi durably accepts the input. Accepted means saved for processing, not successfully interpreted. Optional `id` and `source` fields remain supported for other clients; reusing an ID with the same body avoids duplicate processing, while a conflicting body is rejected. Pi handles processing, model retries, queued follow-ups, and recovery via Lifecycle alarms independently of the HTTP request lifetime. Browser polling reads current state; it is not required to run accepted work.
 
 `GET /api/dashboard` reads the current dashboard only; `GET /api/chat` reads cached capture results and formats replies. Neither endpoint submits messages, joins Pi work, or indexes records. `POST /api/retry` resumes work parked by repeated crashes. Edit/undo HTTP routes were removed; all task mutations go through the chat agent. The UI retains an unsent draft and capture ID locally if submission fails.
 

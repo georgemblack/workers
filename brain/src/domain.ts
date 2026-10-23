@@ -34,7 +34,7 @@ export const captureInput = z.object({
     .regex(/^[a-zA-Z0-9_-]{1,100}$/)
     .optional(),
   text: z.string().trim().min(1).max(16000),
-  source: z.enum(["chat", "apple-shortcuts", "api"]).default("api"),
+  source: z.enum(["chat", "apple-shortcuts", "api"]).default("apple-shortcuts"),
 });
 export const contextInput = z.object({
   core: z.boolean().default(false),
