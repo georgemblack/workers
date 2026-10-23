@@ -38,28 +38,30 @@ export class DashboardOrganizer extends LifecycleCapability {
       });
   }
   async onJob(): Promise<LifecycleJobOutcome> {
-    if (await this.busy()) return { rescheduleAt: Date.now() + 10000 };
-    const { revision, saved } = this.store.dashboardState();
-    if (
-      saved &&
-      saved.revision === revision &&
-      Date.parse(saved.generated_at) + REFRESH_MS > Date.now()
-    )
-      return { rescheduleAt: Date.parse(saved.generated_at) + REFRESH_MS };
     try {
+      if (await this.busy()) return { rescheduleAt: Date.now() + 10000 };
+      const { revision, saved } = this.store.dashboardState();
+      if (
+        saved &&
+        saved.revision === revision &&
+        Date.parse(saved.generated_at) + REFRESH_MS > Date.now()
+      )
+        return { rescheduleAt: Date.parse(saved.generated_at) + REFRESH_MS };
       await this.generate();
+      this.store.health("dashboard");
+      const after = this.store.dashboardState();
+      return {
+        rescheduleAt:
+          Date.now() +
+          (after.saved?.revision === after.revision ? REFRESH_MS : 5000),
+      };
     } catch (error) {
+      this.store.health("dashboard", error);
       console.error(
         "Dashboard refresh failed",
         error instanceof Error ? error.message : "Unknown error",
       );
       return { rescheduleAt: Date.now() + 5 * 60 * 1000 };
     }
-    const after = this.store.dashboardState();
-    return {
-      rescheduleAt:
-        Date.now() +
-        (after.saved?.revision === after.revision ? REFRESH_MS : 5000),
-    };
   }
 }

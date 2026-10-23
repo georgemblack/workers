@@ -18,6 +18,7 @@ it("waits for Pi to settle before organizing a partially processed message", asy
 it("retries model failures durably rather than discarding the refresh", async () => {
   vi.useFakeTimers();
   const store = {
+    health: vi.fn(),
     dashboardState: () => ({ revision: 1, saved: null }),
   } as unknown as Store;
   const log = vi.spyOn(console, "error").mockImplementation(() => {});
@@ -37,6 +38,7 @@ it("retries model failures durably rather than discarding the refresh", async ()
 it("regenerates after a concurrent mutation invalidates a completed model call", async () => {
   vi.useFakeTimers();
   const store = {
+    health: vi.fn(),
     dashboardState: () => ({
       revision: 2,
       saved: { revision: 1, generated_at: new Date().toISOString() },

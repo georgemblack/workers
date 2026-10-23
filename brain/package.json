@@ -12,7 +12,8 @@
     "memory:create": "cf vectorize create --name brain-memory --config-dimensions 768 --config-metric cosine",
     "format": "prettier --write src tests scripts cloudflare.config.ts tsconfig.json package.json README.md",
     "test:gateway": "node --experimental-strip-types scripts/check-gateway.mjs",
-    "test:dashboard": "node --experimental-strip-types scripts/check-dashboard.mjs"
+    "test:dashboard": "node --experimental-strip-types scripts/check-dashboard.mjs",
+    "test:agent": "node --experimental-strip-types scripts/evaluate-agent.mjs"
   },
   "dependencies": {
     "@earendil-works/chord": "~1.4.0",
@@ -27,6 +28,8 @@
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^25.6.0",
     "cf": "1.0.0-beta.5",
+    "esbuild": "0.28.2",
+    "miniflare": "5.20261019.1-beta",
     "prettier": "^3.9.10",
     "typescript": "^6.0.0",
     "vitest": "^4.0.0",

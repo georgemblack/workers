@@ -5,6 +5,7 @@ import {
   type SavedPlan,
   type Area,
 } from "./dashboard";
+import { z } from "zod";
 
 type Cursor<T> = Iterable<T> & { toArray(): T[] };
 export interface SQL {
@@ -28,18 +29,161 @@ export class Store {
       CREATE TABLE IF NOT EXISTS brain_archived_captures (id TEXT PRIMARY KEY);
       CREATE TABLE IF NOT EXISTS brain_maintenance (command TEXT PRIMARY KEY);
       CREATE TABLE IF NOT EXISTS brain_index_outbox (id TEXT PRIMARY KEY, version INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS brain_deliveries (id TEXT PRIMARY KEY, state TEXT NOT NULL DEFAULT 'pending', result TEXT);
+      CREATE TABLE IF NOT EXISTS brain_health (component TEXT PRIMARY KEY, last_success TEXT, last_error TEXT, last_error_at TEXT);
       CREATE TABLE IF NOT EXISTS brain_areas (id TEXT PRIMARY KEY, title TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS brain_dashboard (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL DEFAULT 0, plan TEXT, plan_revision INTEGER, generated_at TEXT);
       INSERT OR IGNORE INTO brain_dashboard (id,revision) VALUES (1,0);
       CREATE VIRTUAL TABLE IF NOT EXISTS brain_fts USING fts5(id UNINDEXED, kind UNINDEXED, text);
       CREATE INDEX IF NOT EXISTS brain_records_kind ON brain_records(kind);`);
     this.applyMaintenance();
+    // One-time catch-up for existing captures; completed receipts persist across restarts.
+    sql.exec(
+      "INSERT OR IGNORE INTO brain_deliveries (id) SELECT id FROM brain_captures WHERE source != 'manual' AND id NOT IN (SELECT id FROM brain_archived_captures)",
+    );
     for (const area of defaultAreas)
       this.sql.exec(
         "INSERT OR IGNORE INTO brain_areas VALUES (?, ?)",
         area.id,
         area.title,
       );
+  }
+  accepted(id: string) {
+    this.sql.exec(
+      "UPDATE brain_deliveries SET state='accepted' WHERE id=? AND state='pending'",
+      id,
+    );
+  }
+  result(id: string, result: unknown, done: boolean) {
+    this.sql.exec(
+      "UPDATE brain_deliveries SET state=?,result=? WHERE id=?",
+      done ? "done" : "accepted",
+      JSON.stringify(result),
+      id,
+    );
+  }
+  deliveries() {
+    return this.sql
+      .exec<{ id: string; state: string }>(
+        "SELECT id,state FROM brain_deliveries WHERE state != 'done' AND COALESCE(json_extract(result,'$.status'),'') != 'parked' ORDER BY rowid LIMIT 30",
+      )
+      .toArray();
+  }
+  resumeParked() {
+    this.sql.exec(
+      "UPDATE brain_deliveries SET result=NULL WHERE state='accepted' AND json_extract(result,'$.status')='parked'",
+    );
+  }
+  completed(id: string) {
+    return (
+      this.sql
+        .exec("SELECT id FROM brain_deliveries WHERE id=? AND state='done'", id)
+        .toArray().length > 0
+    );
+  }
+  health(component: string, error?: unknown) {
+    if (error !== undefined)
+      this.sql.exec(
+        "INSERT INTO brain_health (component,last_error,last_error_at) VALUES (?,?,?) ON CONFLICT(component) DO UPDATE SET last_error=excluded.last_error,last_error_at=excluded.last_error_at",
+        component,
+        String(error instanceof Error ? error.message : error).slice(0, 2000),
+        new Date().toISOString(),
+      );
+    else
+      this.sql.exec(
+        "INSERT INTO brain_health (component,last_success) VALUES (?,?) ON CONFLICT(component) DO UPDATE SET last_success=excluded.last_success,last_error=NULL",
+        component,
+        new Date().toISOString(),
+      );
+  }
+  conversation() {
+    return this.sql
+      .exec<{
+        id: string;
+        text: string;
+        source: string;
+        created_at: string;
+        result: string | null;
+      }>(
+        "SELECT c.*,d.result FROM brain_captures c LEFT JOIN brain_deliveries d ON d.id=c.id WHERE c.source != 'manual' AND c.id NOT IN (SELECT id FROM brain_archived_captures) ORDER BY c.created_at DESC,c.rowid DESC LIMIT 60",
+      )
+      .toArray()
+      .reverse()
+      .map(({ result, ...capture }) => ({
+        ...capture,
+        result: result
+          ? (JSON.parse(result) as {
+              status: string;
+              text?: string;
+              reason?: string;
+            })
+          : { status: "queued" },
+      }));
+  }
+  exportData() {
+    const tables: Record<string, unknown[]> = {};
+    const existing = new Set(
+      this.sql
+        .exec<{ name: string }>(
+          "SELECT name FROM sqlite_master WHERE type='table'",
+        )
+        .toArray()
+        .map((row) => row.name),
+    );
+    for (const name of [
+      "brain_records",
+      "brain_changes",
+      "brain_captures",
+      "brain_archived_captures",
+      "brain_deliveries",
+      "brain_areas",
+      "brain_dashboard",
+      "brain_health",
+      "pi_durable_schema",
+      "pi_durable_metadata",
+      "pi_record_ids",
+      "pi_conversations",
+      "pi_entries",
+      "pi_submissions",
+      "pi_documents",
+      "pi_document_revisions",
+      "pi_tasks",
+    ]) {
+      if (existing.has(name))
+        tables[name] = this.sql
+          .exec(`SELECT * FROM ${name} ORDER BY rowid`)
+          .toArray();
+    }
+    return {
+      format: "brain-export",
+      version: 1,
+      exported_at: new Date().toISOString(),
+      tables,
+    };
+  }
+  diagnostics() {
+    const count = (table: string, where = "") =>
+      this.sql
+        .exec<{ n: number }>(`SELECT count(*) AS n FROM ${table} ${where}`)
+        .toArray()[0].n;
+    const { revision, saved } = this.dashboardState();
+    return {
+      dashboard: {
+        revision,
+        plan_revision: saved?.revision ?? null,
+        last_success: saved?.generated_at ?? null,
+        stale: saved?.revision !== revision,
+      },
+      captures: {
+        pending: count("brain_deliveries", "WHERE state != 'done'"),
+        failed: count(
+          "brain_deliveries",
+          "WHERE json_extract(result,'$.status') IN ('unanswered','parked')",
+        ),
+      },
+      index_backlog: count("brain_index_outbox"),
+      health: this.sql.exec("SELECT * FROM brain_health").toArray(),
+    };
   }
   areas(): Area[] {
     return this.sql
@@ -127,6 +271,7 @@ export class Store {
       this.sql.exec(
         "INSERT OR IGNORE INTO brain_archived_captures SELECT id FROM brain_captures",
       );
+      this.sql.exec("DELETE FROM brain_deliveries");
       // Keep Pi's schema version and monotonic ID/commit allocators, but remove
       // conversation content, tool outputs, run state, and old operation receipts.
       for (const table of [
@@ -151,14 +296,6 @@ export class Store {
         .exec("SELECT id FROM brain_archived_captures WHERE id = ?", id)
         .toArray().length > 0
     );
-  }
-  recentCaptures() {
-    return this.sql
-      .exec<{ id: string; text: string; source: string; created_at: string }>(
-        "SELECT * FROM brain_captures WHERE source != 'manual' AND id NOT IN (SELECT id FROM brain_archived_captures) ORDER BY created_at DESC, rowid DESC LIMIT 60",
-      )
-      .toArray()
-      .reverse();
   }
   get(id: string) {
     const row = this.sql
@@ -198,6 +335,7 @@ export class Store {
     expected_version: number;
     source_id: string;
     mutation_id: string;
+    intent?: "create" | "update";
   }) {
     return this.transaction(() => {
       const priorChange = this.sql
@@ -219,14 +357,30 @@ export class Store {
       )
         throw new Error("Unknown source message");
       const previous = this.get(args.id);
+      if (args.intent === "create" && previous)
+        throw new Error("Record already exists; use update_record");
+      if (args.intent === "update" && !previous)
+        throw new Error("Record not found; use create_record");
       if ((previous?.version ?? 0) !== args.expected_version)
         throw new Error("Version conflict: reload the record before editing");
       if (previous && previous.kind !== args.kind)
         throw new Error("Cannot change record kind");
-      const data =
-        args.kind === "item"
-          ? itemInput.parse(args.data)
-          : contextInput.parse(args.data);
+      const schema = args.kind === "item" ? itemInput : contextInput;
+      const patch = z.record(z.string(), z.unknown()).parse(args.data);
+      const metadata = new Set([
+        "id",
+        "kind",
+        "version",
+        "updated_at",
+        "source_id",
+      ]);
+      for (const key of Object.keys(patch)) {
+        if (metadata.has(key)) delete patch[key];
+        else if (!(key in schema.shape))
+          throw new Error(`Unknown record field: ${key}`);
+      }
+      // Omitted fields retain their current values; explicit null/empty values clear them.
+      const data = schema.parse({ ...previous, ...patch });
       if (args.kind === "item") {
         const item = itemInput.parse(data);
         if (
@@ -311,34 +465,6 @@ export class Store {
           : this.get(row.id),
       );
   }
-  undo(changeId: string) {
-    const change = this.sql
-      .exec<{
-        record_id: string;
-        before_data: string | null;
-        after_data: string;
-      }>("SELECT * FROM brain_changes WHERE id = ?", changeId)
-      .toArray()[0];
-    if (!change) throw new Error("Change not found");
-    const current = this.get(change.record_id);
-    const after = JSON.parse(change.after_data);
-    if (!current || current.version !== after.version)
-      throw new Error("Version conflict: a newer change exists");
-    if (current.kind !== "item")
-      throw new Error("Only item changes can be undone here");
-    const source = `manual-${crypto.randomUUID()}`;
-    this.capture(source, `Undo change ${changeId}`, "manual");
-    return this.save({
-      id: current.id,
-      kind: "item",
-      expected_version: current.version,
-      source_id: source,
-      mutation_id: source,
-      data: change.before_data
-        ? JSON.parse(change.before_data)
-        : { ...current, status: "dropped" },
-    });
-  }
   capture(id: string, text: string, source: string) {
     return this.transaction(() => {
       const previous = this.sql
@@ -362,6 +488,8 @@ export class Store {
           id,
           text,
         );
+        if (source !== "manual")
+          this.sql.exec("INSERT INTO brain_deliveries (id) VALUES (?)", id);
       }
     });
   }

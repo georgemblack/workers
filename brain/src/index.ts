@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { Brain, type Env } from "./agent";
 import { page } from "./ui";
 import { renderMarkdown } from "./markdown";
+import { captureInput } from "./domain";
 export { Brain };
 
 export default {
@@ -60,43 +61,45 @@ export default {
               "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
           },
         });
-      if (request.method === "GET" && url.pathname === "/api/state") {
-        const state = await agent.snapshot();
+      if (request.method === "GET" && url.pathname === "/api/dashboard")
+        return Response.json(await agent.dashboardSnapshot(), { headers });
+      if (request.method === "GET" && url.pathname === "/api/chat") {
+        const state = await agent.conversationSnapshot();
         return Response.json(
           {
-            ...state,
             messages: state.messages.map((message) => ({
               ...message,
-              html:
-                "text" in message.result && message.result.text
-                  ? renderMarkdown(message.result.text)
-                  : "",
+              html: message.result.text
+                ? renderMarkdown(message.result.text)
+                : "",
             })),
           },
           { headers },
         );
       }
+      if (request.method === "GET" && url.pathname === "/api/export")
+        return Response.json(await agent.exportData(), {
+          headers: {
+            ...headers,
+            "Content-Disposition": 'attachment; filename="brain-export.json"',
+          },
+        });
+      if (request.method === "GET" && url.pathname === "/api/diagnostics")
+        return Response.json(await agent.diagnostics(), { headers });
       if (request.method === "POST" && url.pathname === "/api/messages") {
         const text = await request.text();
         if (text.length > 24000)
           return new Response("Message too large", { status: 413 });
-        return Response.json(await agent.capture(JSON.parse(text)), {
-          status: 202,
-          headers,
-        });
+        return Response.json(
+          await agent.capture(captureInput.parse(JSON.parse(text))),
+          {
+            status: 202,
+            headers,
+          },
+        );
       }
       if (request.method === "POST" && url.pathname === "/api/retry")
         return Response.json(await agent.retry(), { headers });
-      const change = url.pathname.match(/^\/api\/changes\/([^/]+)\/undo$/);
-      if (request.method === "POST" && change)
-        return Response.json(await agent.undo(decodeURIComponent(change[1])), {
-          headers,
-        });
-      const item = url.pathname.match(/^\/api\/items\/([^/]+)$/);
-      if (request.method === "PATCH" && item)
-        return Response.json(await agent.edit(item[1], await request.json()), {
-          headers,
-        });
       return new Response("Not found", { status: 404, headers });
     } catch (error) {
       if (error instanceof ZodError || error instanceof SyntaxError)

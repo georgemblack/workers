@@ -134,3 +134,38 @@ it("uses the user's local calendar date for deadline rules", () => {
   );
   expect(view.highlights[0].reason).toBe("Due 2026-10-22");
 });
+
+it("compares appointment instants correctly across timezone offsets", () => {
+  const appointment = item("appointment", {
+    scheduled_at: "2026-10-23T08:00:00-05:00",
+  });
+  const view = buildDashboard(
+    [appointment],
+    defaultAreas,
+    null,
+    0,
+    "America/Chicago",
+    new Date("2026-10-23T12:00:00Z"),
+  );
+  expect(view.highlights[0].item.id).toBe("appointment");
+});
+it("surfaces a due follow-up while keeping future waiting work quiet", () => {
+  const items = [
+    item("builder", {
+      status: "waiting",
+      follow_up_at: "2026-10-23",
+      waiting_for: "a repair acknowledgment",
+    }),
+    item("delivery", { status: "waiting", follow_up_at: "2026-11-01" }),
+  ];
+  const view = buildDashboard(
+    items,
+    defaultAreas,
+    null,
+    0,
+    "America/Chicago",
+    now,
+  );
+  expect(view.highlights.map((h) => h.item.id)).toEqual(["builder"]);
+  expect(view.highlights[0].reason).toContain("Follow up");
+});

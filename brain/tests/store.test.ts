@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { describe, it, expect, beforeEach } from "vitest";
 import { Store, type SQL } from "../src/store";
-import { groupItems, itemInput } from "../src/domain";
+import { itemInput } from "../src/domain";
 let store: Store;
 beforeEach(() => {
   const db = new DatabaseSync(":memory:");
@@ -101,24 +101,24 @@ describe("conversation cleanup", () => {
       store.sql.exec("SELECT * FROM brain_captures").toArray(),
     ).toHaveLength(1);
     expect(store.search("diapers").length).toBeGreaterThan(0);
-    expect(store.recentCaptures()).toEqual([]);
+    expect(store.conversation()).toEqual([]);
     expect(store.isArchived("message-1")).toBe(true);
     // Retrying an archived ID leaves it archived and still checks for conflicts.
     store.capture("message-1", "Buy diapers for the baby", "api");
-    expect(store.recentCaptures()).toEqual([]);
+    expect(store.conversation()).toEqual([]);
     expect(() =>
       store.capture("message-1", "Something different", "api"),
     ).toThrow("Capture ID already");
     store.capture("message-2", "Bought the diapers", "chat");
-    expect(store.recentCaptures().map((m) => m.id)).toEqual(["message-2"]);
+    expect(store.conversation().map((m) => m.id)).toEqual(["message-2"]);
     // Cleanup is consumed once, so later restarts retain the new chat.
     reopen();
-    expect(store.recentCaptures().map((m) => m.id)).toEqual(["message-2"]);
+    expect(store.conversation().map((m) => m.id)).toEqual(["message-2"]);
   });
   it("defers cleanup until unfinished processing has settled", () => {
     prepareConversation("running");
     reopen();
-    expect(store.recentCaptures()).toHaveLength(1);
+    expect(store.conversation()).toHaveLength(1);
     expect(store.sql.exec("SELECT * FROM pi_entries").toArray()).toHaveLength(
       1,
     );
@@ -208,19 +208,13 @@ describe("durable personal records", () => {
     save("done", { title: "Bought supplies", status: "done" });
     save("dropped", { title: "Old idea", status: "dropped" });
     save("open", { title: "Export receipt", priority: "high" });
-    expect(groupItems(store.list()).map((g) => g.title)).toEqual([
-      "High priority",
-    ]);
+    expect(
+      store
+        .list()
+        .filter((i) => !["done", "dropped"].includes(i.status))
+        .map((i) => i.title),
+    ).toEqual(["Export receipt"]);
     expect(store.list()).toHaveLength(3);
-  });
-  it("undoes an item change without deleting history or overwriting newer work", () => {
-    save("car", { title: "Pay car" });
-    save("car", { title: "Pay car", status: "done" }, 1, "done-car");
-    expect(store.undo("done-car").status).toBe("open");
-    expect(store.get("car").version).toBe(3);
-    expect(() => store.undo("done-car")).toThrow("Version conflict");
-    save("idea", { title: "Maybe research a desk" });
-    expect(store.undo("create-idea").status).toBe("dropped");
   });
   it("rejects mutation ID collisions across records", () => {
     save("one", { title: "One" }, 0, "shared");
@@ -272,4 +266,79 @@ it("publishes derived plans without mutating tasks and rejects stale model resul
     ),
   ).toThrow();
   expect(store.dashboardState().saved?.plan).toEqual(plan);
+});
+
+it("patches only supplied fields and requires explicit clearing", () => {
+  save("parent", { title: "Baby supplies" });
+  save("diapers", {
+    title: "Buy diapers",
+    why: "Prepare for baby",
+    parent_id: "parent",
+    priority: "high",
+    due_date: "2026-12-15",
+    context_ids: [],
+  });
+  const updated = save("diapers", { status: "done" }, 1, "finish-diapers");
+  expect(updated).toMatchObject({
+    title: "Buy diapers",
+    why: "Prepare for baby",
+    parent_id: "parent",
+    priority: "high",
+    due_date: "2026-12-15",
+    status: "done",
+  });
+  expect(
+    save("diapers", { due_date: null, why: "" }, 2, "clear-fields"),
+  ).toMatchObject({
+    due_date: null,
+    why: "",
+    status: "done",
+    parent_id: "parent",
+  });
+  expect(() =>
+    save("diapers", { invented_field: true }, 3, "bad-field"),
+  ).toThrow("Unknown record field");
+});
+it("distinguishes creating from updating and exports audit/source data", () => {
+  const args = {
+    id: "record",
+    kind: "item" as const,
+    data: { title: "Record" },
+    expected_version: 0,
+    source_id: "message-1",
+    mutation_id: "create",
+  };
+  expect(() => store.save({ ...args, intent: "update" })).toThrow("not found");
+  store.save({ ...args, intent: "create" });
+  expect(() =>
+    store.save({
+      ...args,
+      intent: "create",
+      mutation_id: "second-create",
+      expected_version: 1,
+    }),
+  ).toThrow("already exists");
+  const exported = store.exportData();
+  expect(exported.format).toBe("brain-export");
+  expect(exported.tables.brain_records).toHaveLength(1);
+  expect(exported.tables.brain_changes).toHaveLength(1);
+  expect(exported.tables.brain_captures).toHaveLength(1);
+  expect(exported.tables).not.toHaveProperty("_cf_METADATA");
+});
+it("tracks delivery receipts and exposes processing/index diagnostics", () => {
+  expect(store.deliveries()).toEqual([{ id: "message-1", state: "pending" }]);
+  store.accepted("message-1");
+  store.result("message-1", { status: "done", text: "Saved" }, true);
+  expect(store.deliveries()).toEqual([]);
+  expect(store.conversation()[0].result).toEqual({
+    status: "done",
+    text: "Saved",
+  });
+  store.health("index", new Error("Temporarily unavailable"));
+  expect(store.diagnostics().health[0]).toMatchObject({
+    component: "index",
+    last_error: "Temporarily unavailable",
+  });
+  store.health("index");
+  expect(store.diagnostics().health[0].last_error).toBeNull();
 });

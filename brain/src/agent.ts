@@ -10,10 +10,12 @@ import { PiHarness } from "agents/harness/pi";
 import { Lifecycle } from "agents/lifecycle";
 
 import { Store } from "./store";
-import { captureInput, itemInput, status } from "./domain";
+import { captureInput } from "./domain";
 import { instructions } from "./prompt";
 import { createBrainAI } from "./model";
 import { DashboardOrganizer } from "./organizer";
+import { BackgroundWork } from "./background";
+import { contextForPrompt } from "./context";
 import { active, buildDashboard, organizerInstructions } from "./dashboard";
 
 export interface Env {
@@ -37,7 +39,7 @@ const Save = Type.Object({
   kind: Type.Union([Type.Literal("item"), Type.Literal("context")]),
   data: Type.String({
     description:
-      "Full JSON object. Item: {title,why,details,status:inbox|open|waiting|someday|done|dropped,priority:high|normal|low,priority_reason,parent_id:string|null,area_id:existing area ID|null,timing,due_date:YYYY-MM-DD|null,scheduled_at:ISO|null,timing_source:explicit|inherited|inferred|none,context_ids:string[],needs_clarification}. Context: {title,body,evidence}.",
+      "For creation supply a new record; for updates supply only changed fields. Item fields: {title,why,details,status:inbox|open|waiting|someday|done|dropped,priority:high|normal|low,priority_reason,parent_id:string|null,area_id:existing area ID|null,timing,due_date:YYYY-MM-DD|null,scheduled_at:ISO|null,follow_up_at:YYYY-MM-DD|null,waiting_for:string,timing_source:explicit|inherited|inferred|none,context_ids:string[],needs_clarification}. Context: {title,body,evidence,core:boolean (only true for core personal/family facts)}.",
   }),
   expected_version: Type.Integer({ minimum: 0 }),
   source_id: Type.String(),
@@ -85,7 +87,65 @@ export class Brain extends DurableObject<Env> {
       ),
     () => this.refreshDashboard(),
   );
-  lifecycle = Lifecycle.install(this).use(this.harness).use(this.organizer);
+  background = new BackgroundWork(
+    this.store,
+    () => this.reconcileCaptures(),
+    () => this.indexRecords(),
+    !!this.env.MEMORY,
+  );
+  lifecycle = Lifecycle.install(this)
+    .use(this.harness)
+    .use(this.organizer)
+    .use(this.background);
+
+  private async reconcileCaptures() {
+    let pending = false;
+    const operations = await this.harness.pending();
+    for (const delivery of this.store.deliveries()) {
+      if (delivery.state === "pending") {
+        const capture = this.store.sql
+          .exec<{
+            id: string;
+            text: string;
+            source: string;
+            created_at: string;
+          }>("SELECT * FROM brain_captures WHERE id=?", delivery.id)
+          .toArray()[0];
+        if (this.store.isArchived(delivery.id)) continue;
+        await this.submitCapture(capture);
+        pending = true;
+        continue;
+      }
+      const operation = operations.find((op) => op.operationId === delivery.id);
+      if (operation) {
+        this.store.result(delivery.id, { status: operation.status }, false);
+        if (operation.status !== "parked") pending = true;
+      } else
+        this.store.result(
+          delivery.id,
+          await this.harness.wait(delivery.id),
+          true,
+        );
+    }
+    return (
+      pending || this.store.deliveries().some((d) => d.state === "pending")
+    );
+  }
+  private async submitCapture(capture: {
+    id: string;
+    text: string;
+    source: string;
+    created_at: string;
+  }) {
+    await this.ensureModel();
+    const receipt = await this.harness.submit(
+      `Message ID: ${capture.id}\nSent at: ${capture.created_at}\nTimezone: ${this.env.TIMEZONE}\nSource: ${capture.source}\n\n${capture.text}`,
+      { operationId: capture.id },
+    );
+    this.store.accepted(capture.id);
+    if (receipt.accepted) await this.scheduleDashboard();
+    return receipt;
+  }
 
   private async scheduleDashboard() {
     try {
@@ -149,7 +209,6 @@ export class Brain extends DurableObject<Env> {
         let semantic: unknown[] = [];
         if (this.env.MEMORY) {
           try {
-            await this.indexRecords();
             const embedding = await this.embed(query);
             const results = await this.env.MEMORY.query(embedding, {
               topK: 15,
@@ -208,10 +267,16 @@ export class Brain extends DurableObject<Env> {
             ),
         ),
     };
-    const save: ToolRegistration<typeof Save> = {
-      name: "save_record",
+    const saveTool = (
+      name: string,
+      intent?: "create" | "update",
+    ): ToolRegistration<typeof Save> => ({
+      name,
+      ...(intent ? {} : { deferred: true as const }),
       description:
-        "Create or replace a validated item/context record. Full data required. Updates require expected_version from a read. source_id must be the original message ID. Stable mutation_id prevents replay duplicates.",
+        intent === "create"
+          ? "Create a new item/context record. Use expected_version=0 and the original source message ID."
+          : "Update an existing item/context record using only changed fields in data. Omitted fields are preserved; null, empty string, or [] explicitly clears a field. Read the record first and supply its expected_version. Use the original source message ID and a stable mutation_id.",
       parameters: Save,
       executionMode: "sequential",
       replay: "safe",
@@ -219,15 +284,11 @@ export class Brain extends DurableObject<Env> {
         try {
           const record = this.store.save({
             ...args,
+            intent,
             data: JSON.parse(args.data),
           });
           await this.scheduleDashboard();
-          // SQLite outbox survives interruption or embedding failure.
-          try {
-            await this.indexRecords();
-          } catch {
-            /* Retried by subsequent retrieval and dashboard visits. */
-          }
+          await this.background.schedule();
           return output(record);
         } catch (error) {
           return output({
@@ -235,20 +296,37 @@ export class Brain extends DurableObject<Env> {
           });
         }
       },
-    };
+    });
     this.registry.install({
       name: "brain",
-      tools: [search, get, list, save],
+      tools: [
+        search,
+        get,
+        list,
+        saveTool("create_record", "create"),
+        saveTool("update_record", "update"),
+        saveTool("save_record"),
+      ],
       sections: [
         { key: "preamble", render: () => instructions, tag: false },
         {
           key: "clock",
           render: () =>
-            `Now: ${new Date().toISOString()}. User timezone: ${this.env.TIMEZONE}.`,
+            `Today: ${new Date().toLocaleDateString("en-CA", { timeZone: this.env.TIMEZONE })}. User timezone: ${this.env.TIMEZONE}.`,
         },
         {
           key: "known_context",
-          render: () => JSON.stringify(this.store.list("context")),
+          render: () =>
+            JSON.stringify(
+              contextForPrompt(
+                this.store.list("context") as unknown as Array<{
+                  id: string;
+                  title: string;
+                  body: string;
+                  core?: boolean;
+                }>,
+              ),
+            ),
         },
         { key: "areas", render: () => JSON.stringify(this.store.areas()) },
       ],
@@ -302,103 +380,84 @@ export class Brain extends DurableObject<Env> {
     const id = data.id ?? crypto.randomUUID();
     this.store.capture(id, data.text, data.source);
     // A retry of a cleared message must not rerun its already-applied mutations.
-    if (this.store.isArchived(id)) return { id, accepted: false };
-    await this.ensureModel();
+    if (this.store.isArchived(id) || this.store.completed(id))
+      return { id, accepted: false };
+    // The durable delivery row and job exist before Pi submission; retries repair any gap.
+    await this.background.schedule();
     const row = this.store.sql
-      .exec<{ created_at: string }>(
-        "SELECT created_at FROM brain_captures WHERE id = ?",
+      .exec<{ id: string; text: string; source: string; created_at: string }>(
+        "SELECT * FROM brain_captures WHERE id=?",
         id,
       )
       .toArray()[0];
-    const receipt = await this.harness.submit(
-      `Message ID: ${id}\nSent at: ${row.created_at}\nTimezone: ${this.env.TIMEZONE}\nSource: ${data.source}\n\n${data.text}`,
-      { operationId: id },
-    );
-    if (receipt.accepted) await this.scheduleDashboard();
+    const receipt = await this.submitCapture(row);
     return { id, accepted: receipt.accepted };
   }
-  async snapshot() {
-    await this.ensureModel();
-    this.ctx.waitUntil(this.indexRecords().catch(() => {}));
-    const pending = await this.harness.pending();
-    const captures = this.store.recentCaptures();
-    const messages = [];
-    for (const capture of captures) {
-      const operation = pending.find((op) => op.operationId === capture.id);
-      // Re-submission repairs a crash between storing a capture and Pi accepting it.
-      await this.capture(capture);
-      const current =
-        operation ??
-        (await this.harness.pending()).find(
-          (op) => op.operationId === capture.id,
-        );
-      messages.push({
-        ...capture,
-        result: current
-          ? { status: current.status }
-          : await this.harness.wait(capture.id),
-      });
-    }
-    return {
-      items: this.store.list(),
-      dashboard: buildDashboard(
-        this.store.list(),
-        this.store.areas(),
-        this.store.dashboardState().saved,
-        this.store.dashboardState().revision,
-        this.env.TIMEZONE,
-      ),
-      context: this.store.list("context"),
-      messages,
-      changes: this.store.sql
-        .exec("SELECT * FROM brain_changes ORDER BY created_at DESC LIMIT 30")
-        .toArray(),
-      index_backlog: this.store.sql
-        .exec<{ n: number }>("SELECT count(*) AS n FROM brain_index_outbox")
-        .toArray()[0].n,
+  dashboardSnapshot() {
+    const items = this.store.list();
+    const { revision, saved } = this.store.dashboardState();
+    const display = (item: import("./domain").Item) => {
+      const {
+        id,
+        title,
+        parent_id,
+        timing,
+        due_date,
+        scheduled_at,
+        follow_up_at,
+        timing_source,
+        needs_clarification,
+      } = item;
+      return {
+        id,
+        title,
+        parent_id,
+        timing,
+        due_date,
+        scheduled_at,
+        follow_up_at,
+        timing_source,
+        needs_clarification,
+      };
     };
-  }
-  async edit(id: string, input: unknown): Promise<{ id: string }> {
-    const body = input as {
-      status?: unknown;
-      expected_version?: number;
-      title?: string;
-      details?: string;
-      priority?: string;
-    };
-    const current = this.store.get(id);
-    if (!current || current.kind !== "item") throw new Error("Item not found");
-    const source = `manual-${crypto.randomUUID()}`;
-    this.store.capture(
-      source,
-      `Manual edit of ${id}: ${JSON.stringify(body)}`,
-      "manual",
+    const view = buildDashboard(
+      items,
+      this.store.areas(),
+      saved,
+      revision,
+      this.env.TIMEZONE,
     );
-    this.store.save({
-      id,
-      kind: "item",
-      expected_version: body.expected_version ?? -1,
-      source_id: source,
-      mutation_id: source,
-      data: itemInput.parse({
-        ...current,
-        ...body,
-        status:
-          body.status === undefined
-            ? current.status
-            : status.parse(body.status),
-      }),
-    });
-    await this.scheduleDashboard();
-    return { id };
+    return {
+      items: items.filter(active).map(display),
+      dashboard: {
+        ...view,
+        highlights: view.highlights.map((h) => ({
+          ...h,
+          item: display(h.item),
+        })),
+        groups: view.groups.map((g) => ({
+          ...g,
+          featured: g.featured.map(display),
+          remaining: g.remaining.map(display),
+          waiting: g.waiting.map(display),
+          optional: g.optional.map(display),
+        })),
+      },
+    };
   }
-  async undo(changeId: string): Promise<{ id: string }> {
-    const record = this.store.undo(changeId);
-    await this.scheduleDashboard();
-    return { id: record.id };
+  conversationSnapshot() {
+    return { messages: this.store.conversation() };
+  }
+  exportData() {
+    return { ...this.store.exportData(), timezone: this.env.TIMEZONE };
+  }
+  diagnostics() {
+    return this.store.diagnostics();
   }
   async retry() {
     await this.harness.session().retry();
+    this.store.resumeParked();
+    await this.background.schedule();
     return { ok: true };
   }
 }

@@ -20,6 +20,8 @@ export const itemInput = z.object({
   timing: z.string().max(2000).default(""),
   due_date: z.iso.date().nullable().default(null),
   scheduled_at: z.iso.datetime({ offset: true }).nullable().default(null),
+  follow_up_at: z.iso.date().nullable().default(null),
+  waiting_for: z.string().max(2000).default(""),
   timing_source: z
     .enum(["explicit", "inherited", "inferred", "none"])
     .default("none"),
@@ -35,6 +37,7 @@ export const captureInput = z.object({
   source: z.enum(["chat", "apple-shortcuts", "api"]).default("api"),
 });
 export const contextInput = z.object({
+  core: z.boolean().default(false),
   title: z.string().trim().min(1).max(300),
   body: z.string().min(1).max(12000),
   evidence: z.string().min(1).max(6000),
@@ -51,35 +54,4 @@ export function ftsQuery(query: string) {
     .slice(0, 20)
     .map((word) => `"${word}"`)
     .join(" OR ");
-}
-export function groupItems(items: Item[]) {
-  const sections = new Map<string, Item[]>();
-  for (const item of items) {
-    if (item.status === "done" || item.status === "dropped") continue;
-    const group = item.needs_clarification
-      ? "Needs clarification"
-      : item.status === "waiting"
-        ? "Waiting"
-        : item.status === "someday"
-          ? "Someday"
-          : item.status === "inbox"
-            ? "Inbox"
-            : item.priority === "high"
-              ? "High priority"
-              : item.priority === "low"
-                ? "Low priority"
-                : "On your list";
-    sections.set(group, [...(sections.get(group) ?? []), item]);
-  }
-  return [
-    "Needs clarification",
-    "High priority",
-    "On your list",
-    "Low priority",
-    "Waiting",
-    "Someday",
-    "Inbox",
-  ].flatMap((title) =>
-    sections.has(title) ? [{ title, items: sections.get(title)! }] : [],
-  );
 }
