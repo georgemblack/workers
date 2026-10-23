@@ -24,7 +24,7 @@ h2 { font-size: 13px; font-weight: 600; color: var(--muted); margin: 32px 0 8px;
 .focus h2, .area h2 { color: var(--text); font-size: 15px; margin: 0; }
 .focus .item:last-child, .area .item:last-child { border-bottom: 0; }
 .focus-reason, .area-summary { color: var(--muted); font-size: 13px; margin: 4px 0 12px; }
-.focus-reason { margin: 4px 0 0 25px; }
+.focus-reason { margin: 4px 0 0; }
 .area { border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; margin: 16px 0; }
 .area-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .area-count { font-size: 12px; color: var(--muted); }
@@ -34,13 +34,9 @@ h2 { font-size: 13px; font-weight: 600; color: var(--muted); margin: 32px 0 8px;
 @media (max-width: 480px) { .area, .focus { padding: 14px; } }
 .item { padding: 12px 0; border-bottom: 1px solid var(--line); }
 .item-line { display: flex; align-items: baseline; gap: 10px; }
-.check { width: 15px; height: 15px; padding: 0; flex-shrink: 0; align-self: start; margin-top: 5px; border-radius: 3px; }
-.meta, .why, details { margin: 4px 0 0 25px; font-size: 13px; color: var(--muted); }
+.meta, .why { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
 summary { cursor: pointer; }
-.detail-body, .message-text { white-space: pre-wrap; overflow-wrap: anywhere; }
-.detail-body { margin-top: 10px; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.actions button { font-size: 12px; }
+.message-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .empty, .speaker, .activity { color: var(--muted); font-size: 13px; }
 .message { margin: 24px 0; }
 .message > .message-text { width: fit-content; max-width: 90%; margin-left: auto; padding: 10px 14px; border-radius: 16px; background: var(--line); }
@@ -59,16 +55,13 @@ summary { cursor: pointer; }
 .markdown table { display: block; overflow-x: auto; border-collapse: collapse; margin-bottom: 12px; }
 .markdown th, .markdown td { padding: 4px 8px; border: 1px solid var(--line); text-align: left; }
 .composer { margin-top: 32px; }
-textarea, dialog input, dialog select { width: 100%; padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; }
+textarea { width: 100%; padding: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; }
 textarea { min-height: 90px; resize: vertical; }
 .composer button { margin-top: 8px; }
 #error { color: #b95043; white-space: pre-wrap; }
 #error:empty { display: none; }
 #activity { margin-top: 12px; }
 .activity { margin: 10px 0; }
-dialog { width: min(460px, 90vw); background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 24px; }
-dialog::backdrop { background: #0005; }
-dialog label { display: block; margin: 12px 0; }
 @media (max-width: 480px) { main { padding-top: 24px; } }
 </style>
 </head>
@@ -88,17 +81,16 @@ dialog label { display: block; margin: 12px 0; }
 </div>
 </main>
 <a id="chat-button" class="chat-button" href="/chat">Chat</a>
-<dialog id="edit-dialog"><form id="edit-form"><label>Title<input id="edit-title" required maxlength="300"></label><label>Details<textarea id="edit-details" maxlength="12000"></textarea></label><label>Priority<select id="edit-priority"><option value="high">High</option><option value="normal">Normal</option><option value="low">Low</option></select></label><div class="actions"><button>Save</button><button type="button" id="cancel-edit">Cancel</button></div></form></dialog>
 <script>
 
-const $=id=>document.getElementById(id);let state={items:[],messages:[],changes:[]},sending=false,editing=null,refreshing=false;
+const $=id=>document.getElementById(id);let state={items:[],messages:[],changes:[]},sending=false,refreshing=false;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const chat=location.pathname==='/chat';$('dashboard').hidden=chat;$('chat').hidden=!chat;$('chat-button').hidden=chat;$('back-button').hidden=!chat;
 async function api(path,method='GET',body){const res=await fetch(path,{method,headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});const data=await res.json();if(!res.ok)throw Error(data.error||'Request failed');return data}
-function itemHTML(item){const parent=state.items.find(x=>x.id===item.parent_id);const contexts=(item.context_ids||[]).map(id=>state.context?.find(c=>c.id===id)).filter(Boolean);return '<article class="item"><div class="item-line"><button class="check" data-action="done" data-id="'+esc(item.id)+'" aria-label="Complete '+esc(item.title)+'"></button><span class="title">'+esc(item.title)+'</span></div>'+(parent?'<div class="meta">↳ '+esc(parent.title)+'</div>':'')+(item.timing||item.due_date||item.scheduled_at?'<div class="meta">'+esc(item.due_date||item.scheduled_at||item.timing)+(item.timing_source==='inherited'?' · from related plans':'')+'</div>':'')+(item.needs_clarification?'<p class="why"><span class="chip">Needs your input</span> '+esc(item.needs_clarification)+'</p>':'')+'<details><summary>Details</summary><div class="detail-body">'+esc([item.why,item.details].filter(Boolean).join('\n\n'))+(item.priority_reason?'\nPriority: '+esc(item.priority_reason):'')+contexts.map(c=>'\n\n'+esc(c.title)+': '+esc(c.body)).join('')+'</div><div class="actions"><button data-action="edit" data-id="'+esc(item.id)+'">Edit</button><button data-action="someday" data-id="'+esc(item.id)+'">Someday</button><button data-action="dropped" data-id="'+esc(item.id)+'">Drop it</button></div></details></article>'}
+function itemHTML(item){const parent=state.items.find(x=>x.id===item.parent_id);return '<article class="item"><div class="item-line"><span class="title">'+esc(item.title)+'</span></div>'+(parent?'<div class="meta">↳ '+esc(parent.title)+'</div>':'')+(item.timing||item.due_date||item.scheduled_at?'<div class="meta">'+esc(item.due_date||item.scheduled_at||item.timing)+(item.timing_source==='inherited'?' · from related plans':'')+'</div>':'')+(item.needs_clarification?'<p class="why">Needs your input: '+esc(item.needs_clarification)+'</p>':'')+'</article>'}
 function dashboardHTML(){const dashboard=state.dashboard;if(!dashboard)return '<p class="empty">'+(state.items.some(i=>!['done','dropped'].includes(i.status))?'Organizing your list…':'Nothing on your list.')+'</p>';const fold=(group,key,label,items)=>items.length?'<details class="fold" id="fold-'+esc(group.id)+'-'+key+'"><summary>'+label+' · '+items.length+'</summary>'+items.map(itemHTML).join('')+'</details>':'';const focus=dashboard.highlights.length?'<section class="focus"><h2>Needs your attention</h2>'+dashboard.highlights.map(h=>'<div>'+itemHTML(h.item)+'<p class="focus-reason">'+esc(h.reason)+'</p></div>').join('')+'</section>':'';return focus+dashboard.groups.map(group=>'<section class="area"><div class="area-heading"><h2>'+esc(group.title)+'</h2><span class="area-count">'+group.count+' '+(group.count===1?'item':'items')+'</span></div>'+(group.summary?'<p class="area-summary">'+esc(group.summary)+'</p>':'')+group.featured.map(itemHTML).join('')+fold(group,'remaining','More to do',group.remaining)+fold(group,'waiting','Waiting',group.waiting)+fold(group,'optional','Later & optional',group.optional)+'</section>').join('')||'<p class="empty">Nothing on your list.</p>'}
 function render(){const expanded=[...(document.querySelectorAll?.('#sections details[id][open]')||[])].map(el=>el.id);$('sections').innerHTML=dashboardHTML();for(const id of expanded){const el=document.getElementById(id);if(el)el.open=true}
-$('activity').innerHTML=state.changes.slice(0,8).map(change=>{const record=JSON.parse(change.after_data);return '<div class="activity">'+esc(record.title)+'<br><span class="chip">'+esc(record.status||'Context updated')+'</span> · '+new Date(change.created_at).toLocaleDateString()+(record.kind==='item'&&state.items.some(i=>i.id===record.id&&i.version===record.version)?' <button data-action="undo" data-id="'+esc(change.id)+'">Undo</button>':'')+'</div>'}).join('')||'Your updates will appear here.';
+$('activity').innerHTML=state.changes.slice(0,8).map(change=>{const record=JSON.parse(change.after_data);return '<div class="activity">'+esc(record.title)+'<br><span class="chip">'+esc(record.status||'Context updated')+'</span> · '+new Date(change.created_at).toLocaleDateString()+'</div>'}).join('')||'Your updates will appear here.';
 const pending=state.messages.filter(m=>m.result.status==='parked');$('retry').hidden=!pending.length;
 $('messages').innerHTML=state.messages.map(m=>'<article class="message"><div class="speaker">You · '+esc(m.source)+' · '+new Date(m.created_at).toLocaleString()+'</div><div class="message-text">'+esc(m.text)+'</div><div class="reply"><div class="speaker">brain</div><div class="markdown">'+(m.html||esc(m.result.text||(m.result.status==='unanswered'?'Could not finish: '+(m.result.reason||'unknown error')+'. Send a follow-up to try again.':m.result.status==='parked'?'Processing paused.':'Working on it…')))+'</div></div></article>').join('')||'';
 }
@@ -107,9 +99,8 @@ async function capture(event,input){event.preventDefault();if(sending)return;sen
 $('compose').onsubmit=e=>capture(e,$('chat-text'));
 $('chat-text').onkeydown=event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&event.keyCode!==229){event.preventDefault();if(!event.repeat&&!sending&&$('chat-text').value.trim())$('compose').requestSubmit()}};
 try{const draft=JSON.parse(localStorage.getItem('brain-pending')||'null');if(draft)$('chat-text').value=draft.text}catch{}
-document.addEventListener('click',async event=>{const button=event.target.closest('[data-action]');if(!button)return;const action=button.dataset.action;const item=state.items.find(x=>x.id===button.dataset.id);if(action==='edit'){editing=item;$('edit-title').value=item.title;$('edit-details').value=item.details;$('edit-priority').value=item.priority;$('edit-dialog').showModal();return}button.disabled=true;try{if(action==='undo')await api('/api/changes/'+encodeURIComponent(button.dataset.id)+'/undo','POST',{});else if(action==='retry')await api('/api/retry','POST',{});else await api('/api/items/'+encodeURIComponent(item.id),'PATCH',{status:action,expected_version:item.version});await refresh()}catch(e){$('error').textContent=e.message}finally{button.disabled=false}});
-$('cancel-edit').onclick=()=>$('edit-dialog').close();$('edit-form').onsubmit=async e=>{e.preventDefault();try{await api('/api/items/'+encodeURIComponent(editing.id),'PATCH',{expected_version:editing.version,title:$('edit-title').value,details:$('edit-details').value,priority:$('edit-priority').value});$('edit-dialog').close();await refresh()}catch(e){$('error').textContent=e.message}};
-refresh();setInterval(()=>{if(!document.hidden&&!$('edit-dialog').open)refresh()},5000);
+$('retry').onclick=async()=>{const button=$('retry');button.disabled=true;try{await api('/api/retry','POST',{});await refresh()}catch(e){$('error').textContent=e.message}finally{button.disabled=false}};
+refresh();setInterval(()=>{if(!document.hidden)refresh()},5000);
 
 </script>
 </body>
