@@ -1,0 +1,34 @@
+{
+  "name": "brain",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cf dev",
+    "deploy": "cf deploy",
+    "dryrun": "cf deploy --dry-run",
+    "typegen": "cf workers types",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "memory:create": "cf vectorize create --name brain-memory --config-dimensions 768 --config-metric cosine",
+    "format": "prettier --write src tests scripts cloudflare.config.ts tsconfig.json package.json README.md",
+    "test:gateway": "node --experimental-strip-types scripts/check-gateway.mjs"
+  },
+  "dependencies": {
+    "@earendil-works/chord": "~1.4.0",
+    "@earendil-works/pi-ai": "~1.4.0",
+    "@earendil-works/pi-durable": "~1.4.0",
+    "agents": "^0.30.0",
+    "markdown-it": "^15.0.3",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "@types/markdown-it": "^14.2.0",
+    "@types/node": "^25.6.0",
+    "cf": "1.0.0-beta.5",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.0",
+    "vitest": "^4.0.0",
+    "wrangler": "^4.151.3"
+  }
+}
