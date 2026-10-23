@@ -31,6 +31,8 @@ summary { cursor: pointer; }
 .actions button { font-size: 12px; }
 .empty, .speaker, .activity { color: var(--muted); font-size: 13px; }
 .message { margin: 24px 0; }
+.message > .message-text { width: fit-content; max-width: 90%; margin-left: auto; padding: 10px 14px; border-radius: 16px; background: var(--line); }
+.message > .speaker { text-align: right; }
 .speaker { margin-bottom: 4px; }
 .reply { margin-top: 14px; }
 .markdown { overflow-wrap: anywhere; }
