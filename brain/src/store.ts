@@ -1,4 +1,10 @@
 import { contextInput, ftsQuery, itemInput, type Item } from "./domain";
+import {
+  defaultAreas,
+  validatePlan,
+  type SavedPlan,
+  type Area,
+} from "./dashboard";
 
 type Cursor<T> = Iterable<T> & { toArray(): T[] };
 export interface SQL {
@@ -22,9 +28,63 @@ export class Store {
       CREATE TABLE IF NOT EXISTS brain_archived_captures (id TEXT PRIMARY KEY);
       CREATE TABLE IF NOT EXISTS brain_maintenance (command TEXT PRIMARY KEY);
       CREATE TABLE IF NOT EXISTS brain_index_outbox (id TEXT PRIMARY KEY, version INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS brain_areas (id TEXT PRIMARY KEY, title TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS brain_dashboard (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL DEFAULT 0, plan TEXT, plan_revision INTEGER, generated_at TEXT);
+      INSERT OR IGNORE INTO brain_dashboard (id,revision) VALUES (1,0);
       CREATE VIRTUAL TABLE IF NOT EXISTS brain_fts USING fts5(id UNINDEXED, kind UNINDEXED, text);
       CREATE INDEX IF NOT EXISTS brain_records_kind ON brain_records(kind);`);
     this.applyMaintenance();
+    for (const area of defaultAreas)
+      this.sql.exec(
+        "INSERT OR IGNORE INTO brain_areas VALUES (?, ?)",
+        area.id,
+        area.title,
+      );
+  }
+  areas(): Area[] {
+    return this.sql
+      .exec<Area>("SELECT * FROM brain_areas ORDER BY rowid")
+      .toArray();
+  }
+  dashboardState() {
+    const row = this.sql
+      .exec<{
+        revision: number;
+        plan: string | null;
+        plan_revision: number | null;
+        generated_at: string | null;
+      }>("SELECT * FROM brain_dashboard WHERE id=1")
+      .toArray()[0];
+    return {
+      revision: row.revision,
+      saved:
+        row.plan && row.generated_at
+          ? ({
+              revision: row.plan_revision!,
+              generated_at: row.generated_at,
+              plan: JSON.parse(row.plan),
+            } as SavedPlan)
+          : null,
+    };
+  }
+  publishDashboard(input: unknown, revision: number) {
+    return this.transaction(() => {
+      if (this.dashboardState().revision !== revision) return false;
+      const plan = validatePlan(input, this.list());
+      for (const group of plan.groups)
+        this.sql.exec(
+          "INSERT OR IGNORE INTO brain_areas VALUES (?, ?)",
+          group.area_id,
+          group.title,
+        );
+      this.sql.exec(
+        "UPDATE brain_dashboard SET plan=?,plan_revision=?,generated_at=? WHERE id=1",
+        JSON.stringify(plan),
+        revision,
+        new Date().toISOString(),
+      );
+      return true;
+    });
   }
   // Runs before Pi opens its storage, so it cannot retain a cached transcript.
   // Only account-level operators can queue this command through the SQL API.
@@ -169,6 +229,11 @@ export class Store {
           : contextInput.parse(args.data);
       if (args.kind === "item") {
         const item = itemInput.parse(data);
+        if (
+          item.area_id &&
+          !this.areas().some((area) => area.id === item.area_id)
+        )
+          throw new Error("Unknown area");
         let ancestor = item.parent_id;
         const visited = new Set([args.id]);
         while (ancestor) {
@@ -222,6 +287,9 @@ export class Store {
         "INSERT OR REPLACE INTO brain_index_outbox VALUES (?, ?)",
         args.id,
         record.version,
+      );
+      this.sql.exec(
+        "UPDATE brain_dashboard SET revision=revision+1 WHERE id=1",
       );
       return record;
     });

@@ -16,6 +16,7 @@ export const itemInput = z.object({
   priority: z.enum(["high", "normal", "low"]).default("normal"),
   priority_reason: z.string().max(2000).default(""),
   parent_id: z.string().nullable().default(null),
+  area_id: z.string().nullable().default(null),
   timing: z.string().max(2000).default(""),
   due_date: z.iso.date().nullable().default(null),
   scheduled_at: z.iso.datetime({ offset: true }).nullable().default(null),

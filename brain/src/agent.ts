@@ -13,6 +13,8 @@ import { Store } from "./store";
 import { captureInput, itemInput, status } from "./domain";
 import { instructions } from "./prompt";
 import { createBrainAI } from "./model";
+import { DashboardOrganizer } from "./organizer";
+import { active, buildDashboard, organizerInstructions } from "./dashboard";
 
 export interface Env {
   BRAIN: DurableObjectNamespace<Brain>;
@@ -35,7 +37,7 @@ const Save = Type.Object({
   kind: Type.Union([Type.Literal("item"), Type.Literal("context")]),
   data: Type.String({
     description:
-      "Full JSON object. Item: {title,why,details,status:inbox|open|waiting|someday|done|dropped,priority:high|normal|low,priority_reason,parent_id:string|null,timing,due_date:YYYY-MM-DD|null,scheduled_at:ISO|null,timing_source:explicit|inherited|inferred|none,context_ids:string[],needs_clarification}. Context: {title,body,evidence}.",
+      "Full JSON object. Item: {title,why,details,status:inbox|open|waiting|someday|done|dropped,priority:high|normal|low,priority_reason,parent_id:string|null,area_id:existing area ID|null,timing,due_date:YYYY-MM-DD|null,scheduled_at:ISO|null,timing_source:explicit|inherited|inferred|none,context_ids:string[],needs_clarification}. Context: {title,body,evidence}.",
   }),
   expected_version: Type.Integer({ minimum: 0 }),
   source_id: Type.String(),
@@ -75,7 +77,65 @@ export class Brain extends DurableObject<Env> {
     },
     defaults: { model: this.ai(this.env.MODEL), thinkingLevel: "low" },
   });
-  lifecycle = Lifecycle.install(this).use(this.harness);
+  organizer = new DashboardOrganizer(
+    this.store,
+    async () =>
+      (await this.harness.pending()).some(
+        (operation) => operation.status !== "parked",
+      ),
+    () => this.refreshDashboard(),
+  );
+  lifecycle = Lifecycle.install(this).use(this.harness).use(this.organizer);
+
+  private async scheduleDashboard() {
+    try {
+      await this.organizer.schedule();
+    } catch (error) {
+      console.error("Dashboard scheduling failed", error);
+    }
+  }
+  private async refreshDashboard() {
+    const { revision, saved } = this.store.dashboardState();
+    const items = this.store.list().filter(active);
+    if (!items.length) {
+      this.store.publishDashboard({ highlights: [], groups: [] }, revision);
+      return;
+    }
+    const response = await this.ai.completeSimple(
+      this.ai(this.env.MODEL),
+      {
+        systemPrompt: organizerInstructions,
+        messages: [
+          {
+            role: "user",
+            timestamp: Date.now(),
+            content: JSON.stringify({
+              now: new Date().toISOString(),
+              timezone: this.env.TIMEZONE,
+              areas: this.store.areas(),
+              items,
+              context: this.store.list("context"),
+              previous_plan: saved?.plan,
+            }),
+          },
+        ],
+      },
+      {
+        reasoning: "low",
+        maxTokens: 10000,
+        signal: AbortSignal.timeout(90000),
+      },
+    );
+    if (response.stopReason === "error") throw new Error(response.errorMessage);
+    const text = response.content
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join("\n")
+      .trim()
+      .replace(/^```(?:json)?\s*/, "")
+      .replace(/\s*```$/, "");
+    this.store.publishDashboard(JSON.parse(text), revision);
+  }
 
   installTools() {
     const search: ToolRegistration<typeof Search> = {
@@ -161,6 +221,7 @@ export class Brain extends DurableObject<Env> {
             ...args,
             data: JSON.parse(args.data),
           });
+          await this.scheduleDashboard();
           // SQLite outbox survives interruption or embedding failure.
           try {
             await this.indexRecords();
@@ -189,6 +250,7 @@ export class Brain extends DurableObject<Env> {
           key: "known_context",
           render: () => JSON.stringify(this.store.list("context")),
         },
+        { key: "areas", render: () => JSON.stringify(this.store.areas()) },
       ],
     });
   }
@@ -235,6 +297,7 @@ export class Brain extends DurableObject<Env> {
     return this.modelReady;
   }
   async capture(input: unknown) {
+    await this.lifecycle.start();
     const data = captureInput.parse(input);
     const id = data.id ?? crypto.randomUUID();
     this.store.capture(id, data.text, data.source);
@@ -251,6 +314,7 @@ export class Brain extends DurableObject<Env> {
       `Message ID: ${id}\nSent at: ${row.created_at}\nTimezone: ${this.env.TIMEZONE}\nSource: ${data.source}\n\n${data.text}`,
       { operationId: id },
     );
+    if (receipt.accepted) await this.scheduleDashboard();
     return { id, accepted: receipt.accepted };
   }
   async snapshot() {
@@ -277,6 +341,13 @@ export class Brain extends DurableObject<Env> {
     }
     return {
       items: this.store.list(),
+      dashboard: buildDashboard(
+        this.store.list(),
+        this.store.areas(),
+        this.store.dashboardState().saved,
+        this.store.dashboardState().revision,
+        this.env.TIMEZONE,
+      ),
       context: this.store.list("context"),
       messages,
       changes: this.store.sql
@@ -318,10 +389,12 @@ export class Brain extends DurableObject<Env> {
             : status.parse(body.status),
       }),
     });
+    await this.scheduleDashboard();
     return { id };
   }
   async undo(changeId: string): Promise<{ id: string }> {
     const record = this.store.undo(changeId);
+    await this.scheduleDashboard();
     return { id: record.id };
   }
   async retry() {

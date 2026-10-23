@@ -11,7 +11,8 @@
     "test": "vitest run",
     "memory:create": "cf vectorize create --name brain-memory --config-dimensions 768 --config-metric cosine",
     "format": "prettier --write src tests scripts cloudflare.config.ts tsconfig.json package.json README.md",
-    "test:gateway": "node --experimental-strip-types scripts/check-gateway.mjs"
+    "test:gateway": "node --experimental-strip-types scripts/check-gateway.mjs",
+    "test:dashboard": "node --experimental-strip-types scripts/check-dashboard.mjs"
   },
   "dependencies": {
     "@earendil-works/chord": "~1.4.0",

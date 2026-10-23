@@ -91,3 +91,13 @@ This first version has no external action tools, scheduled notifications, or aut
 `pnpm run test` exercises actual SQLite/FTS5 with Node's built-in SQLite: replay idempotency, conflicting edits, parent cycles, missing relationships, capture retries, search syntax, closed-item views, and indexing version safety. It does not establish model interpretation quality.
 
 `tests/scenarios.md` contains conversational evaluation sequences. Run them against an isolated development agent before trusting automatic task interpretation. Avoid seeding historical examples as current facts: relative dates must be anchored to their original message timestamps.
+
+## Dashboard
+
+The homepage highlights current important work and explicit deadlines, then groups everything into stable life areas. Each area's next actions are visible; more work, waiting items, and optional/someday work expand separately. An item's own priority and status determine emphasis, independently of its parent project.
+
+The read-only organizer runs through the existing Luna/Gateway binding in a durable Lifecycle job. It refreshes after task/context changes (coalesced while Pi processes a message), and every six hours for date-sensitive planning. `brain_dashboard` tracks the data revision and last valid plan; publication rejects results generated against an older revision. Task writes increment that revision transactionally. Invalid/model-failed refreshes retry after five minutes and preserve the last plan. The UI resolves IDs to current records, suppresses outdated summaries/reasons, and always includes current explicit deadlines and a fallback area for unplanned items.
+
+`brain_areas` stores stable area names. Items may explicitly set `area_id` through the chat agent; otherwise membership comes from the organizer's saved plan or a related parent. The organizer cannot mutate tasks. Existing task/context data is preserved during rollout.
+
+`pnpm run test:dashboard` checks a real organizer response against fictional fixtures without writing production records.

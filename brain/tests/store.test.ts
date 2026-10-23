@@ -241,3 +241,35 @@ describe("durable personal records", () => {
     ).toEqual([{ id: "one", version: 2 }]);
   });
 });
+
+it("publishes derived plans without mutating tasks and rejects stale model results", () => {
+  save("doula", { title: "Book doula", priority: "high" });
+  const original = store.get("doula");
+  const { revision } = store.dashboardState();
+  const plan = {
+    highlights: [{ item_id: "doula", reason: "Book support" }],
+    groups: [
+      {
+        area_id: "family",
+        title: "Family",
+        summary: "Arrange support",
+        item_ids: ["doula"],
+        featured_item_ids: ["doula"],
+      },
+    ],
+  };
+  expect(store.publishDashboard(plan, revision)).toBe(true);
+  expect(store.get("doula")).toEqual(original);
+  expect(store.areas().some((a) => a.id === "family")).toBe(true);
+  save("diapers", { title: "Buy diapers" });
+  expect(store.publishDashboard(plan, revision)).toBe(false);
+  expect(store.dashboardState().saved?.revision).toBe(revision);
+  expect(store.dashboardState().revision).toBeGreaterThan(revision);
+  expect(() =>
+    store.publishDashboard(
+      { ...plan, highlights: [{ item_id: "invented", reason: "Invalid" }] },
+      store.dashboardState().revision,
+    ),
+  ).toThrow();
+  expect(store.dashboardState().saved?.plan).toEqual(plan);
+});
