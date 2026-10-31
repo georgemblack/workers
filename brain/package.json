@@ -19,20 +19,20 @@
     "@earendil-works/chord": "~1.4.0",
     "@earendil-works/pi-ai": "~1.4.0",
     "@earendil-works/pi-durable": "~1.4.0",
-    "agents": "^0.30.0",
+    "agents": "^0.32.0",
     "markdown-it": "^15.0.3",
-    "zod": "^4.0.0"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "latest",
     "@types/markdown-it": "^14.2.0",
-    "@types/node": "^25.6.0",
-    "cf": "1.0.0-beta.5",
+    "@types/node": "^26.6.6",
+    "cf": "1.0.0-beta.26",
     "esbuild": "0.28.2",
     "miniflare": "5.20261019.1-beta",
     "prettier": "^3.9.10",
-    "typescript": "^6.0.0",
-    "vitest": "^4.0.0",
-    "wrangler": "^4.151.3"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.156.0"
   }
 }
