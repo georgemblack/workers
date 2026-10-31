@@ -151,7 +151,7 @@ function render() {
               m.result.text ||
                 (m.result.status === "unanswered"
                   ? "Could not finish: " +
-                    (m.result.reason || "unknown error") +
+                    (m.result.detail || m.result.reason || "unknown error") +
                     ". Send a follow-up to try again."
                   : m.result.status === "parked"
                     ? "Processing paused."

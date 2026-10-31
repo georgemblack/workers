@@ -71,6 +71,15 @@ export class Brain extends DurableObject<Env> {
             ),
           settings: {
             retry: { enabled: true, maxRetries: 3, baseDelayMs: 1000 },
+            // Pi compacts just below the model's context window by default
+            // (~1M tokens), so requests grow past the provider's per-minute
+            // token limit long before that. Compact near 150K tokens instead.
+            compaction: {
+              reserveTokens: Math.max(
+                16384,
+                this.ai(this.env.MODEL).contextWindow - 150_000,
+              ),
+            },
             afterFailedRun: "continue",
           },
         },

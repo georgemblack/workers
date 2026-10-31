@@ -116,6 +116,7 @@ export class Store {
               status: string;
               text?: string;
               reason?: string;
+              detail?: string;
             })
           : { status: "queued" },
       }));
