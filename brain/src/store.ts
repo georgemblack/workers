@@ -105,7 +105,7 @@ export class Store {
         created_at: string;
         result: string | null;
       }>(
-        "SELECT c.*,d.result FROM brain_captures c LEFT JOIN brain_deliveries d ON d.id=c.id WHERE c.source != 'manual' AND c.id NOT IN (SELECT id FROM brain_archived_captures) ORDER BY c.created_at DESC,c.rowid DESC LIMIT 60",
+        "SELECT c.*,d.result FROM brain_captures c LEFT JOIN brain_deliveries d ON d.id=c.id WHERE c.source != 'manual' AND c.id NOT IN (SELECT id FROM brain_archived_captures) ORDER BY c.created_at DESC,c.rowid DESC LIMIT 30",
       )
       .toArray()
       .reverse()
