@@ -23,11 +23,15 @@ export class DashboardOrganizer extends LifecycleCapability {
   }
   async schedule() {
     if (this.lifecycle.status() === "zero") await this.lifecycle.ready();
-    if (!this.stale() || this.lifecycle.jobs.get("dashboard-refresh")) return;
+    if (!this.stale()) return;
+    const time = Date.now() + 5000;
+    // Keep a refresh that's already coming up soon, but pull a later one in.
+    const existing = this.lifecycle.jobs.get("dashboard-refresh");
+    if (existing && existing.time <= time + 1000) return;
     await this.lifecycle.jobs.push({
       id: "dashboard-refresh",
       fn: "refresh",
-      time: Date.now() + 5000,
+      time,
       singleflight: true,
       hungTimeoutSeconds: 120,
     });

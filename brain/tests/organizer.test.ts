@@ -49,3 +49,27 @@ it("regenerates after a concurrent mutation invalidates a completed model call",
   expect(await job.onJob()).toEqual({ rescheduleAt: Date.now() + 5000 });
   expect(generate).toHaveBeenCalledOnce();
 });
+it("pulls a far-off refresh in when items change, but leaves a soon one alone", async () => {
+  vi.useFakeTimers();
+  const store = {
+    dashboardState: () => ({
+      revision: 2,
+      saved: { revision: 1, generated_at: new Date().toISOString() },
+    }),
+  } as unknown as Store;
+  const job = new DashboardOrganizer(store, async () => false, vi.fn());
+  let queued: { time: number } | undefined = {
+    time: Date.now() + 6 * 60 * 60 * 1000,
+  };
+  const push = vi.fn(async (next: { time: number }) => {
+    queued = next;
+  });
+  Object.assign(job, {
+    lifecycle: { status: () => "ready", jobs: { get: () => queued, push } },
+  });
+  await job.schedule();
+  expect(push).toHaveBeenCalledOnce();
+  expect(queued?.time).toBe(Date.now() + 5000);
+  await job.schedule();
+  expect(push).toHaveBeenCalledOnce();
+});

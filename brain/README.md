@@ -80,7 +80,7 @@ To clear the chat and delete Pi's stored conversation, an account operator can q
 
 ## Data and agent behavior
 
-- Items have a title, notes (what and why, plus useful details), status, priority, an optional parent item, an area, context links, a due date, and a short target label for approximate timing (such as "Mid-November"). Items can nest under parents to any depth. Items saved with the older fields (why, details, timing, follow-up dates, and so on) are upgraded once on startup, with their text folded into notes and an audited change per item.
+- Items have a title, notes (what and why, plus useful details), status, priority, an optional parent item, an area, context links, a due date, and a short target label for approximate timing (such as "Mid-November"). Items can nest under parents to any depth.
 - Context records describe people, events, dates, and other facts with supporting evidence. Original messages and versioned changes are retained.
 - The agent searches before acting, expands related records, preserves uncertainty, and distinguishes completion from lower priority. Approximate dates remain approximate; inherited targets are separate from explicit deadlines.
 - Tools expose search, record retrieval with relationships, exhaustive item listing, and validated version-checked writes. The model never executes arbitrary SQL.

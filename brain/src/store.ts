@@ -1,10 +1,4 @@
-import {
-  contextInput,
-  ftsQuery,
-  itemInput,
-  upgradeItem,
-  type Item,
-} from "./domain";
+import { contextInput, ftsQuery, itemInput, type Item } from "./domain";
 import {
   defaultAreas,
   validatePlan,
@@ -43,7 +37,6 @@ export class Store {
       CREATE VIRTUAL TABLE IF NOT EXISTS brain_fts USING fts5(id UNINDEXED, kind UNINDEXED, text);
       CREATE INDEX IF NOT EXISTS brain_records_kind ON brain_records(kind);`);
     this.applyMaintenance();
-    this.upgradeItems();
     // One-time catch-up for existing captures; completed receipts persist across restarts.
     sql.exec(
       "INSERT OR IGNORE INTO brain_deliveries (id) SELECT id FROM brain_captures WHERE source != 'manual' AND id NOT IN (SELECT id FROM brain_archived_captures)",
@@ -421,8 +414,8 @@ export class Store {
       });
     });
   }
-  // Must run inside a transaction. Every record change goes through here so it
-  // is audited, searchable, re-indexed, and refreshes the dashboard.
+  // Must run inside a transaction. Records the change for auditing, updates
+  // search, queues re-indexing, and marks the dashboard for a refresh.
   private write(args: {
     id: string;
     kind: string;
@@ -472,39 +465,6 @@ export class Store {
     );
     this.sql.exec("UPDATE brain_dashboard SET revision=revision+1 WHERE id=1");
     return record;
-  }
-  // One-time move of older items to the current item fields. Runs on startup,
-  // records an audited change per item, and does nothing once all are current.
-  private upgradeItems() {
-    const source = "upgrade-item-fields-2026-11";
-    this.transaction(() => {
-      const upgrades = this.list().flatMap((previous) => {
-        try {
-          const data = upgradeItem(previous);
-          return data ? [{ previous, data }] : [];
-        } catch (error) {
-          // Leave an unreadable record as-is rather than blocking startup.
-          console.error("Could not upgrade item", previous.id, error);
-          return [];
-        }
-      });
-      if (!upgrades.length) return;
-      this.sql.exec(
-        "INSERT OR IGNORE INTO brain_captures VALUES (?, ?, 'manual', ?)",
-        source,
-        "Simplified item fields: why, details, and timing notes now live in notes; dates live in due_date and target.",
-        new Date().toISOString(),
-      );
-      for (const { previous, data } of upgrades)
-        this.write({
-          id: previous.id,
-          kind: "item",
-          data,
-          previous,
-          source_id: source,
-          mutation_id: `${source}:${previous.id}`,
-        });
-    });
   }
   search(query: string) {
     const match = ftsQuery(query);
