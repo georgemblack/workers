@@ -336,7 +336,7 @@ export class Store {
     expected_version: number;
     source_id: string;
     mutation_id: string;
-    intent?: "create" | "update";
+    intent: "create" | "update";
   }) {
     return this.transaction(() => {
       const priorChange = this.sql

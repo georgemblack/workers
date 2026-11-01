@@ -278,10 +278,9 @@ export class Brain extends DurableObject<Env> {
     };
     const saveTool = (
       name: string,
-      intent?: "create" | "update",
+      intent: "create" | "update",
     ): ToolRegistration<typeof Save> => ({
       name,
-      ...(intent ? {} : { deferred: true as const }),
       description:
         intent === "create"
           ? "Create a new item/context record. Use expected_version=0 and the original source message ID."
@@ -314,7 +313,6 @@ export class Brain extends DurableObject<Env> {
         list,
         saveTool("create_record", "create"),
         saveTool("update_record", "update"),
-        saveTool("save_record"),
       ],
       sections: [
         { key: "preamble", render: () => instructions, tag: false },

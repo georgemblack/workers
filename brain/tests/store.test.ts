@@ -46,6 +46,7 @@ const save = (
     expected_version,
     source_id: "message-1",
     mutation_id,
+    intent: expected_version ? "update" : "create",
   });
 describe("conversation cleanup", () => {
   function prepareConversation(status = "terminal") {
