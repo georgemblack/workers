@@ -6,7 +6,7 @@ beforeAll(async () => {
   app = await createRuntime(({ input }) => {
     const serialized = JSON.stringify(input);
     if (serialized.includes("Organize a personal dashboard"))
-      return reply(JSON.stringify({ highlights: [], groups: [] }));
+      return reply(JSON.stringify({ groups: [] }));
     calls++;
     const matches = [...serialized.matchAll(/Message ID: ([a-zA-Z0-9_-]+)/g)];
     const source = matches.at(-1)?.[1];
@@ -29,7 +29,7 @@ beforeAll(async () => {
           kind: "item",
           data: JSON.stringify({
             title: "Buy diapers",
-            why: "Prepare for baby",
+            notes: "Prepare for baby",
             priority: "high",
           }),
           expected_version: 0,

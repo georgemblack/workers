@@ -1,4 +1,5 @@
 import {
+  organizerInput,
   organizerInstructions,
   validatePlan,
   defaultAreas,
@@ -35,14 +36,14 @@ try {
       title: "Book postpartum doula",
       priority: "high",
       status: "open",
-      why: "Arrange support before baby arrives",
+      notes: "Arrange support before baby arrives",
     },
     {
       id: "diapers",
       title: "Buy diapers",
       priority: "normal",
       status: "open",
-      timing: "December 15 soft readiness goal",
+      due_date: "2026-12-15",
     },
     {
       id: "trash",
@@ -70,6 +71,17 @@ try {
       priority: "normal",
       status: "open",
     },
+    {
+      id: "gifts",
+      title: "Christmas gifts 2026",
+      status: "open",
+    },
+    {
+      id: "pajamas",
+      title: "Buy pajamas for Sam",
+      status: "open",
+      parent_id: "gifts",
+    },
   ].map((i) => ({
     ...itemInput.parse(i),
     id: i.id,
@@ -85,13 +97,7 @@ try {
         {
           role: "user",
           timestamp: Date.now(),
-          content: JSON.stringify({
-            now: "2026-10-23T12:00:00Z",
-            timezone: "America/Chicago",
-            areas: defaultAreas,
-            items,
-            context: [],
-          }),
+          content: JSON.stringify(organizerInput(items, defaultAreas)),
         },
       ],
     },
@@ -105,14 +111,21 @@ try {
     .trim()
     .replace(/^```(?:json)?\s*/, "")
     .replace(/\s*```$/, "");
-  const plan = validatePlan(JSON.parse(text), items);
+  const raw = JSON.parse(text);
+  if (
+    raw.groups.some((g) =>
+      g.item_ids.some((id) => ["trash", "pajamas"].includes(id)),
+    )
+  )
+    throw new Error("Organizer grouped a sub-item");
+  const plan = validatePlan(raw, items);
   const all = plan.groups.flatMap((g) => g.item_ids);
-  if (items.some((i) => !all.includes(i.id)))
-    throw new Error("Organizer omitted an item");
-  if (plan.highlights.some((h) => ["trash", "tag"].includes(h.item_id)))
-    throw new Error("Organizer promoted optional/waiting work");
-  if (!plan.highlights.some((h) => h.item_id === "doula"))
-    throw new Error("Organizer missed important support planning");
+  const roots = items.filter((i) => !i.parent_id).map((i) => i.id);
+  if (roots.some((id) => !all.includes(id)))
+    throw new Error("Organizer omitted a top-level item");
+  const areaOf = (id) => plan.groups.find((g) => g.item_ids.includes(id));
+  if (areaOf("dog")?.area_id !== "picasso")
+    throw new Error("Organizer misfiled pet boarding");
   console.log(JSON.stringify(plan, null, 2));
 } finally {
   await platform.dispose();

@@ -1,4 +1,10 @@
-import { contextInput, ftsQuery, itemInput, type Item } from "./domain";
+import {
+  contextInput,
+  ftsQuery,
+  itemInput,
+  upgradeItem,
+  type Item,
+} from "./domain";
 import {
   defaultAreas,
   validatePlan,
@@ -37,6 +43,7 @@ export class Store {
       CREATE VIRTUAL TABLE IF NOT EXISTS brain_fts USING fts5(id UNINDEXED, kind UNINDEXED, text);
       CREATE INDEX IF NOT EXISTS brain_records_kind ON brain_records(kind);`);
     this.applyMaintenance();
+    this.upgradeItems();
     // One-time catch-up for existing captures; completed receipts persist across restarts.
     sql.exec(
       "INSERT OR IGNORE INTO brain_deliveries (id) SELECT id FROM brain_captures WHERE source != 'manual' AND id NOT IN (SELECT id FROM brain_archived_captures)",
@@ -404,49 +411,99 @@ export class Store {
           if (this.get(id)?.kind !== "context")
             throw new Error("Unknown context record");
       }
-      const now = new Date().toISOString();
-      const record = {
-        ...data,
+      return this.write({
         id: args.id,
         kind: args.kind,
-        version: args.expected_version + 1,
-        updated_at: now,
+        data,
+        previous,
         source_id: args.source_id,
-      };
+        mutation_id: args.mutation_id,
+      });
+    });
+  }
+  // Must run inside a transaction. Every record change goes through here so it
+  // is audited, searchable, re-indexed, and refreshes the dashboard.
+  private write(args: {
+    id: string;
+    kind: string;
+    data: Record<string, unknown>;
+    previous: Record<string, unknown> | null;
+    source_id: string;
+    mutation_id: string;
+  }) {
+    const now = new Date().toISOString();
+    const record = {
+      ...args.data,
+      id: args.id,
+      kind: args.kind,
+      version: Number(args.previous?.version ?? 0) + 1,
+      updated_at: now,
+      source_id: args.source_id,
+    };
+    this.sql.exec(
+      "INSERT OR REPLACE INTO brain_records VALUES (?, ?, ?, ?, ?, ?)",
+      args.id,
+      args.kind,
+      JSON.stringify(args.data),
+      record.version,
+      now,
+      args.source_id,
+    );
+    this.sql.exec(
+      "INSERT INTO brain_changes VALUES (?, ?, ?, ?, ?, ?)",
+      args.mutation_id,
+      args.id,
+      args.previous ? JSON.stringify(args.previous) : null,
+      JSON.stringify(record),
+      args.source_id,
+      now,
+    );
+    this.sql.exec("DELETE FROM brain_fts WHERE id = ?", args.id);
+    this.sql.exec(
+      "INSERT INTO brain_fts VALUES (?, ?, ?)",
+      args.id,
+      args.kind,
+      JSON.stringify(args.data),
+    );
+    this.sql.exec(
+      "INSERT OR REPLACE INTO brain_index_outbox VALUES (?, ?)",
+      args.id,
+      record.version,
+    );
+    this.sql.exec("UPDATE brain_dashboard SET revision=revision+1 WHERE id=1");
+    return record;
+  }
+  // One-time move of older items to the current item fields. Runs on startup,
+  // records an audited change per item, and does nothing once all are current.
+  private upgradeItems() {
+    const source = "upgrade-item-fields-2026-11";
+    this.transaction(() => {
+      const upgrades = this.list().flatMap((previous) => {
+        try {
+          const data = upgradeItem(previous);
+          return data ? [{ previous, data }] : [];
+        } catch (error) {
+          // Leave an unreadable record as-is rather than blocking startup.
+          console.error("Could not upgrade item", previous.id, error);
+          return [];
+        }
+      });
+      if (!upgrades.length) return;
       this.sql.exec(
-        "INSERT OR REPLACE INTO brain_records VALUES (?, ?, ?, ?, ?, ?)",
-        args.id,
-        args.kind,
-        JSON.stringify(data),
-        record.version,
-        now,
-        args.source_id,
+        "INSERT OR IGNORE INTO brain_captures VALUES (?, ?, 'manual', ?)",
+        source,
+        "Simplified item fields: why, details, and timing notes now live in notes; dates live in due_date and target.",
+        new Date().toISOString(),
       );
-      this.sql.exec(
-        "INSERT INTO brain_changes VALUES (?, ?, ?, ?, ?, ?)",
-        args.mutation_id,
-        args.id,
-        previous ? JSON.stringify(previous) : null,
-        JSON.stringify(record),
-        args.source_id,
-        now,
-      );
-      this.sql.exec("DELETE FROM brain_fts WHERE id = ?", args.id);
-      this.sql.exec(
-        "INSERT INTO brain_fts VALUES (?, ?, ?)",
-        args.id,
-        args.kind,
-        JSON.stringify(data),
-      );
-      this.sql.exec(
-        "INSERT OR REPLACE INTO brain_index_outbox VALUES (?, ?)",
-        args.id,
-        record.version,
-      );
-      this.sql.exec(
-        "UPDATE brain_dashboard SET revision=revision+1 WHERE id=1",
-      );
-      return record;
+      for (const { previous, data } of upgrades)
+        this.write({
+          id: previous.id,
+          kind: "item",
+          data,
+          previous,
+          source_id: source,
+          mutation_id: `${source}:${previous.id}`,
+        });
     });
   }
   search(query: string) {

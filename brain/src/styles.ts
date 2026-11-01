@@ -62,8 +62,7 @@ a:focus-visible,
 button:focus-visible,
 textarea:focus-visible,
 input:focus-visible,
-select:focus-visible,
-summary:focus-visible {
+select:focus-visible {
   outline: 2px solid var(--muted);
   outline-offset: 3px;
 }
@@ -73,101 +72,54 @@ summary:focus-visible {
   bottom: 24px;
   font-size: 13px;
 }
-h2 {
-  font-size: 13px;
+.section {
+  margin: 0 0 36px;
+}
+.section h2 {
+  font-size: 19px;
   font-weight: 600;
-  color: var(--muted);
-  margin: 32px 0 8px;
+  line-height: 1.3;
+  margin: 0 0 6px;
 }
-.section:first-child h2 {
-  margin-top: 0;
-}
-.focus {
-  padding: 18px 20px;
+.priorities {
+  padding: 16px 20px 6px;
   border: 1px solid var(--line);
   border-left: 3px solid #9b8157;
   border-radius: 8px;
-  margin-bottom: 28px;
-}
-.focus h2,
-.area h2 {
-  color: var(--text);
-  font-size: 15px;
-  margin: 0;
-}
-.focus-item {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-}
-.focus .item {
-  padding: 0;
-  border: 0;
-}
-.focus-item:last-child,
-.area .item:last-child {
-  border-bottom: 0;
-}
-.focus-reason,
-.area-summary {
-  color: var(--muted);
-  font-size: 13px;
-  margin: 4px 0 12px;
-}
-.focus-reason {
-  margin: 4px 0 0;
-}
-.area {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 18px 20px;
-  margin: 16px 0;
-}
-.area-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-}
-.area-count {
-  font-size: 12px;
-  color: var(--muted);
-  text-align: right;
-}
-.fold {
-  margin: 12px 0 0;
-  font-size: inherit;
-  color: inherit;
-}
-.fold > summary {
-  font-size: 13px;
-  color: var(--muted);
-}
-.fold .item {
-  margin-left: 4px;
 }
 @media (max-width: 480px) {
-  .area,
-  .focus {
-    padding: 14px;
+  .priorities {
+    padding: 14px 14px 4px;
   }
 }
-.item {
-  padding: 12px 0;
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.section > .items > .item {
+  padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
-.item-line {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+.section > .items > .item:last-child {
+  border-bottom: 0;
 }
-.meta,
-.why {
-  margin: 4px 0 0;
+/* Sub-items hang beneath their parent on a thin guide line. */
+.item .items {
+  margin: 6px 0 0 2px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}
+.item .item {
+  padding: 3px 0;
+  font-size: 14px;
+}
+.title {
+  overflow-wrap: anywhere;
+}
+.meta {
   font-size: 13px;
   color: var(--muted);
-}
-summary {
-  cursor: pointer;
 }
 .message-text {
   white-space: pre-wrap;

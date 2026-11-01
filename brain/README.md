@@ -80,7 +80,7 @@ To clear the chat and delete Pi's stored conversation, an account operator can q
 
 ## Data and agent behavior
 
-- Items have why, details, priority and its reason, status, parent, context links, explicit dates, soft timing, timing provenance, and clarification text.
+- Items have a title, notes (what and why, plus useful details), status, priority, an optional parent item, an area, context links, a due date, and a short target label for approximate timing (such as "Mid-November"). Items can nest under parents to any depth. Items saved with the older fields (why, details, timing, follow-up dates, and so on) are upgraded once on startup, with their text folded into notes and an audited change per item.
 - Context records describe people, events, dates, and other facts with supporting evidence. Original messages and versioned changes are retained.
 - The agent searches before acting, expands related records, preserves uncertainty, and distinguishes completion from lower priority. Approximate dates remain approximate; inherited targets are separate from explicit deadlines.
 - Tools expose search, record retrieval with relationships, exhaustive item listing, and validated version-checked writes. The model never executes arbitrary SQL.
@@ -100,11 +100,11 @@ This first version has no external action tools, scheduled notifications, or aut
 
 ## Dashboard
 
-The homepage highlights current important work and explicit deadlines, then groups everything into stable life areas. Highlighted items appear only in the attention block; area totals include them and indicate how many are shown above. Each area's other next actions are visible; more work, waiting items, and optional/someday work expand separately. An item's own priority and status determine emphasis, independently of its parent project.
+The homepage starts with Priorities: open items marked high priority or due within a week, plus waiting items whose follow-up date has arrived. Below that, top-level items are grouped into stable life areas, each showing all of its sub-items nested underneath. Nothing is folded away. Each item shows only its title and, when it has one, a short timing line: its target label, or its due date formatted like "By Nov 30", "Tomorrow", or "Follow up Nov 2". An item in Priorities still appears in its area.
 
-The read-only organizer runs through the existing Luna/Gateway binding in a durable Lifecycle job. It refreshes after task/context changes (coalesced while Pi processes a message), and every six hours for date-sensitive planning. `brain_dashboard` tracks the data revision and last valid plan; publication rejects results generated against an older revision. Task writes increment that revision transactionally. Invalid/model-failed refreshes retry after five minutes and preserve the last plan. The UI resolves IDs to current records, suppresses outdated summaries/reasons, and always includes current explicit deadlines and a fallback area for unplanned items.
+Priorities, nesting, and timing are worked out from the items on every read. The model's only job is sorting top-level items into areas. The read-only organizer runs through the existing Luna/Gateway binding in a durable Lifecycle job, after task changes (coalesced while Pi processes a message). `brain_dashboard` tracks the data revision and last valid plan; publication rejects results generated against an older revision. Invalid/model-failed refreshes retry after five minutes and preserve the last plan. Top-level items the plan doesn't cover yet appear under a fallback area.
 
-`brain_areas` stores stable area names. Items may explicitly set `area_id` through the chat agent; otherwise membership comes from the organizer's saved plan or a related parent. The organizer cannot mutate tasks. Existing task/context data is preserved during rollout.
+`brain_areas` stores stable area names. Top-level items may explicitly set `area_id` through the chat agent; otherwise membership comes from the organizer's saved plan. The organizer cannot mutate tasks. Existing task/context data is preserved during rollout.
 
 `pnpm run test:dashboard` checks a real organizer response against fictional fixtures without writing production records.
 
@@ -116,4 +116,4 @@ The read-only organizer runs through the existing Luna/Gateway binding in a dura
 
 Source layout: `ui.ts` contains HTML, `styles.ts` the stylesheet, and `client.ts` the readable browser script. They are embedded in the served page without a frontend framework or asset build pipeline.
 
-`follow_up_at` is an explicit calendar date for checking waiting work, independent of its completion deadline. `waiting_for` explains the dependency. Due follow-ups surface in the attention section; approximate timing remains prose, and appointment comparisons use parsed instants across timezone offsets.
+For waiting items, `due_date` is the date to follow up. Approximate timing gets a sensible `due_date` to aim for, with `target` holding the phrase to show instead.

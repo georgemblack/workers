@@ -16,7 +16,12 @@ import { createBrainAI } from "./model";
 import { DashboardOrganizer } from "./organizer";
 import { BackgroundWork } from "./background";
 import { contextForPrompt } from "./context";
-import { active, buildDashboard, organizerInstructions } from "./dashboard";
+import {
+  buildDashboard,
+  organizerInput,
+  organizerInstructions,
+  topLevel,
+} from "./dashboard";
 
 export interface Env {
   BRAIN: DurableObjectNamespace<Brain>;
@@ -39,7 +44,7 @@ const Save = Type.Object({
   kind: Type.Union([Type.Literal("item"), Type.Literal("context")]),
   data: Type.String({
     description:
-      "For creation supply a new record; for updates supply only changed fields. Item fields: {title,why,details,status:inbox|open|waiting|someday|done|dropped,priority:high|normal|low,priority_reason,parent_id:string|null,area_id:existing area ID|null,timing,due_date:YYYY-MM-DD|null,scheduled_at:ISO|null,follow_up_at:YYYY-MM-DD|null,waiting_for:string,timing_source:explicit|inherited|inferred|none,context_ids:string[],needs_clarification}. Context: {title,body,evidence,core:boolean (only true for core personal/family facts)}.",
+      "For creation supply a new record; for updates supply only changed fields. Item fields: {title,notes,status:open|waiting|someday|done|dropped,priority:high|normal|low,parent_id:string|null,area_id:existing area ID|null,due_date:YYYY-MM-DD|null,target:short timing label,context_ids:string[]}. Context: {title,body,evidence,core:boolean (only true for core personal/family facts)}.",
   }),
   expected_version: Type.Integer({ minimum: 0 }),
   source_id: Type.String(),
@@ -165,9 +170,9 @@ export class Brain extends DurableObject<Env> {
   }
   private async refreshDashboard() {
     const { revision, saved } = this.store.dashboardState();
-    const items = this.store.list().filter(active);
-    if (!items.length) {
-      this.store.publishDashboard({ highlights: [], groups: [] }, revision);
+    const items = this.store.list();
+    if (!topLevel(items).length) {
+      this.store.publishDashboard({ groups: [] }, revision);
       return;
     }
     const response = await this.ai.completeSimple(
@@ -178,14 +183,9 @@ export class Brain extends DurableObject<Env> {
           {
             role: "user",
             timestamp: Date.now(),
-            content: JSON.stringify({
-              now: new Date().toISOString(),
-              timezone: this.env.TIMEZONE,
-              areas: this.store.areas(),
-              items,
-              context: this.store.list("context"),
-              previous_plan: saved?.plan,
-            }),
+            content: JSON.stringify(
+              organizerInput(items, this.store.areas(), saved?.plan),
+            ),
           },
         ],
       },
@@ -403,55 +403,13 @@ export class Brain extends DurableObject<Env> {
     return { id, accepted: receipt.accepted };
   }
   dashboardSnapshot() {
-    const items = this.store.list();
-    const { revision, saved } = this.store.dashboardState();
-    const display = (item: import("./domain").Item) => {
-      const {
-        id,
-        title,
-        parent_id,
-        timing,
-        due_date,
-        scheduled_at,
-        follow_up_at,
-        timing_source,
-        needs_clarification,
-      } = item;
-      return {
-        id,
-        title,
-        parent_id,
-        timing,
-        due_date,
-        scheduled_at,
-        follow_up_at,
-        timing_source,
-        needs_clarification,
-      };
-    };
-    const view = buildDashboard(
-      items,
-      this.store.areas(),
-      saved,
-      revision,
-      this.env.TIMEZONE,
-    );
     return {
-      items: items.filter(active).map(display),
-      dashboard: {
-        ...view,
-        highlights: view.highlights.map((h) => ({
-          ...h,
-          item: display(h.item),
-        })),
-        groups: view.groups.map((g) => ({
-          ...g,
-          featured: g.featured.map(display),
-          remaining: g.remaining.map(display),
-          waiting: g.waiting.map(display),
-          optional: g.optional.map(display),
-        })),
-      },
+      dashboard: buildDashboard(
+        this.store.list(),
+        this.store.areas(),
+        this.store.dashboardState().saved,
+        this.env.TIMEZONE,
+      ),
     };
   }
   conversationSnapshot() {

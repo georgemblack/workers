@@ -2,7 +2,10 @@ import { expect, it } from "vitest";
 import {
   buildDashboard,
   defaultAreas,
+  organizerInput,
+  subtitle,
   validatePlan,
+  type DashboardItem,
   type SavedPlan,
 } from "../src/dashboard";
 import { itemInput, type Item } from "../src/domain";
@@ -14,204 +17,153 @@ const item = (id: string, data: Record<string, unknown> = {}): Item => ({
   updated_at: "2026-10-23T12:00:00Z",
 });
 const now = new Date("2026-10-23T12:00:00Z");
-const saved = (ids: string[]): SavedPlan => ({
+const saved = (groups: SavedPlan["plan"]["groups"]): SavedPlan => ({
   revision: 1,
   generated_at: now.toISOString(),
-  plan: {
-    highlights: [{ item_id: ids[0], reason: "Needs booking" }],
-    groups: [
-      {
-        area_id: "baby",
-        title: "Preparing for baby",
-        summary: "Support arrangements remain",
-        item_ids: ids,
-        featured_item_ids: ids.slice(0, 3),
-      },
-    ],
-  },
+  plan: { groups },
 });
-it("keeps an optional child quiet even under an important parent", () => {
-  const items = [
-    item("doula", { priority: "high" }),
-    item("trashcan", {
-      priority: "low",
-      status: "someday",
-      parent_id: "doula",
-    }),
-    item("tag", { status: "waiting", area_id: "kia" }),
-  ];
-  const view = buildDashboard(
-    items,
-    defaultAreas,
-    saved(["doula", "trashcan"]),
-    1,
-    "America/Chicago",
-    now,
-  );
-  expect(view.highlights.map((h) => h.item.id)).toEqual(["doula"]);
-  expect(
-    view.groups.find((g) => g.id === "baby")?.optional.map((i) => i.id),
-  ).toEqual(["trashcan"]);
-  expect(
-    view.groups.find((g) => g.id === "kia")?.waiting.map((i) => i.id),
-  ).toEqual(["tag"]);
-});
-it("adds current deadlines and suppresses obsolete summaries, reasons, and completed items", () => {
-  const items = [
-    item("doula", { status: "done" }),
-    item("warranty", { due_date: "2026-10-22", status: "waiting" }),
-    item("diapers", {
-      timing: "Before baby arrives",
-      timing_source: "inherited",
-    }),
-  ];
-  const view = buildDashboard(
-    items,
-    defaultAreas,
-    saved(["doula"]),
-    2,
-    "America/Chicago",
-    now,
-  );
-  expect(view.highlights.map((h) => h.item.id)).toEqual(["warranty"]);
-  expect(view.highlights[0].reason).toBe("Past its deadline");
-  expect(view.groups.every((g) => g.summary === "")).toBe(true);
-  expect(
+const build = (items: Item[], plan: SavedPlan | null = null, at = now) =>
+  buildDashboard(items, defaultAreas, plan, "America/Chicago", at);
+const ids = (nodes: DashboardItem[]): unknown[] =>
+  nodes.map((n) => (n.children.length ? [n.id, ids(n.children)] : n.id));
+
+it("nests every sub-item under its parent, at any depth", () => {
+  const view = build(
     [
-      ...view.highlights.map((h) => h.item),
-      ...view.groups.flatMap((g) => [
-        ...g.featured,
-        ...g.remaining,
-        ...g.waiting,
-        ...g.optional,
-      ]),
-    ]
-      .map((i) => i.id)
-      .sort(),
-  ).toEqual(["diapers", "warranty"]);
-});
-it("shows highlighted items once while preserving area summaries and totals", () => {
-  const items = [
-    item("doula", { priority: "high" }),
-    item("supplies"),
-    item("warranty", {
-      area_id: "kia",
-      status: "waiting",
-      due_date: "2026-10-23",
-    }),
-    item("trashcan", {
-      area_id: "home",
-      priority: "low",
-      due_date: "2026-10-23",
-    }),
-  ];
-  const view = buildDashboard(
-    items,
-    defaultAreas,
-    saved(["doula", "supplies"]),
-    1,
-    "America/Chicago",
-    now,
-  );
-  const displayedIds = [
-    ...view.highlights.map((h) => h.item.id),
-    ...view.groups.flatMap((g) =>
-      [...g.featured, ...g.remaining, ...g.waiting, ...g.optional].map(
-        (i) => i.id,
-      ),
-    ),
-  ];
-  expect(displayedIds.sort()).toEqual(items.map((i) => i.id).sort());
-  expect(view.groups.find((g) => g.id === "baby")).toMatchObject({
-    summary: "Support arrangements remain",
-    count: 2,
-    highlighted_count: 1,
-  });
-  expect(view.groups.find((g) => g.id === "kia")).toMatchObject({
-    count: 1,
-    highlighted_count: 1,
-    waiting: [],
-  });
-  expect(view.groups.find((g) => g.id === "home")?.optional).toEqual([]);
-});
-it("honors explicit area moves and keeps new, unplanned items accessible", () => {
-  const items = [
-    item("project", { area_id: "home" }),
-    item("child", { parent_id: "project" }),
-    item("new"),
-  ];
-  const view = buildDashboard(
-    items,
-    defaultAreas,
-    saved(["project", "child"]),
-    2,
-    "America/Chicago",
-    now,
-  );
-  expect(view.groups.find((g) => g.id === "home")?.count).toBe(2);
-  expect(view.groups.find((g) => g.id === "other")?.count).toBe(1);
-});
-it("rejects invented, duplicate, or misfiled plan references", () => {
-  const plan = saved(["doula"]).plan;
-  expect(() => validatePlan(plan, [])).toThrow();
-  expect(() =>
-    validatePlan({ ...plan, groups: [...plan.groups, ...plan.groups] }, [
-      item("doula"),
+      item("christmas", { area_id: "personal" }),
+      item("pajamas", { parent_id: "christmas" }),
+      item("stocking", { parent_id: "christmas" }),
+      item("chocolate", { parent_id: "stocking" }),
+      item("wrapped", { parent_id: "christmas", status: "done" }),
+    ],
+    saved([
+      { area_id: "personal", title: "Personal", item_ids: ["christmas"] },
     ]),
-  ).toThrow();
-  expect(() =>
-    validatePlan(
-      {
-        ...plan,
-        groups: [{ ...plan.groups[0], featured_item_ids: ["unknown"] }],
-      },
-      [item("doula")],
-    ),
-  ).toThrow();
-});
-it("uses the user's local calendar date for deadline rules", () => {
-  const view = buildDashboard(
-    [item("deadline", { due_date: "2026-10-22" })],
-    defaultAreas,
-    null,
-    0,
-    "America/Chicago",
-    new Date("2026-10-23T02:00:00Z"),
   );
-  expect(view.highlights[0].reason).toBe("Due 2026-10-22");
+  expect(view.groups).toHaveLength(1);
+  expect(ids(view.groups[0].items)).toEqual([
+    ["christmas", ["pajamas", ["stocking", ["chocolate"]]]],
+  ]);
 });
 
-it("compares appointment instants correctly across timezone offsets", () => {
-  const appointment = item("appointment", {
-    scheduled_at: "2026-10-23T08:00:00-05:00",
-  });
-  const view = buildDashboard(
-    [appointment],
-    defaultAreas,
-    null,
-    0,
-    "America/Chicago",
-    new Date("2026-10-23T12:00:00Z"),
-  );
-  expect(view.highlights[0].item.id).toBe("appointment");
+it("treats a sub-item of a closed parent as top-level", () => {
+  const view = build([
+    item("project", { status: "done" }),
+    item("leftover", { parent_id: "project" }),
+  ]);
+  expect(view.groups.map((g) => [g.id, ids(g.items)])).toEqual([
+    ["other", ["leftover"]],
+  ]);
 });
-it("surfaces a due follow-up while keeping future waiting work quiet", () => {
-  const items = [
-    item("builder", {
-      status: "waiting",
-      follow_up_at: "2026-10-23",
-      waiting_for: "a repair acknowledgment",
-    }),
-    item("delivery", { status: "waiting", follow_up_at: "2026-11-01" }),
-  ];
-  const view = buildDashboard(
-    items,
-    defaultAreas,
-    null,
-    0,
-    "America/Chicago",
-    now,
+
+it("puts high-priority and soon-due work first, but not someday or future follow-ups", () => {
+  const view = build([
+    item("doula", { priority: "high" }),
+    item("bags", { due_date: "2026-10-28" }),
+    item("later", { due_date: "2026-11-20" }),
+    item("optional", { priority: "high", status: "someday" }),
+    item("builder", { status: "waiting", due_date: "2026-10-23" }),
+    item("delivery", { status: "waiting", due_date: "2026-11-01" }),
+    item("parent"),
+    item("child", { parent_id: "parent", priority: "high" }),
+  ]);
+  expect(view.priorities.map((p) => p.id)).toEqual([
+    "builder",
+    "bags",
+    "child",
+    "doula",
+  ]);
+  expect(view.priorities.every((p) => p.children.length === 0)).toBe(true);
+  // Priorities are a digest: the same items still show in their area.
+  expect(ids(view.groups[0].items)).toContainEqual(["parent", ["child"]]);
+});
+
+it("groups top-level items by explicit area, then the saved plan", () => {
+  const view = build(
+    [
+      item("project", { area_id: "home" }),
+      item("child", { parent_id: "project" }),
+      item("dentist"),
+      item("new"),
+    ],
+    saved([
+      { area_id: "personal", title: "Personal", item_ids: ["dentist"] },
+      { area_id: "baby", title: "Preparing for baby", item_ids: ["project"] },
+    ]),
   );
-  expect(view.highlights.map((h) => h.item.id)).toEqual(["builder"]);
-  expect(view.highlights[0].reason).toContain("Follow up");
+  expect(view.groups.map((g) => [g.id, ids(g.items)])).toEqual([
+    ["personal", ["dentist"]],
+    ["home", [["project", ["child"]]]],
+    ["other", ["new"]],
+  ]);
+});
+
+it("formats timing for people, preferring an explicit target", () => {
+  const today = "2026-10-23";
+  const at = (data: Record<string, unknown>) =>
+    subtitle(item("x", data), today);
+  expect(at({})).toBe("");
+  expect(at({ target: "Mid-November", due_date: "2026-11-15" })).toBe(
+    "Mid-November",
+  );
+  expect(at({ due_date: "2026-11-30" })).toBe("By Nov 30");
+  expect(at({ due_date: "2026-10-27" })).toBe("By Tue, Oct 27");
+  expect(at({ due_date: "2026-10-24" })).toBe("Tomorrow");
+  expect(at({ due_date: "2026-10-23" })).toBe("Today");
+  expect(at({ due_date: "2026-10-20" })).toBe("Overdue since Oct 20");
+  expect(at({ due_date: "2027-01-15" })).toBe("By Jan 15, 2027");
+  expect(at({ status: "waiting", due_date: "2026-11-02" })).toBe(
+    "Follow up Nov 2",
+  );
+  expect(at({ status: "waiting", due_date: "2026-10-22" })).toBe(
+    "Follow up now",
+  );
+});
+
+it("uses the user's local calendar date", () => {
+  const view = build(
+    [item("deadline", { due_date: "2026-10-22" })],
+    null,
+    new Date("2026-10-23T02:00:00Z"),
+  );
+  expect(view.priorities[0].subtitle).toBe("Today");
+});
+
+it("rejects invented or duplicate plan references and ignores stray sub-items", () => {
+  const items = [item("doula"), item("child", { parent_id: "doula" })];
+  const group = { area_id: "baby", title: "Baby", item_ids: ["doula"] };
+  expect(() => validatePlan({ groups: [group] }, [])).toThrow();
+  expect(() => validatePlan({ groups: [group, group] }, items)).toThrow();
+  expect(() =>
+    validatePlan(
+      { groups: [{ ...group, item_ids: ["doula", "doula"] }] },
+      items,
+    ),
+  ).toThrow();
+  expect(
+    validatePlan(
+      { groups: [{ ...group, item_ids: ["doula", "child"] }] },
+      items,
+    ).groups[0].item_ids,
+  ).toEqual(["doula"]);
+});
+
+it("sends the organizer only top-level items, with sub-item titles for context", () => {
+  const input = organizerInput(
+    [
+      item("christmas"),
+      item("pajamas", { parent_id: "christmas" }),
+      item("old", { status: "dropped" }),
+    ],
+    defaultAreas,
+  );
+  expect(input.items).toEqual([
+    {
+      id: "christmas",
+      title: "christmas",
+      notes: "",
+      area_id: null,
+      sub_items: ["pajamas"],
+    },
+  ]);
 });

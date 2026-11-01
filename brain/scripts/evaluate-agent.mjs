@@ -25,7 +25,7 @@ try {
   app = await createRuntime(async ({ model, input, options }) => {
     // Organizer behavior has a separate live evaluation; isolate the capture agent here.
     if (JSON.stringify(input).includes("Organize a personal dashboard"))
-      return reply(JSON.stringify({ highlights: [], groups: [] }));
+      return reply(JSON.stringify({ groups: [] }));
     const response = rawResponse(
       await platform.env.AI.run(model, input, options),
     );
@@ -64,7 +64,7 @@ try {
     "Missing contextual association",
   );
   assert.equal(diapers.due_date, null, "Invented shopping deadline");
-  assert(diapers.why, "Missing why");
+  assert(diapers.notes, "Missing notes");
   await say("Actually the expected arrival is May 22, 2027.");
   data = await records();
   assert(
@@ -159,8 +159,7 @@ try {
   data = await records();
   assert(
     data.some(
-      (i) =>
-        open(i) && i.follow_up_at === "2026-11-03" && i.status === "waiting",
+      (i) => open(i) && i.due_date === "2026-11-03" && i.status === "waiting",
     ),
     "Missing explicit follow-up date",
   );

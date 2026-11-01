@@ -1,6 +1,6 @@
 export const clientScript = String.raw`
 const $ = (id) => document.getElementById(id);
-let state = { items: [], messages: [] },
+let state = { messages: [] },
   sending = false,
   refreshing = false,
   chatLoaded = false;
@@ -28,93 +28,38 @@ async function api(path, method = "GET", body) {
   return data;
 }
 function itemHTML(item) {
-  const parent = state.items.find((x) => x.id === item.parent_id);
   return (
-    '<article class="item"><div class="item-line"><span class="title">' +
+    '<li class="item"><div class="title">' +
     esc(item.title) +
-    "</span></div>" +
-    (parent ? '<div class="meta">↳ ' + esc(parent.title) + "</div>" : "") +
-    (item.timing || item.due_date || item.scheduled_at || item.follow_up_at
-      ? '<div class="meta">' +
-        esc(
-          item.follow_up_at
-            ? "Follow up " + item.follow_up_at
-            : item.due_date || item.scheduled_at || item.timing,
-        ) +
-        (item.timing_source === "inherited" ? " · from related plans" : "") +
-        "</div>"
+    "</div>" +
+    (item.subtitle ? '<div class="meta">' + esc(item.subtitle) + "</div>" : "") +
+    (item.children.length
+      ? '<ul class="items">' + item.children.map(itemHTML).join("") + "</ul>"
       : "") +
-    (item.needs_clarification
-      ? '<p class="why">Needs your input: ' +
-        esc(item.needs_clarification) +
-        "</p>"
-      : "") +
-    "</article>"
+    "</li>"
+  );
+}
+function sectionHTML(title, items, extra = "") {
+  return (
+    '<section class="section' +
+    extra +
+    '"><h2>' +
+    esc(title) +
+    '</h2><ul class="items">' +
+    items.map(itemHTML).join("") +
+    "</ul></section>"
   );
 }
 function dashboardHTML() {
   const dashboard = state.dashboard;
-  if (!dashboard)
-    return (
-      '<p class="empty">' +
-      (state.items.some((i) => !["done", "dropped"].includes(i.status))
-        ? "Organizing your list…"
-        : "Nothing on your list.") +
-      "</p>"
-    );
-  const fold = (group, key, label, items) =>
-    items.length
-      ? '<details class="fold" id="fold-' +
-        esc(group.id) +
-        "-" +
-        key +
-        '"><summary>' +
-        label +
-        " · " +
-        items.length +
-        "</summary>" +
-        items.map(itemHTML).join("") +
-        "</details>"
-      : "";
-  const focus = dashboard.highlights.length
-    ? '<section class="focus"><h2>Needs your attention</h2>' +
-      dashboard.highlights
-        .map(
-          (h) =>
-            '<div class="focus-item">' +
-            itemHTML(h.item) +
-            '<p class="focus-reason">' +
-            esc(h.reason) +
-            "</p></div>",
-        )
-        .join("") +
-      "</section>"
-    : "";
+  if (!dashboard) return "";
+  if (!dashboard.priorities.length && !dashboard.groups.length)
+    return '<p class="empty">Nothing on your list.</p>';
   return (
-    focus +
-      dashboard.groups
-        .map(
-          (group) =>
-            '<section class="area"><div class="area-heading"><h2>' +
-            esc(group.title) +
-            '</h2><span class="area-count">' +
-            group.count +
-            " " +
-            (group.count === 1 ? "item" : "items") +
-            (group.highlighted_count
-              ? " · " + group.highlighted_count + " shown above"
-              : "") +
-            "</span></div>" +
-            (group.summary
-              ? '<p class="area-summary">' + esc(group.summary) + "</p>"
-              : "") +
-            group.featured.map(itemHTML).join("") +
-            fold(group, "remaining", "More to do", group.remaining) +
-            fold(group, "waiting", "Waiting", group.waiting) +
-            fold(group, "optional", "Later & optional", group.optional) +
-            "</section>",
-        )
-        .join("") || '<p class="empty">Nothing on your list.</p>'
+    (dashboard.priorities.length
+      ? sectionHTML("Priorities", dashboard.priorities, " priorities")
+      : "") +
+    dashboard.groups.map((g) => sectionHTML(g.title, g.items)).join("")
   );
 }
 function render() {
@@ -123,14 +68,7 @@ function render() {
     (!chatLoaded ||
       window.innerHeight + window.scrollY >=
         document.documentElement.scrollHeight - 80);
-  const expanded = [
-    ...(document.querySelectorAll?.("#sections details[id][open]") || []),
-  ].map((el) => el.id);
   if (!chat) $("sections").innerHTML = dashboardHTML();
-  for (const id of expanded) {
-    const el = document.getElementById(id);
-    if (el) el.open = true;
-  }
   const pending = (state.messages || []).filter(
     (m) => m.result.status === "parked",
   );

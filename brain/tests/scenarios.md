@@ -2,7 +2,7 @@
 
 Run these sequences against an isolated local brain, with Workers AI enabled. Review stored records and source evidence, not only the assistant reply. These are fixtures, not facts about the user.
 
-1. Establish: "We are expecting a baby on May 15, 2027. Need to get baby supplies ready beforehand." Then, as a separate message: "I need to buy size 1 diapers." Expect a linked supplies child with inherited soft timing and a retained why, without an invented shopping deadline.
+1. Establish: "We are expecting a baby on May 15, 2027. Need to get baby supplies ready beforehand." Then, as a separate message: "I need to buy size 1 diapers." Expect a supplies child linked to the baby context, with notes and no dates of its own (it shares its parent's timing), and no invented shopping deadline.
 2. Say: "Actually the expected arrival is May 22." Expect a corrected context record and adjusted inherited descriptions, while any separately explicit deadlines stay unchanged.
 3. Say: "I bought all the postpartum supplies, so check all of that off. I still need to export my Amazon receipt and file it with my HSA documents." Expect only established matching purchase tasks completed, with the documentation follow-up open.
 4. Establish a childcare contingency item with high priority. Then: "We've got coverage after December 24. Lower the priority; we should be okay." Expect lower priority and the remaining gap retained, not a fully completed item. Clarify the year if context does not establish it.

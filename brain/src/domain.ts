@@ -1,33 +1,68 @@
 import { z } from "zod";
 
-export const status = z.enum([
-  "inbox",
-  "open",
-  "waiting",
-  "someday",
-  "done",
-  "dropped",
-]);
+export const status = z.enum(["open", "waiting", "someday", "done", "dropped"]);
 export const itemInput = z.object({
   title: z.string().trim().min(1).max(300),
-  why: z.string().max(6000).default(""),
-  details: z.string().max(12000).default(""),
+  notes: z.string().max(12000).default(""),
   status: status.default("open"),
   priority: z.enum(["high", "normal", "low"]).default("normal"),
-  priority_reason: z.string().max(2000).default(""),
   parent_id: z.string().nullable().default(null),
   area_id: z.string().nullable().default(null),
-  timing: z.string().max(2000).default(""),
   due_date: z.iso.date().nullable().default(null),
-  scheduled_at: z.iso.datetime({ offset: true }).nullable().default(null),
-  follow_up_at: z.iso.date().nullable().default(null),
-  waiting_for: z.string().max(2000).default(""),
-  timing_source: z
-    .enum(["explicit", "inherited", "inferred", "none"])
-    .default("none"),
+  target: z.string().trim().max(80).default(""),
   context_ids: z.array(z.string()).max(30).default([]),
-  needs_clarification: z.string().max(3000).default(""),
 });
+// Items saved before notes/target existed. Their old text fields are folded
+// into notes so nothing the agent wrote is lost.
+const legacyItem = z.looseObject({
+  why: z.string().default(""),
+  details: z.string().default(""),
+  timing: z.string().default(""),
+  waiting_for: z.string().default(""),
+  needs_clarification: z.string().default(""),
+  scheduled_at: z.string().nullable().default(null),
+  follow_up_at: z.string().nullable().default(null),
+  status: z.string().optional(),
+  due_date: z.string().nullable().default(null),
+});
+const legacyFields = [
+  "why",
+  "details",
+  "priority_reason",
+  "timing",
+  "timing_source",
+  "scheduled_at",
+  "follow_up_at",
+  "waiting_for",
+  "needs_clarification",
+];
+export function upgradeItem(data: Record<string, unknown>) {
+  if (!legacyFields.some((key) => key in data)) return null;
+  const old = legacyItem.parse(data);
+  const notes = [
+    old.why,
+    old.details === old.why ? "" : old.details,
+    old.waiting_for && `Waiting for: ${old.waiting_for}`,
+    old.timing && `Timing: ${old.timing}`,
+    old.scheduled_at && `Scheduled for ${old.scheduled_at}`,
+    old.needs_clarification && `Open question: ${old.needs_clarification}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const rest = Object.fromEntries(
+    Object.entries(data).filter(([key]) => !legacyFields.includes(key)),
+  );
+  return itemInput.parse({
+    ...rest,
+    notes: notes.slice(0, 12000),
+    status: old.status === "inbox" ? "open" : old.status,
+    due_date:
+      old.due_date ??
+      old.follow_up_at ??
+      old.scheduled_at?.slice(0, 10) ??
+      null,
+  });
+}
 export const captureInput = z.object({
   id: z
     .string()

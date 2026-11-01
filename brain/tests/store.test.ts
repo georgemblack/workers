@@ -136,24 +136,22 @@ describe("conversation cleanup", () => {
   });
 });
 describe("durable personal records", () => {
-  it("keeps why and inherited timing with a linked supplies item", () => {
+  it("keeps notes and a soft target with a linked supplies item", () => {
     save("supplies", {
       title: "Baby supplies",
-      why: "Ready before arrival",
-      timing: "Before baby arrives",
-      timing_source: "inherited",
+      notes: "Ready before arrival",
+      target: "Before baby arrives",
     });
     save("diapers", {
       title: "Buy size 1 diapers",
       parent_id: "supplies",
-      why: "Have essentials ready",
-      timing: "Before baby arrives",
-      timing_source: "inherited",
+      notes: "Have essentials ready",
     });
     expect(store.get("diapers")).toMatchObject({
       parent_id: "supplies",
       due_date: null,
-      why: "Have essentials ready",
+      target: "",
+      notes: "Have essentials ready",
     });
     expect(store.search("diapers").length).toBeGreaterThan(0);
   });
@@ -241,16 +239,7 @@ it("publishes derived plans without mutating tasks and rejects stale model resul
   const original = store.get("doula");
   const { revision } = store.dashboardState();
   const plan = {
-    highlights: [{ item_id: "doula", reason: "Book support" }],
-    groups: [
-      {
-        area_id: "family",
-        title: "Family",
-        summary: "Arrange support",
-        item_ids: ["doula"],
-        featured_item_ids: ["doula"],
-      },
-    ],
+    groups: [{ area_id: "family", title: "Family", item_ids: ["doula"] }],
   };
   expect(store.publishDashboard(plan, revision)).toBe(true);
   expect(store.get("doula")).toEqual(original);
@@ -261,7 +250,7 @@ it("publishes derived plans without mutating tasks and rejects stale model resul
   expect(store.dashboardState().revision).toBeGreaterThan(revision);
   expect(() =>
     store.publishDashboard(
-      { ...plan, highlights: [{ item_id: "invented", reason: "Invalid" }] },
+      { groups: [{ ...plan.groups[0], item_ids: ["invented"] }] },
       store.dashboardState().revision,
     ),
   ).toThrow();
@@ -272,7 +261,7 @@ it("patches only supplied fields and requires explicit clearing", () => {
   save("parent", { title: "Baby supplies" });
   save("diapers", {
     title: "Buy diapers",
-    why: "Prepare for baby",
+    notes: "Prepare for baby",
     parent_id: "parent",
     priority: "high",
     due_date: "2026-12-15",
@@ -281,17 +270,17 @@ it("patches only supplied fields and requires explicit clearing", () => {
   const updated = save("diapers", { status: "done" }, 1, "finish-diapers");
   expect(updated).toMatchObject({
     title: "Buy diapers",
-    why: "Prepare for baby",
+    notes: "Prepare for baby",
     parent_id: "parent",
     priority: "high",
     due_date: "2026-12-15",
     status: "done",
   });
   expect(
-    save("diapers", { due_date: null, why: "" }, 2, "clear-fields"),
+    save("diapers", { due_date: null, notes: "" }, 2, "clear-fields"),
   ).toMatchObject({
     due_date: null,
-    why: "",
+    notes: "",
     status: "done",
     parent_id: "parent",
   });
@@ -341,4 +330,59 @@ it("tracks delivery receipts and exposes processing/index diagnostics", () => {
   });
   store.health("index");
   expect(store.diagnostics().health[0].last_error).toBeNull();
+});
+
+it("upgrades older items to notes and target once, with an audit trail", () => {
+  store.sql.exec(
+    "INSERT INTO brain_records VALUES ('old', 'item', ?, 3, '2026-10-01', 'message-1')",
+    JSON.stringify({
+      title: "Book doula",
+      why: "Support after birth",
+      details: "Email the agency",
+      status: "waiting",
+      priority: "high",
+      priority_reason: "User said so",
+      parent_id: null,
+      area_id: null,
+      timing: "October–November",
+      timing_source: "explicit",
+      due_date: null,
+      scheduled_at: null,
+      follow_up_at: "2026-11-05",
+      waiting_for: "a reply",
+      context_ids: [],
+      needs_clarification: "",
+    }),
+  );
+  store = new Store(store.sql, store.transaction);
+  store = new Store(store.sql, store.transaction);
+  expect(store.get("old")).toEqual({
+    id: "old",
+    kind: "item",
+    version: 4,
+    updated_at: expect.any(String),
+    source_id: "upgrade-item-fields-2026-11",
+    title: "Book doula",
+    notes:
+      "Support after birth\n\nEmail the agency\n\nWaiting for: a reply\n\nTiming: October–November",
+    status: "waiting",
+    priority: "high",
+    parent_id: null,
+    area_id: null,
+    due_date: "2026-11-05",
+    target: "",
+    context_ids: [],
+  });
+  const changes = store.sql
+    .exec<{ before_data: string }>(
+      "SELECT before_data FROM brain_changes WHERE record_id = 'old'",
+    )
+    .toArray();
+  expect(changes).toHaveLength(1);
+  expect(JSON.parse(changes[0].before_data).priority_reason).toBe(
+    "User said so",
+  );
+  expect(store.conversation().map((m) => m.id)).not.toContain(
+    "upgrade-item-fields-2026-11",
+  );
 });
