@@ -115,13 +115,6 @@
       "certificate_id": "7cfe856b-1421-451b-a85e-651947fa2155",
     },
   ],
-  "secrets_store_secrets": [
-    {
-      "binding": "SECRET",
-      "store_id": "7a396974a7624558b2be43191bbd9fe6",
-      "secret_name": "tbdev",
-    },
-  ],
   "send_email": [
     {
       "name": "SEND_EMAIL",
