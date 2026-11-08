@@ -13,6 +13,7 @@
     "directory": "./public",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none",
+    "run_worker_first": true,
   },
   "vars": {
     "TBDEV_ENV": "test",
