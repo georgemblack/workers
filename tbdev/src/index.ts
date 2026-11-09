@@ -1,3 +1,5 @@
+import { tracing } from "cloudflare:workers";
+
 const ERROR_CHANCE = 0.2;
 
 const ERROR_MESSAGES = [
@@ -7,13 +9,20 @@ const ERROR_MESSAGES = [
   "Failed to parse request payload",
 ];
 
+const USER_TIERS = ["free", "pro", "enterprise"];
+
 export default {
   async fetch(): Promise<Response> {
-    if (Math.random() < ERROR_CHANCE) {
-      const message = ERROR_MESSAGES[Math.floor(Math.random() * ERROR_MESSAGES.length)];
-      throw new Error(message);
-    }
+    return tracing.enterSpan("tbdev.request", (span) => {
+      const userTier = USER_TIERS[Math.floor(Math.random() * USER_TIERS.length)];
+      span.setAttribute("user.tier", userTier);
 
-    return new Response("ok");
+      if (Math.random() < ERROR_CHANCE) {
+        const message = ERROR_MESSAGES[Math.floor(Math.random() * ERROR_MESSAGES.length)];
+        throw new Error(message);
+      }
+
+      return new Response("ok");
+    });
   },
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler;
