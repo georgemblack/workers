@@ -22,8 +22,10 @@ export default defineConfig({
       MODEL: bindings.text("openai/gpt-6-luna"),
       AI_GATEWAY: bindings.text("govtrack"),
       TIMEZONE: bindings.text("America/Chicago"),
-      // Audience of the GovTrack Access app. Requests fail closed (503) until set.
-      ACCESS_AUD: bindings.text(""),
+      // GovTrack Access app targets this Worker, including its workers.dev hostname.
+      ACCESS_AUD: bindings.text(
+        "f8cc48a5e583e5e834959e782af3a4fd781a4ff01c64996510f6674f5a55bf45",
+      ),
     },
   },
 });

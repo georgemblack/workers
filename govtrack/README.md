@@ -33,15 +33,23 @@ pnpm run dev
 
 The local Access bypass requires both `LOCAL_DEV=true` and a localhost URL. Workers AI and Browser Rendering use real remote services during local development and may incur charges.
 
-## Before the first deploy
+## Production
 
-These live outside `cloudflare.config.ts` and must be set up once:
+Live at https://govtrack.georgeblack.workers.dev.
 
-1. **AI Gateway** named `govtrack`, with the OpenAI key stored under its `default` alias. govtrack sends `cf-aig-no-wholesale: true`, so a missing key fails instead of falling back to Unified Billing. To share brain's gateway instead, set `AI_GATEWAY` to `brain`.
-2. **Access app** that targets the `govtrack` Worker (like brain's, not hostname-based), with the owner policy. Put its audience tag in `ACCESS_AUD`. Until then every request returns 503.
-3. **Workers Builds** trigger: production branch `master`, root directory `/govtrack`, watch path `govtrack/*`, empty build command, caching disabled, `PNPM_VERSION=11.24.0`, `NODE_VERSION=24.18.0`.
+- Access app: **GovTrack** (`7a31f039-1933-44dc-bdff-73763db6162a`), targeting Worker `govtrack` (`dcd01d81c1b147c6a88112b26b7c9a26`) rather than a hostname. It uses the reusable **Allow George** policy, the same one as brain. Its audience tag is `ACCESS_AUD` in `cloudflare.config.ts`.
+- AI Gateway: `govtrack`, which must hold the OpenAI key under its `default` alias. govtrack sends `cf-aig-no-wholesale: true`, so a missing key fails instead of falling back to Unified Billing. To share brain's gateway instead, set `AI_GATEWAY` to `brain`.
 
-Then run `pnpm run check`, `pnpm run test`, and `pnpm run dryrun`, commit, and push.
+## Workers Builds
+
+Trigger `af2ffaaf-5dcb-4132-8d85-0ec1e80f7058` ("Deploy default branch") uses the same GitHub connection and deploy token as brain:
+
+- Production branch: `master`.
+- Root directory: `/govtrack`; watch path `govtrack/*`.
+- Build command: empty; `pnpm run deploy` builds and deploys.
+- Caching disabled. Build environment: `PNPM_VERSION=11.24.0`, `NODE_VERSION=24.18.0`.
+
+For normal deployments, run `pnpm run check`, `pnpm run test`, and `pnpm run dryrun`, then commit and push.
 
 ## Access
 
