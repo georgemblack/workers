@@ -9,6 +9,7 @@ This project is a monorepo containing personal Cloudflare workers. Each top-leve
 * `goblin`: Queue consumer that generates merchant suggestions for gringotts transactions via Workers AI
 * `tacklebox`: Static landing page for tackleboxapp.net
 * `terminal`: Hono API that stores data in D1 and exposes an aggregated view for a terminal display
+* `govtrack`: Chat-driven timeline of local politicians' actions, with sentiment and sources
 
 Each project has it's own `AGENTS.md` with unqiue instructions.
 
