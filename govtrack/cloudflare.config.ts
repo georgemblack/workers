@@ -20,7 +20,8 @@ export default defineConfig({
       // Lets the agent read the articles and pages you link to.
       BROWSER: bindings.browser(),
       MODEL: bindings.text("openai/gpt-6-luna"),
-      AI_GATEWAY: bindings.text("govtrack"),
+      // Shares brain's AI Gateway, which holds the OpenAI key.
+      AI_GATEWAY: bindings.text("brain"),
       TIMEZONE: bindings.text("America/Chicago"),
       // GovTrack Access app targets this Worker, including its workers.dev hostname.
       ACCESS_AUD: bindings.text(

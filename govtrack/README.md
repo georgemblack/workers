@@ -38,7 +38,7 @@ The local Access bypass requires both `LOCAL_DEV=true` and a localhost URL. Work
 Live at https://govtrack.georgeblack.workers.dev.
 
 - Access app: **GovTrack** (`7a31f039-1933-44dc-bdff-73763db6162a`), targeting Worker `govtrack` (`dcd01d81c1b147c6a88112b26b7c9a26`) rather than a hostname. It uses the reusable **Allow George** policy, the same one as brain. Its audience tag is `ACCESS_AUD` in `cloudflare.config.ts`.
-- AI Gateway: `govtrack`, which must hold the OpenAI key under its `default` alias. govtrack sends `cf-aig-no-wholesale: true`, so a missing key fails instead of falling back to Unified Billing. To share brain's gateway instead, set `AI_GATEWAY` to `brain`.
+- AI Gateway: shares brain's `brain` gateway, which holds the OpenAI key under its `default` alias. govtrack sends `cf-aig-no-wholesale: true`, so a missing key fails instead of falling back to Unified Billing.
 
 ## Workers Builds
 
