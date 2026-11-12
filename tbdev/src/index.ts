@@ -9,12 +9,11 @@ const ERROR_MESSAGES = [
   "Failed to parse request payload",
 ];
 
-const USER_TIERS = ["free", "pro", "enterprise"];
-
 export default {
   async fetch(): Promise<Response> {
-    const userTier = USER_TIERS[Math.floor(Math.random() * USER_TIERS.length)];
-    tracing.getActiveSpan()?.setAttribute("user.tier", userTier);
+    const span = tracing.getActiveSpan();
+    span?.setAttribute("user.id", `user_${Math.floor(Math.random() * 1000)}`);
+    span?.setAttribute("account.id", `acct_${Math.floor(Math.random() * 100)}`);
 
     if (Math.random() < ERROR_CHANCE) {
       const message = ERROR_MESSAGES[Math.floor(Math.random() * ERROR_MESSAGES.length)];
