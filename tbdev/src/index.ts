@@ -88,8 +88,9 @@ function renderDashboard(itemCount: number) {
   return step("renderDashboard", (span) => {
     span.setAttribute("render.items", itemCount);
     // Burn a little CPU so this span reflects compute rather than waiting.
-    const end = Date.now() + randomInt(2, 15);
-    while (Date.now() < end) {
+    // This counts iterations because Workers don't advance the clock during computation.
+    const iterations = randomInt(20_000, 200_000);
+    for (let i = 0; i < iterations; i++) {
       Math.sqrt(Math.random());
     }
     return "ok";
