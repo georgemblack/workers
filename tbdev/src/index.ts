@@ -10,6 +10,15 @@ const ERROR_MESSAGES = [
   "Failed to parse request payload",
 ];
 
+// Placeholder logs so there are example entries to look at in the dashboard.
+const INFO_MESSAGES = [
+  "pineapple pizza is good",
+  "the quick brown fox jumps over the lazy dog",
+  "coffee has been brewed successfully",
+  "all systems are looking great today",
+  "someone just asked for the dashboard again",
+];
+
 const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 
 // Temporary: pretend work is happening so spans have a visible duration.
@@ -117,6 +126,22 @@ export default {
     const activityCount = await fetchRecentActivity();
     const upstream = await callUpstream();
     const body = await renderDashboard(upstream.items + activityCount);
+
+    // Only reached when nothing above threw, i.e. we're about to return a happy response.
+    console.log(INFO_MESSAGES[randomInt(0, INFO_MESSAGES.length - 1)]);
+    console.log({
+      event: "dashboard_rendered",
+      userId: user.id,
+      accountId: user.accountId,
+      items: upstream.items + activityCount,
+      cacheHit: Math.random() < 0.6,
+    });
+    console.log({
+      event: "request_summary",
+      activityQueries: activityCount,
+      upstreamItems: upstream.items,
+      tags: ["dashboard", "ok"],
+    });
 
     return new Response(body);
   },
