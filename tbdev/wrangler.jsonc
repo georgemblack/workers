@@ -6,8 +6,13 @@
   "compatibility_date": "2026-07-03",
   "observability": {
     "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 0.1,
+    },
     "traces": {
       "enabled": true,
+      "head_sampling_rate": 0.1,
     },
     "issues": {
       "enabled": true,
