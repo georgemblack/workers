@@ -1,6 +1,7 @@
 import { tracing } from "cloudflare:workers";
 
 const ERROR_CHANCE = 0.2;
+const PUBLIC_URL = "https://tbdev.georgeblack.workers.dev/";
 
 const ERROR_MESSAGES = [
   "Something went wrong while loading the dashboard",
@@ -118,5 +119,18 @@ export default {
     const body = await renderDashboard(upstream.items + activityCount);
 
     return new Response(body);
+  },
+
+  // Runs every other minute and sends a few requests to our own public URL to generate traffic.
+  async scheduled(): Promise<void> {
+    const count = randomInt(1, 5);
+    for (let i = 0; i < count; i++) {
+      // Pause a random amount between requests so they don't arrive in a burst.
+      if (i > 0) await simulateWork(500, 5000);
+
+      const response = await fetch(PUBLIC_URL);
+      // Errors are expected here, so just read the body and move on.
+      await response.arrayBuffer();
+    }
   },
 } satisfies ExportedHandler;

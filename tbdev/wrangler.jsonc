@@ -14,6 +14,11 @@
     },
   },
   "workers_dev": true,
+  // Lets the cron job call this worker's own workers.dev URL over the public internet.
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "triggers": {
+    "crons": ["*/2 * * * *"],
+  },
   "assets": {
     "binding": "ASSETS",
     "directory": "./public",
