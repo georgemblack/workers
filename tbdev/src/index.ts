@@ -19,6 +19,14 @@ const INFO_MESSAGES = [
   "someone just asked for the dashboard again",
 ];
 
+const WARN_MESSAGES = [
+  "Cache is running slower than usual",
+  "Upstream response was close to the timeout",
+  "Session token expires soon",
+  "Falling back to default profile settings",
+  "Rate limit is almost used up",
+];
+
 const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 
 // Temporary: pretend work is happening so spans have a visible duration.
@@ -58,6 +66,7 @@ async function loadProfile(userId: string) {
 
     await step("profileCache", () => simulateWork(2, 10));
     if (!cacheHit) {
+      if (Math.random() < 0.3) console.warn(WARN_MESSAGES[randomInt(0, WARN_MESSAGES.length - 1)]);
       await step("profileDatabase", async (dbSpan) => {
         dbSpan.setAttribute("db.rows", randomInt(1, 5));
         await simulateWork(20, 120);
@@ -89,6 +98,7 @@ async function callUpstream() {
   return step("callUpstream", async (span) => {
     span.setAttribute("upstream.name", "recommendations");
     await simulateWork(30, 200);
+    if (Math.random() < 0.15) console.warn({ event: "upstream_slow", upstream: "recommendations" });
     maybeFail();
     return { items: randomInt(0, 20) };
   });
@@ -110,6 +120,7 @@ function renderDashboard(itemCount: number) {
 function maybeFail() {
   if (Math.random() < ERROR_CHANCE) {
     const message = ERROR_MESSAGES[randomInt(0, ERROR_MESSAGES.length - 1)];
+    console.error({ event: "upstream_failed", message });
     throw new Error(message);
   }
 }
@@ -117,6 +128,8 @@ function maybeFail() {
 export default {
   async fetch(): Promise<Response> {
     const user = await authenticate();
+
+    console.info({ event: "request_started", userId: user.id });
 
     const root = tracing.getActiveSpan();
     root?.setAttribute("user.id", user.id);
@@ -128,7 +141,7 @@ export default {
     const body = await renderDashboard(upstream.items + activityCount);
 
     // Only reached when nothing above threw, i.e. we're about to return a happy response.
-    console.log(INFO_MESSAGES[randomInt(0, INFO_MESSAGES.length - 1)]);
+    console.info(INFO_MESSAGES[randomInt(0, INFO_MESSAGES.length - 1)]);
     console.log({
       event: "dashboard_rendered",
       userId: user.id,
@@ -142,6 +155,11 @@ export default {
       upstreamItems: upstream.items,
       tags: ["dashboard", "ok"],
     });
+
+    // Occasionally log a handled problem, where the request still succeeds.
+    if (Math.random() < 0.1) {
+      console.error(new Error("Failed to write audit log entry, continuing anyway"));
+    }
 
     return new Response(body);
   },
