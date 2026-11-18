@@ -16,7 +16,7 @@ export default defineConfig({
       AI: bindings.ai(),
       MEMORY: bindings.vectorize({ name: "brain-memory" }),
       MODEL: bindings.text("openai/gpt-6-luna"),
-      AI_GATEWAY: bindings.text("brain"),
+      AI_GATEWAY: bindings.text("main"),
       TIMEZONE: bindings.text("America/Chicago"),
       // Brain Access app targets this Worker, including its workers.dev hostname.
       ACCESS_AUD: bindings.text(

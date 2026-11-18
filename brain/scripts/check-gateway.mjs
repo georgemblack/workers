@@ -1,5 +1,5 @@
 // A real, tiny inference test. Uses the authenticated remote AI binding and
-// the stored gateway key; no provider API key is read or passed to this script.
+// the gateway's Unified Billing credits; no provider API key is read or passed to this script.
 import { mkdir, writeFile } from "node:fs/promises";
 import { getPlatformProxy } from "wrangler";
 import { Type } from "@earendil-works/pi-ai";
@@ -23,7 +23,7 @@ const platform = await getPlatformProxy({
   envFiles: [],
 });
 try {
-  const ai = createBrainAI(platform.env.AI, "brain");
+  const ai = createBrainAI(platform.env.AI, "main");
   const model = ai("openai/gpt-6-luna");
   if (model.api !== "openai-responses")
     throw new Error("Luna must use Responses for reasoning with tools");
@@ -88,7 +88,7 @@ try {
       {
         model: model.id,
         api: model.api,
-        gateway: "brain",
+        gateway: "main",
         tool: call.name,
         answer: text,
       },

@@ -35,13 +35,13 @@ For normal deployments, run `pnpm run check`, `pnpm run test`, and `pnpm run dry
 
 ## Model and gateway
 
-Conversation model: `openai/gpt-6-luna`, with low reasoning through the Responses API. The named `brain` AI Gateway selects the OpenAI key stored under its `default` alias. Brain sends `cf-aig-no-wholesale: true`, so a missing applicable key fails instead of falling back to Cloudflare-funded Unified Billing. The Worker never reads the OpenAI secret.
+Conversation model: `openai/gpt-6-luna`, with low reasoning through the Responses API. The named `main` AI Gateway bills OpenAI usage to Cloudflare credits (Unified Billing). Brain sends no provider key and no `cf-aig-no-wholesale` header, and the gateway's "Require provider credentials" setting must stay off. A BYOK key under the gateway's `default` alias would take precedence over credits, so keep it removed. The Worker never reads an OpenAI secret.
 
 `MODEL` and `AI_GATEWAY` live in `cloudflare.config.ts`. On each object startup, the first capture or dashboard request applies the configured model to the existing Pi session. This preserves history and task data rather than resetting the conversation. Defaults still select the model for new sessions.
 
 Embeddings continue using Workers AI's `@cf/baai/bge-base-en-v1.5`; switching the conversation model does not change the Vectorize index.
 
-`pnpm run test:gateway` makes two small, paid inference requests through the real remote AI binding and stored gateway key. It verifies Responses tool calling and reading the tool result using synthetic fixtures without touching Brain's database. Unit tests use mocked responses and make no paid requests.
+`pnpm run test:gateway` makes two small, paid inference requests through the real remote AI binding and the gateway's Unified Billing credits. It verifies Responses tool calling and reading the tool result using synthetic fixtures without touching Brain's database. Unit tests use mocked responses and make no paid requests.
 
 ## Workers Builds
 

@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { createBrainAI } from "../src/model";
 
-it("uses Responses, low reasoning and the named gateway with BYOK required", async () => {
+it("uses Responses, low reasoning and the named gateway with Unified Billing", async () => {
   const run = vi.fn(
     async () =>
       new Response(
@@ -29,7 +29,7 @@ it("uses Responses, low reasoning and the named gateway with BYOK required", asy
         { headers: { "Content-Type": "text/event-stream" } },
       ),
   );
-  const ai = createBrainAI({ run } as unknown as Ai, "brain");
+  const ai = createBrainAI({ run } as unknown as Ai, "main");
   const model = ai("openai/gpt-6-luna");
   expect(model.api).toBe("openai-responses");
   const result = await ai.completeSimple(
@@ -46,8 +46,8 @@ it("uses Responses, low reasoning and the named gateway with BYOK required", asy
   expect(id).toBe("openai/gpt-6-luna");
   expect(input).toMatchObject({ reasoning: { effort: "low" }, store: false });
   expect(options).toMatchObject({
-    gateway: { id: "brain", skipCache: true },
+    gateway: { id: "main", skipCache: true },
     openaiEndpoint: "/v1/responses",
-    extraHeaders: { "cf-aig-no-wholesale": "true" },
   });
+  expect(options.extraHeaders).toBeUndefined();
 });

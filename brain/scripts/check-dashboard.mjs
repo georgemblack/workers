@@ -6,7 +6,7 @@ import {
 } from "../src/dashboard.ts";
 import { itemInput } from "../src/domain.ts";
 // A real, tiny inference test. Uses the authenticated remote AI binding and
-// the stored gateway key; no provider API key is read or passed to this script.
+// the gateway's Unified Billing credits; no provider API key is read or passed to this script.
 import { mkdir, writeFile } from "node:fs/promises";
 import { getPlatformProxy } from "wrangler";
 import { createBrainAI } from "../src/model.ts";
@@ -29,7 +29,7 @@ const platform = await getPlatformProxy({
   envFiles: [],
 });
 try {
-  const ai = createBrainAI(platform.env.AI, "brain");
+  const ai = createBrainAI(platform.env.AI, "main");
   const items = [
     {
       id: "doula",

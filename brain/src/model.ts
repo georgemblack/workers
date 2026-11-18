@@ -3,9 +3,9 @@ import { compatibleAI } from "./ai.ts";
 
 export function createBrainAI(binding: Ai, gateway: string) {
   return createAI({
-    // Require the stored provider key rather than silently falling back to
-    // Cloudflare-funded Unified Billing.
-    binding: compatibleAI(binding, { "cf-aig-no-wholesale": "true" }),
+    // No provider key is sent, so the gateway bills through Unified Billing
+    // (or a BYOK key stored under its "default" alias, if one exists).
+    binding: compatibleAI(binding),
     id: gateway,
     skipCache: true,
   });

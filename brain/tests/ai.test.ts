@@ -58,10 +58,10 @@ it("adds required gateway headers while preserving existing options", async () =
   const result = await (ai.run as (...args: unknown[]) => Promise<unknown>)(
     "model",
     {},
-    { gateway: { id: "brain" }, extraHeaders: { "x-test": "yes" } },
+    { gateway: { id: "main" }, extraHeaders: { "x-test": "yes" } },
   );
   expect(result).toEqual({
-    gateway: { id: "brain" },
+    gateway: { id: "main" },
     extraHeaders: { "x-test": "yes", "cf-aig-no-wholesale": "true" },
   });
 });

@@ -34,7 +34,7 @@ export async function createRuntime(respond) {
           LOCAL_DEV: "true",
           ACCESS_AUD: "test",
           MODEL: "openai/gpt-6-luna",
-          AI_GATEWAY: "brain",
+          AI_GATEWAY: "main",
           TIMEZONE: "America/Chicago",
         },
         durableObjects: { BRAIN: { className: "Brain", useSQLite: true } },
