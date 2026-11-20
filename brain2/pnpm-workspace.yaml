@@ -4,6 +4,8 @@ allowBuilds:
   '@google/genai': false
   core-js-pure: false
   protobufjs: false
+minimumReleaseAgeExclude:
+  - cf@1.0.0-rc.2
 patchedDependencies:
   '@earendil-works/pi-ai@1.4.0': patches/@earendil-works__pi-ai@1.4.0.patch
   agents@0.32.0: patches/agents@0.32.0.patch
