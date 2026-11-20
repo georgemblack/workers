@@ -25,8 +25,7 @@ export const task: NodeType = {
   links: {
     parent: { to: ["task"], many: false },
     in_area: { to: ["area"], many: false },
-    // Plan 05 adds "person" and "group" once those types exist.
-    about: { to: ["note"], many: true },
+    about: { to: ["person", "group", "note"], many: true },
   },
   describe:
     "Something the user needs to do, decide, or wait on. Always resolvable: it can be done or dropped. body explains what and why. For waiting tasks due_date is the day to follow up.",

@@ -2,8 +2,11 @@
 import { build } from "esbuild";
 import { Miniflare, convertV4MiniflareOptions } from "miniflare";
 
+// Built once per process, so a long evaluation run is not affected by
+// source edits made while it runs.
+let bundled;
 export async function createRuntime(respond) {
-  const bundle = await build({
+  bundled ??= build({
     stdin: {
       contents: `import worker, {Brain2 as ProductionBrain} from "./src/index.ts";
       export class Brain2 extends ProductionBrain {
@@ -22,6 +25,7 @@ export async function createRuntime(respond) {
     external: ["cloudflare:*", "node:*"],
     target: "es2023",
   });
+  const bundle = await bundled;
   const options = convertV4MiniflareOptions({
     workers: [
       {

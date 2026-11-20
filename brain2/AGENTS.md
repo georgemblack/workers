@@ -2,7 +2,7 @@
 
 Personal Cloudflare Worker: a chat-driven organizer for tasks, people, and later other areas of life. It is a ground-up rebuild of `../brain`. All work for brain2 stays in this directory.
 
-**Status: plans 01–04 done** (runtime, store, modules, tools, prompt and the tasks module; people is a stub until plan 05, which also adds person and group to task `about` links, and `src/temp-ui/` is a stand-in page until plan 06). The plans in `plans/` are executed in order; see `README.md`. If you were given one plan, read these first, in this order:
+**Status: plans 01–05 done** (runtime, store, modules, tools, prompt, and the tasks and people modules; `src/temp-ui/` is a stand-in page until plan 06). The plans in `plans/` are executed in order; see `README.md`. If you were given one plan, read these first, in this order:
 
 1. This file.
 2. `plans/00-architecture.md` (the design and why).

@@ -200,6 +200,24 @@ export const scenarios = [
     },
   },
   {
+    name: "tasks 13: a task about someone in the roster links to them",
+    setup: [
+      areas,
+      "John Miller is our neighbor; he lives next door with his wife Jane.",
+    ],
+    messages: ["Text John back about Saturday"],
+    check(state) {
+      const john = state.nodes.find(
+        (n) => n.type === "person" && /john/i.test(n.title),
+      );
+      const task = matching(state, /text|john/i).find(isOpen);
+      if (!task) return ["no open task to text John"];
+      return linksFrom(state, task, "about").includes(john?.id)
+        ? []
+        : ["task is not about John"];
+    },
+  },
+  {
     name: "tasks 14: a tapped task is completed, its parent untouched",
     setup: [
       areas,
@@ -223,4 +241,3 @@ export const scenarios = [
     },
   },
 ];
-// Scenario 13 (a task about John Miller) needs the people module; plan 05 adds it.

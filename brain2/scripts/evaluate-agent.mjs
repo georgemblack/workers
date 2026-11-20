@@ -79,7 +79,7 @@ try {
         if (response.status !== 202)
           throw new Error(`Message rejected: ${response.status}`);
         const result = await app.wait(id);
-        replies.push({ text, reply: result.result.text ?? "" });
+        replies.push({ id, text, reply: result.result.text ?? "" });
       };
       for (const text of scenario.setup ?? []) await say(text);
       for (const text of scenario.messages) await say(text);
@@ -89,6 +89,7 @@ try {
           props: JSON.parse(node.props),
         })),
         links: await rows("SELECT * FROM links"),
+        changes: await rows("SELECT id, target_id, source_id FROM changes"),
         entries: await rows(
           "SELECT e.*, group_concat(en.node_id) AS node_ids FROM entries e JOIN entry_nodes en ON en.entry_id = e.id WHERE e.deleted = 0 GROUP BY e.id",
         ),
