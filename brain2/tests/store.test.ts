@@ -160,11 +160,16 @@ describe("captures", () => {
     expect(store.conversation()[1].result.text).toBe("Noted.");
   });
   it("keeps hidden captures out of the conversation and stores refs", () => {
-    store.capture("m2", { ...message, refs: ["task_abc"] });
+    const task = create("task", { title: "Renew passport" });
+    store.capture("m2", {
+      ...message,
+      refs: [task.id, "task_missing", task.id],
+    });
     db.prepare("UPDATE captures SET hidden = 1 WHERE id = 'm1'").run();
     const messages = store.conversation();
     expect(messages.map((m) => m.id)).toEqual(["m2"]);
-    expect(messages[0].refs).toEqual(["task_abc"]);
+    // Unknown and repeated refs are dropped.
+    expect(messages[0].refs).toEqual([task.id]);
   });
 });
 
@@ -175,7 +180,7 @@ describe("migrations", () => {
     expect(reopened.deliveries()).toEqual([{ id: "m1", state: "pending" }]);
     expect(
       db.prepare("SELECT value FROM meta WHERE key = 'schema'").get(),
-    ).toEqual({ value: "2" });
+    ).toEqual({ value: "3" });
     // Reopening again changes nothing and keeps existing data.
     open(db);
     expect(reopened.search("passport").messages).toHaveLength(1);
@@ -586,10 +591,11 @@ describe("import", () => {
     expect(store.changesFor("legacy-garden", 5)).toHaveLength(1);
   });
   it("refuses an existing ID but updates the profile in place", () => {
-    // Plan 03's migration creates the profile; stand in for it here.
-    db.prepare(
-      "INSERT INTO nodes VALUES ('profile','profile','About me','','active','{}',1,'2026-11-01','2026-11-01','m1')",
-    ).run();
+    // The migration creates the profile, so an import updates it.
+    expect(store.getNode("profile")).toMatchObject({
+      title: "About me",
+      version: 1,
+    });
     store.importAll(
       file([
         node("profile", "profile", "About me", {

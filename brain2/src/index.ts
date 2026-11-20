@@ -42,6 +42,22 @@ export default {
           { headers },
         );
       }
+      if (request.method === "GET" && url.pathname === "/api/state") {
+        const param = url.searchParams.get("rev");
+        const state = await agent.stateSnapshot(
+          param === null ? undefined : Number(param),
+        );
+        return state
+          ? Response.json(state, { headers })
+          : new Response(null, { status: 204, headers });
+      }
+      const node = url.pathname.match(/^\/api\/nodes\/([^/]+)$/);
+      if (request.method === "GET" && node) {
+        const detail = await agent.nodeDetail(decodeURIComponent(node[1]));
+        return detail
+          ? Response.json(detail, { headers })
+          : Response.json({ error: "Not found" }, { status: 404, headers });
+      }
       if (request.method === "GET" && url.pathname === "/api/diagnostics")
         return Response.json(await agent.diagnostics(), { headers });
       if (request.method === "POST" && url.pathname === "/api/messages") {

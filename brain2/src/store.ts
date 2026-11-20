@@ -89,6 +89,13 @@ const migrations = [
    CREATE INDEX changes_target ON changes(target_id, created_at);
    CREATE VIRTUAL TABLE search USING fts5(id UNINDEXED, kind UNINDEXED, text);
    INSERT INTO search (id, kind, text) SELECT id, 'message', text FROM captures WHERE hidden = 0;`,
+  // The profile always exists. Records the store creates itself cite the hidden "system" capture.
+  `INSERT OR IGNORE INTO captures (id,text,source,created_at,hidden)
+     VALUES ('system','Created by brain2','import',strftime('%Y-%m-%dT%H:%M:%fZ','now'),1);
+   INSERT OR IGNORE INTO nodes (id,type,title,body,status,props,version,created_at,updated_at,source_id)
+     VALUES ('profile','profile','About me','','active','{}',1,
+       strftime('%Y-%m-%dT%H:%M:%fZ','now'),strftime('%Y-%m-%dT%H:%M:%fZ','now'),'system');
+   INSERT INTO search (id,kind,text) VALUES ('profile','node','About me');`,
 ];
 
 const date = z.iso.date();
@@ -174,7 +181,12 @@ export class Store {
           id,
           input.text,
           input.source,
-          JSON.stringify(input.refs),
+          // Keep only refs to records that exist, at most five.
+          JSON.stringify(
+            [...new Set(input.refs)]
+              .filter((ref) => this.getNode(ref))
+              .slice(0, 5),
+          ),
           new Date().toISOString(),
         );
         this.sql.exec("INSERT INTO deliveries (id) VALUES (?)", id);
@@ -357,7 +369,7 @@ export class Store {
     patch: NodePatch;
     links?: Record<string, string[]>;
     expectedVersion: number;
-    sourceId: string;
+    sourceId: string | undefined;
     mutationId: string;
   }): NodeRecord {
     return this.transaction(() => {
@@ -554,7 +566,7 @@ export class Store {
     nodeIds?: string[];
     delete?: boolean;
     expectedVersion: number;
-    sourceId: string;
+    sourceId: string | undefined;
     mutationId: string;
   }): EntryRecord | { deleted: true } {
     return this.transaction(() => {
@@ -686,7 +698,7 @@ export class Store {
   mergeNodes(a: {
     keepId: string;
     removeId: string;
-    sourceId: string;
+    sourceId: string | undefined;
     mutationId: string;
   }): NodeRecord {
     return this.transaction(() => {
@@ -970,7 +982,10 @@ export class Store {
       throw new Error("Mutation ID already belongs to another change");
     return JSON.parse(row.after_data) as T;
   }
-  private requireSource(sourceId: string) {
+  private requireSource(
+    sourceId: string | undefined,
+  ): asserts sourceId is string {
+    if (!sourceId) throw new Error("No message is being processed");
     if (!this.getCapture(sourceId)) throw new Error("Unknown source message");
   }
   private requireType(name: string) {

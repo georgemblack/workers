@@ -7,6 +7,15 @@ import { Lifecycle } from "agents/lifecycle";
 import { Store, captureInput, type CaptureRow } from "./store";
 import { createBrainAI } from "./model";
 import { BackgroundWork } from "./background";
+import { modules, registry } from "./modules";
+import { toolsFor, nodeDetail } from "./tools";
+import { messageText, sections, today } from "./prompt";
+import { renderMarkdown } from "./markdown";
+import type {
+  ChatMessage,
+  NodeDetail,
+  StateResponse,
+} from "./shared/contracts";
 
 export interface Env {
   BRAIN: DurableObjectNamespace<Brain2>;
@@ -18,15 +27,11 @@ export interface Env {
   LOCAL_DEV?: string;
 }
 
-// Placeholder until plan 03 assembles the real prompt from modules.
-const preamble = "You are brain2. Reply briefly.";
-
 export class Brain2 extends DurableObject<Env> {
-  // No node types are registered until plan 03 adds the modules.
   store = new Store(
     this.ctx.storage.sql,
     (fn) => this.ctx.storage.transactionSync(fn),
-    { type: () => undefined },
+    registry,
   );
   ai = createBrainAI(this.env.AI, this.env.AI_GATEWAY);
   registry = createRegistry();
@@ -95,7 +100,7 @@ export class Brain2 extends DurableObject<Env> {
   private async submitCapture(capture: CaptureRow) {
     await this.ensureModel();
     const receipt = await this.harness.submit(
-      `Sent at: ${capture.created_at}\nTimezone: ${this.env.TIMEZONE}\nSource: ${capture.source}\n\n${capture.text}`,
+      messageText(this.store, capture, this.env.TIMEZONE),
       { operationId: capture.id },
     );
     this.store.accepted(capture.id);
@@ -105,16 +110,25 @@ export class Brain2 extends DurableObject<Env> {
   installExtension() {
     this.registry.install({
       name: "brain2",
-      tools: [],
-      sections: [
-        { key: "preamble", render: () => preamble, tag: false },
-        {
-          key: "clock",
-          render: () =>
-            `Today: ${new Date().toLocaleDateString("en-CA", { timeZone: this.env.TIMEZONE })}. User timezone: ${this.env.TIMEZONE}.`,
-        },
-      ],
+      tools: toolsFor({
+        store: this.store,
+        registry,
+        currentSource: () => this.currentSource(),
+        afterWrite: () => this.background.schedule(),
+      }),
+      sections: sections(this.store, modules, this.env),
     });
+  }
+  /**
+   * The message whose run is making a tool call. Pi runs one conversation, so
+   * this is the running operation; when a follow-up joined the same run, the
+   * newest one wins.
+   */
+  private async currentSource() {
+    const running = (await this.harness.pending()).filter(
+      (operation) => operation.status === "running",
+    );
+    return running.at(-1)?.operationId;
   }
 
   // Pi persists the model choice with its session. Defaults only affect new
@@ -145,6 +159,53 @@ export class Brain2 extends DurableObject<Env> {
   }
   conversationSnapshot() {
     return { messages: this.store.conversation() };
+  }
+  /** Everything the browser shows, or null when nothing changed since `rev`. */
+  stateSnapshot(rev?: number): StateResponse | null {
+    const current = this.store.rev();
+    if (rev === current) return null;
+    const date = today(this.env.TIMEZONE);
+    const views: Record<string, unknown> = {};
+    for (const module of modules)
+      if (module.title && module.view)
+        views[module.id] = module.view(this.store, date);
+    return {
+      rev: current,
+      messages: this.store.conversation().map((message): ChatMessage => {
+        const status = (
+          ["queued", "running", "done", "unanswered", "parked"].includes(
+            message.result.status,
+          )
+            ? message.result.status
+            : "queued"
+        ) as ChatMessage["status"];
+        return {
+          id: message.id,
+          text: message.text,
+          source: message.source as ChatMessage["source"],
+          created_at: message.created_at,
+          refs: message.refs
+            .map((id) => this.store.getNode(id))
+            .filter((node) => node !== null)
+            .map((node) => ({ id: node.id, title: node.title })),
+          status,
+          reply_html:
+            status === "done" && message.result.text
+              ? renderMarkdown(message.result.text)
+              : "",
+          ...(status === "unanswered"
+            ? { detail: message.result.detail ?? message.result.reason }
+            : {}),
+        };
+      }),
+      tabs: modules
+        .filter((module) => module.title && module.view)
+        .map((module) => ({ id: module.id, title: module.title! })),
+      views: views as StateResponse["views"],
+    };
+  }
+  nodeDetail(id: string): NodeDetail | null {
+    return nodeDetail(this.store, id);
   }
   diagnostics() {
     return this.store.diagnostics();

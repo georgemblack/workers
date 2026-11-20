@@ -10,7 +10,8 @@
     "typegen": "cf workers types",
     "check": "pnpm run build:client && tsc --noEmit",
     "test": "pnpm run build:client && vitest run",
-    "format": "prettier --write src tests scripts cloudflare.config.ts tsconfig.json package.json README.md AGENTS.md"
+    "format": "prettier --write src tests scripts cloudflare.config.ts tsconfig.json package.json README.md AGENTS.md",
+    "test:agent": "node --experimental-strip-types scripts/evaluate-agent.mjs"
   },
   "dependencies": {
     "@earendil-works/chord": "~1.4.0",
