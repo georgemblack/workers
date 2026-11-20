@@ -22,8 +22,11 @@ export interface Env {
 const preamble = "You are brain2. Reply briefly.";
 
 export class Brain2 extends DurableObject<Env> {
-  store = new Store(this.ctx.storage.sql, (fn) =>
-    this.ctx.storage.transactionSync(fn),
+  // No node types are registered until plan 03 adds the modules.
+  store = new Store(
+    this.ctx.storage.sql,
+    (fn) => this.ctx.storage.transactionSync(fn),
+    { type: () => undefined },
   );
   ai = createBrainAI(this.env.AI, this.env.AI_GATEWAY);
   registry = createRegistry();
