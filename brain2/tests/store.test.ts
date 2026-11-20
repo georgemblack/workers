@@ -531,6 +531,34 @@ describe("search", () => {
       messages: [],
     });
   });
+  it("matches words written with or without punctuation", () => {
+    const note = create("task", {
+      title: "Reset Wi\u2011Fi router",
+      body: "Call the e-mail helpdesk",
+    });
+    const entry = addEntry([note.id], "Bought a U.S. plug adapter");
+    store.capture("m2", { ...message, text: "is the wi-fi fixed" });
+    expect(store.search("wifi").nodes.map((n) => n.id)).toEqual([note.id]);
+    expect(store.search("Wi-Fi").nodes.map((n) => n.id)).toEqual([note.id]);
+    expect(store.search("email").nodes.map((n) => n.id)).toEqual([note.id]);
+    expect(store.search("US adapter").entries.map((e) => e.id)).toEqual([
+      entry.id,
+    ]);
+    expect(store.search("wifi").messages.map((m) => m.id)).toEqual(["m2"]);
+  });
+  it("rebuilds search rows written before joined forms were indexed", () => {
+    const note = create("task", { title: "Wi-Fi password" });
+    db.prepare("UPDATE search SET text = 'Wi-Fi password' WHERE id = ?").run(
+      note.id,
+    );
+    db.prepare("DELETE FROM meta WHERE key = 'search'").run();
+    expect(store.search("wifi").nodes).toEqual([]);
+    expect(
+      open(db)
+        .store.search("wifi")
+        .nodes.map((n) => n.id),
+    ).toEqual([note.id]);
+  });
   it("uses each type's extra search text and follows renames", () => {
     const jane = create("person", {
       title: "Jane Okafor",

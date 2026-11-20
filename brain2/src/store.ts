@@ -110,6 +110,20 @@ export function newId(prefix: string) {
   return prefix + "_" + [...bytes].map((b) => alphabet[b % 36]).join("");
 }
 
+/**
+ * Adds the joined form of words split by punctuation ("Wi-Fi" also becomes
+ * "WiFi"), so a search for "wifi" finds them. Search splits on punctuation.
+ */
+export function searchable(text: string) {
+  const joined = (
+    text.match(/[\p{L}\p{N}]+(?:[^\s\p{L}\p{N}][\p{L}\p{N}]+)+/gu) ?? []
+  ).map((word) => word.replace(/[^\p{L}\p{N}]/gu, ""));
+  return [text, ...new Set(joined)].join("\n");
+}
+
+// Bump when the way search text is built changes; existing rows get rebuilt.
+const searchVersion = "2";
+
 /** Turns free text into a safe FTS5 query: any of the words, each quoted. */
 export function ftsQuery(query: string) {
   return (query.match(/[\p{L}\p{N}]+/gu) ?? [])
@@ -125,6 +139,7 @@ export class Store {
     readonly registry: TypeRegistry,
   ) {
     this.migrate();
+    this.rebuildSearch();
     // Any capture without a delivery row (for example, one stored just before
     // the object was evicted) gets one, so background work picks it up.
     sql.exec(
@@ -143,6 +158,35 @@ export class Store {
       if (applied < migrations.length)
         this.setMeta("schema", String(migrations.length));
     });
+  }
+  /** Rebuilds every search row once after the way search text is built changes. */
+  private rebuildSearch() {
+    if (this.meta("search") === searchVersion) return;
+    this.transaction(() => {
+      this.sql.exec("DELETE FROM search");
+      for (const row of this.sql
+        .exec<{
+          id: string;
+          text: string;
+        }>("SELECT id,text FROM captures WHERE hidden = 0")
+        .toArray())
+        this.index(row.id, "message", row.text);
+      for (const row of this.sql.exec<NodeRow>("SELECT * FROM nodes").toArray())
+        this.indexNode(this.toNode(row));
+      for (const row of this.sql
+        .exec<{ id: string }>("SELECT id FROM entries WHERE deleted = 0")
+        .toArray())
+        this.indexEntry(row.id);
+      this.setMeta("search", searchVersion);
+    });
+  }
+  private index(id: string, kind: "message" | "node" | "entry", text: string) {
+    this.sql.exec(
+      "INSERT INTO search (id,kind,text) VALUES (?,?,?)",
+      id,
+      kind,
+      searchable(text),
+    );
   }
   private meta(key: string) {
     return this.sql
@@ -190,11 +234,7 @@ export class Store {
           new Date().toISOString(),
         );
         this.sql.exec("INSERT INTO deliveries (id) VALUES (?)", id);
-        this.sql.exec(
-          "INSERT INTO search (id,kind,text) VALUES (?,'message',?)",
-          id,
-          input.text,
-        );
+        this.index(id, "message", input.text);
         this.bumpRev();
       }
     });
@@ -522,9 +562,9 @@ export class Store {
   private indexNode(record: NodeRecord) {
     const extra = this.registry.type(record.type)?.searchText?.(record) ?? "";
     this.sql.exec("DELETE FROM search WHERE id=? AND kind='node'", record.id);
-    this.sql.exec(
-      "INSERT INTO search (id,kind,text) VALUES (?,'node',?)",
+    this.index(
       record.id,
+      "node",
       [record.title, record.body, extra].filter(Boolean).join("\n"),
     );
   }
@@ -651,11 +691,7 @@ export class Store {
     const entry = this.getEntry(id);
     if (!entry) return;
     const titles = entry.node_ids.map((nodeId) => this.getNode(nodeId)?.title);
-    this.sql.exec(
-      "INSERT INTO search (id,kind,text) VALUES (?,'entry',?)",
-      id,
-      [entry.text, ...titles].filter(Boolean).join("\n"),
-    );
+    this.index(id, "entry", [entry.text, ...titles].filter(Boolean).join("\n"));
   }
   private reindexEntriesOf(nodeId: string) {
     for (const row of this.sql
