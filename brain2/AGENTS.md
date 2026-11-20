@@ -2,7 +2,7 @@
 
 Personal Cloudflare Worker: a chat-driven organizer for tasks, people, and later other areas of life. It is a ground-up rebuild of `../brain`. All work for brain2 stays in this directory.
 
-**Status: not implemented yet.** The plans in `plans/` are executed in order; see `README.md`. If you were given one plan, read these first, in this order:
+**Status: plan 01 done** (scaffold and runtime: messages get a model reply, no tools yet; `src/temp-ui/` is a stand-in page). The plans in `plans/` are executed in order; see `README.md`. If you were given one plan, read these first, in this order:
 
 1. This file.
 2. `plans/00-architecture.md` (the design and why).
@@ -65,4 +65,4 @@ brain2/
 - TypeScript, strict. Same formatting and test tooling as `../brain` (Prettier, Vitest, Node's built-in SQLite for store tests, Miniflare for integration).
 - Code comments: few, plain language, written for someone new to the codebase who knows what the project is for.
 - When a plan says "port from brain", copy the named file and change only what the plan lists. Keep the behaviour the brain tests check.
-- Commit only when George asks. One plan per branch/PR is the expected unit.
+- Commit only when George asks. Work is committed and pushed directly to `master`, not to branches or PRs.

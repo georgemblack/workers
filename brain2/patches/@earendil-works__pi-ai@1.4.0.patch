@@ -1,0 +1,15 @@
+diff --git a/dist/api/openai-responses-shared.js b/dist/api/openai-responses-shared.js
+index b7b27ca98c8f4069a806a01913632a2d9200379c..fc0bbcf6c893b8da6b23468b5c3bfbe74801acf8 100644
+--- a/dist/api/openai-responses-shared.js
++++ b/dist/api/openai-responses-shared.js
+@@ -705,7 +705,9 @@ export async function processResponsesStream(openaiStream, output, stream, model
+             finalizeResponse(event.response);
+         }
+         else if (event.type === "error") {
+-            throw new Error(`Error Code ${event.code}: ${event.message}` || "Unknown error");
++            // OpenAI nests the code and message under `error`, e.g. for rate limits.
++            const error = event.error ?? event;
++            throw new Error(`Error Code ${error.code}: ${error.message}` || "Unknown error");
+         }
+         else if (event.type === "response.failed") {
+             sawTerminalResponseEvent = true;

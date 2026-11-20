@@ -1,0 +1,9 @@
+allowBuilds:
+  esbuild: true
+  workerd: true
+  '@google/genai': false
+  core-js-pure: false
+  protobufjs: false
+patchedDependencies:
+  '@earendil-works/pi-ai@1.4.0': patches/@earendil-works__pi-ai@1.4.0.patch
+  agents@0.32.0: patches/agents@0.32.0.patch

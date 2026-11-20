@@ -1,0 +1,14 @@
+diff --git a/dist/harness/pi/index.js b/dist/harness/pi/index.js
+index 6de9b559e5e5a6ac7d95c419c55386afe32e032b..73b4d69bcd69a2b1b84ba8554d926d89c28e5ebe 100644
+--- a/dist/harness/pi/index.js
++++ b/dist/harness/pi/index.js
+@@ -514,7 +514,8 @@ async function _result(session, operationId, settled, context) {
+ 		operationId,
+ 		session,
+ 		status: "unanswered",
+-		reason: settled.reason
++		reason: settled.reason,
++		...settled.detail === void 0 ? {} : { detail: settled.detail }
+ 	};
+ 	if (settled.type !== "input") return {
+ 		operationId,
