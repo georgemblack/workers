@@ -92,7 +92,9 @@ it("stores a family met at the park and shows it nested on the dashboard", async
     "people-1",
     "I met one of my neighbors at the park today, said her name was Jane",
   );
-  expect((await app.wait("people-1")).result.text).toBe("Saved the Millers.");
+  expect((await app.wait("people-1")).reply_html).toContain(
+    "Saved the Millers.",
+  );
   const { views } = await app.json("/api/state");
   expect(
     views.people.circles.map((c) => ({

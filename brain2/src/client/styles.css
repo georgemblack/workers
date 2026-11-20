@@ -1,0 +1,373 @@
+:root {
+  color-scheme: light dark;
+  font:
+    15px/1.6 system-ui,
+    sans-serif;
+  --bg: #fff;
+  --text: #262626;
+  --muted: #737373;
+  --line: #e5e5e5;
+  --accent: #9b8157;
+  --error: #b95043;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #191919;
+    --text: #e5e5e5;
+    --muted: #a3a3a3;
+    --line: #353535;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+button,
+input,
+textarea {
+  color: inherit;
+  font: inherit;
+}
+input,
+textarea {
+  font-size: 16px;
+}
+button {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--bg);
+  padding: 5px 10px;
+}
+button:hover {
+  border-color: var(--muted);
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+a:focus-visible,
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 3px;
+}
+
+/* Desktop: chat on the left third, dashboard on the right two thirds. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 2fr;
+  height: 100dvh;
+}
+.layout .pane {
+  min-height: 0;
+  overflow-y: auto;
+}
+.layout .chat-pane {
+  border-right: 1px solid var(--line);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.layout .board {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 32px;
+}
+
+/* Mobile: one pane at a time, with a toggle fixed to the bottom. */
+.mobile .pane {
+  padding: 20px 16px calc(64px + env(safe-area-inset-bottom));
+  min-height: 100dvh;
+}
+.mobile .chat-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+.toggle {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 8px;
+  padding: 0 16px env(safe-area-inset-bottom);
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.toggle button {
+  flex: 1;
+  height: 44px;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted);
+}
+.toggle button.active {
+  color: var(--text);
+  box-shadow: inset 0 2px 0 var(--text);
+}
+
+/* Chat */
+.chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+.message {
+  margin: 0 0 24px;
+}
+.message-text {
+  width: fit-content;
+  max-width: 90%;
+  margin-left: auto;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--line);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.speaker,
+.empty,
+.meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+.speaker {
+  margin-bottom: 4px;
+}
+.speaker.mine {
+  text-align: right;
+}
+.message-text + .speaker.mine {
+  margin: 4px 0 0;
+}
+.reply {
+  margin-top: 14px;
+}
+.error {
+  color: var(--error);
+  white-space: pre-wrap;
+  margin-bottom: 12px;
+}
+.retry {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+.composer {
+  margin-top: 16px;
+}
+.composer textarea {
+  display: block;
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.composer button[type="submit"] {
+  margin-top: 8px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  padding: 1px 4px 1px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.chip button {
+  border: 0;
+  padding: 0 6px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* Replies are Markdown. */
+.markdown {
+  overflow-wrap: anywhere;
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+.markdown p,
+.markdown ul,
+.markdown ol,
+.markdown pre,
+.markdown blockquote {
+  margin: 0 0 12px;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  font-size: 1em;
+  margin: 16px 0 8px;
+}
+.markdown a {
+  color: inherit;
+  text-decoration: underline;
+}
+.markdown pre {
+  overflow-x: auto;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  white-space: pre;
+}
+.markdown code {
+  font-size: 0.9em;
+}
+.markdown blockquote {
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+  color: var(--muted);
+}
+.markdown table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+.markdown th,
+.markdown td {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+/* Dashboard */
+.tabs {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.tab {
+  border: 0;
+  border-radius: 0;
+  padding: 4px 0;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+.tab.active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+.section {
+  margin: 0 0 36px;
+}
+.section h2 {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0 0 6px;
+}
+.priorities {
+  padding: 16px 20px 6px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+}
+@media (max-width: 480px) {
+  .priorities {
+    padding: 14px 14px 4px;
+  }
+}
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.section > .items > .item,
+.household > .items > .item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.section > .items > .item:last-child,
+.household > .items > .item:last-child {
+  border-bottom: 0;
+}
+/* Sub-rows hang beneath their parent on a thin guide line. */
+.item .items {
+  margin: 6px 0 0 2px;
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}
+.item .item {
+  padding: 3px 0;
+  font-size: 14px;
+}
+/* Row titles are buttons (tap to refer in chat) that look like text. */
+.pick,
+.back {
+  display: block;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.pick:hover {
+  text-decoration: underline;
+}
+.title {
+  overflow-wrap: anywhere;
+}
+.household {
+  margin-top: 12px;
+}
+.subheading {
+  font-size: 13px;
+  color: var(--muted);
+}
+.filter {
+  width: 100%;
+  margin-bottom: 24px;
+  padding: 6px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.detail h1 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 16px 0 0;
+}
+.detail .body {
+  margin: 12px 0 28px;
+}
+.back {
+  color: var(--muted);
+  font-size: 13px;
+}
+.facts {
+  margin: 0;
+  padding-left: 20px;
+}

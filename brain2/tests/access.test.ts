@@ -90,12 +90,12 @@ it("limits service tokens to sending messages", async () => {
   expect(await guard(post("/api/messages"), env, as())).toBeNull();
   expect((await guard(post("/api/retry"), env, as()))!.status).toBe(403);
   expect(
-    (await guard(new Request("https://brain2.example/api/chat"), env, as()))!
+    (await guard(new Request("https://brain2.example/api/state"), env, as()))!
       .status,
   ).toBe(403);
   expect(
     await guard(
-      new Request("https://brain2.example/api/chat"),
+      new Request("https://brain2.example/api/state"),
       env,
       as("owner@example.test"),
     ),

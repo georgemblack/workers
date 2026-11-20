@@ -86,19 +86,18 @@ export async function createRuntime(respond) {
       );
     return response.json();
   }
+  // Waits for a message to finish and returns it as /api/state shows it.
   async function wait(id, timeout = 120000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
-      const state = await json("/api/chat");
+      const state = await json("/api/state");
       const message = state.messages.find((m) => m.id === id);
       if (
         message &&
-        ["done", "unanswered", "parked"].includes(message.result.status)
+        ["done", "unanswered", "parked"].includes(message.status)
       ) {
-        if (message.result.status !== "done")
-          throw new Error(
-            "Operation failed: " + JSON.stringify(message.result),
-          );
+        if (message.status !== "done")
+          throw new Error("Operation failed: " + JSON.stringify(message));
         return message;
       }
       await new Promise((resolve) => setTimeout(resolve, 250));

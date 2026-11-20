@@ -4,14 +4,39 @@
     {
       "name": "terminal",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "terminal", "run", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "terminal",
+        "run",
+        "dev"
+      ],
       "port": 8787
     },
     {
       "name": "brain2",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--dir", "brain2", "run", "dev", "--port", "8788"],
+      "runtimeArgs": [
+        "--dir",
+        "brain2",
+        "run",
+        "dev",
+        "--port",
+        "8788"
+      ],
       "port": 8788
+    },
+    {
+      "name": "brain2-wrangler",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "brain2",
+        "run",
+        "dev:wrangler",
+        "--port",
+        "8792"
+      ],
+      "port": 8792
     }
   ]
 }

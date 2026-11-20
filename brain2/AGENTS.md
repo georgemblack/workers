@@ -2,7 +2,7 @@
 
 Personal Cloudflare Worker: a chat-driven organizer for tasks, people, and later other areas of life. It is a ground-up rebuild of `../brain`. All work for brain2 stays in this directory.
 
-**Status: plans 01–05 done** (runtime, store, modules, tools, prompt, and the tasks and people modules; `src/temp-ui/` is a stand-in page until plan 06). The plans in `plans/` are executed in order; see `README.md`. If you were given one plan, read these first, in this order:
+**Status: plans 01–06 done** (runtime, store, modules, tools, prompt, tasks, people and the UI; plan 07, migration and cutover, is next). The plans in `plans/` are executed in order; see `README.md`. If you were given one plan, read these first, in this order:
 
 1. This file.
 2. `plans/00-architecture.md` (the design and why).
@@ -32,6 +32,7 @@ Use `pnpm` and the package scripts, never `npm`/`npx` or bare `cf`/`wrangler`.
 - `pnpm run test` — store, view and workerd integration tests (no paid requests)
 - `pnpm run dryrun` — bundle and validate without deploying
 - `pnpm run dev` — local Worker; copy `.dev.vars.example` to `.dev.vars` first
+- `pnpm run dev:wrangler` — local Worker through Wrangler directly, under the name `brain2-dev`. Use it when `cf dev` stops at "Establishing remote connection": remote bindings connect through the Worker's `workers.dev` hostname, which Access protects for `brain2`.
 - `pnpm run build:client` — bundle the browser app (run automatically by the scripts above)
 - `pnpm run format` — Prettier
 

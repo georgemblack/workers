@@ -79,7 +79,12 @@ try {
         if (response.status !== 202)
           throw new Error(`Message rejected: ${response.status}`);
         const result = await app.wait(id);
-        replies.push({ id, text, reply: result.result.text ?? "" });
+        // Replies come back as HTML; checks read them as plain text.
+        replies.push({
+          id,
+          text,
+          reply: result.reply_html.replace(/<[^>]+>/g, ""),
+        });
       };
       for (const text of scenario.setup ?? []) await say(text);
       for (const text of scenario.messages) await say(text);

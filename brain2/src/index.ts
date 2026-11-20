@@ -1,10 +1,28 @@
 import { guard, securityHeaders } from "./guard";
 import { ZodError } from "zod";
 import { Brain2, type Env } from "./agent";
-import { page } from "./temp-ui/ui";
-import { renderMarkdown } from "./markdown";
+import { script, styles } from "./generated/client";
 import { captureInput } from "./store";
 export { Brain2 };
+
+// The app shell. Everything else is loaded from /app.js and /app.css, so the
+// page needs no inline script or style.
+const shell = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>brain</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<div id="app"></div>
+</body>
+</html>`;
+const csp =
+  "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
 
 export default {
   async fetch(
@@ -19,29 +37,24 @@ export default {
     const agent = env.BRAIN.getByName("personal");
     try {
       if (request.method === "GET" && url.pathname === "/")
-        return new Response(page, {
+        return new Response(shell, {
           headers: {
             ...headers,
             "Content-Type": "text/html; charset=utf-8",
-            "Content-Security-Policy":
-              "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+            "Content-Security-Policy": csp,
           },
         });
-      // Temporary: feeds the temporary chat page until plan 06 adds /api/state.
-      if (request.method === "GET" && url.pathname === "/api/chat") {
-        const state = await agent.conversationSnapshot();
-        return Response.json(
-          {
-            messages: state.messages.map((message) => ({
-              ...message,
-              html: message.result.text
-                ? renderMarkdown(message.result.text)
-                : "",
-            })),
+      if (request.method === "GET" && url.pathname === "/app.js")
+        return new Response(script, {
+          headers: {
+            ...headers,
+            "Content-Type": "text/javascript; charset=utf-8",
           },
-          { headers },
-        );
-      }
+        });
+      if (request.method === "GET" && url.pathname === "/app.css")
+        return new Response(styles, {
+          headers: { ...headers, "Content-Type": "text/css; charset=utf-8" },
+        });
       if (request.method === "GET" && url.pathname === "/api/state") {
         const param = url.searchParams.get("rev");
         const state = await agent.stateSnapshot(

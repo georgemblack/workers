@@ -58,7 +58,7 @@ afterAll(async () => {
 it("shows a task with a sub-task under its area on the dashboard", async () => {
   await app.send("tasks-1", "I need to plan the garden beds and buy seeds");
   const message = await app.wait("tasks-1");
-  expect(message.result.text).toBe("Added.");
+  expect(message.reply_html).toContain("Added.");
   const state = await app.json("/api/state");
   expect(state.views.tasks.areas).toEqual([
     {

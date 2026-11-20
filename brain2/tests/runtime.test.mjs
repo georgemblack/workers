@@ -18,11 +18,11 @@ afterAll(async () => {
 it("replies to a message once and serves side-effect-free reads", async () => {
   const receipt = await app.send("runtime-one", "Renew passport");
   expect(receipt.accepted).toBe(true);
-  expect((await app.wait("runtime-one")).html).toContain(
+  expect((await app.wait("runtime-one")).reply_html).toContain(
     "<strong>Echo:</strong> Renew passport",
   );
   const count = calls;
-  for (let i = 0; i < 3; i++) await app.json("/api/chat");
+  for (let i = 0; i < 3; i++) await app.json("/api/state");
   expect(calls).toBe(count);
   expect((await app.send("runtime-one", "Renew passport")).accepted).toBe(
     false,
@@ -56,7 +56,7 @@ it("returns stable HTTP errors and requires Access off localhost", async () => {
   expect(
     (
       await app.runtime.dispatchFetch(
-        "https://unauthenticated.example/api/chat",
+        "https://unauthenticated.example/api/state",
       )
     ).status,
   ).toBe(403);
@@ -80,5 +80,32 @@ it("recovers a stored message that was never submitted, after eviction", async (
   });
   // Any request wakes the object; startup finds the unsubmitted message.
   await app.send("runtime-one", "Renew passport");
-  expect((await app.wait("runtime-gap", 30000)).html).toContain("Fix bike");
+  expect((await app.wait("runtime-gap", 30000)).reply_html).toContain(
+    "Fix bike",
+  );
 }, 60000);
+
+it("serves the app without inline code, behind Access, with a strict CSP", async () => {
+  const page = await app.request("/");
+  const html = await page.text();
+  expect(page.headers.get("Content-Security-Policy")).toBe(
+    "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+  );
+  expect(html).toContain('<script src="/app.js" defer></script>');
+  expect(html).not.toMatch(/<script>|<style>|style=/);
+  const script = await app.request("/app.js");
+  expect(script.headers.get("Content-Type")).toContain("text/javascript");
+  expect((await script.text()).length).toBeGreaterThan(1000);
+  const css = await app.request("/app.css");
+  expect(css.headers.get("Content-Type")).toContain("text/css");
+  expect(await css.text()).toContain("--accent");
+  for (const path of ["/", "/app.js", "/app.css"])
+    expect(
+      (
+        await app.runtime.dispatchFetch(
+          "https://unauthenticated.example" + path,
+        )
+      ).status,
+    ).toBe(403);
+  expect((await app.request("/api/chat")).status).toBe(404);
+});

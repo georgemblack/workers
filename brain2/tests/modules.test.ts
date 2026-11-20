@@ -6,7 +6,7 @@ import { Store, type SQL } from "../src/store";
 import { createRegistry, modules, registry } from "../src/modules";
 import type { Module } from "../src/modules/types";
 import { toolsFor, type ToolContext } from "../src/tools";
-import { sections } from "../src/prompt";
+import { localTime, sections } from "../src/prompt";
 
 function openStore(reg = registry) {
   const db = new DatabaseSync(":memory:");
@@ -166,4 +166,11 @@ it("keeps the assembled prompt under 40,000 characters with 300 notes", async ()
   expect(text.length).toBeLessThan(40_000);
   // The note index is capped at 100 titles.
   expect(text.match(/garage code/g)).toHaveLength(100);
+});
+
+it("gives message times in the user's own timezone", () => {
+  // 03:14 UTC on Nov 20 is still the evening of Nov 19 in Chicago.
+  expect(localTime("2026-11-20T03:14:00.000Z", "America/Chicago")).toBe(
+    "2026-11-19 21:14 (Thursday)",
+  );
 });

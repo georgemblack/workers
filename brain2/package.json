@@ -5,6 +5,7 @@
   "scripts": {
     "build:client": "node scripts/build-client.mjs",
     "dev": "pnpm run build:client && cf dev",
+    "dev:wrangler": "pnpm run build:client && node scripts/dev-wrangler.mjs",
     "deploy": "pnpm run build:client && cf deploy",
     "dryrun": "pnpm run build:client && cf deploy --dry-run",
     "typegen": "cf workers types",

@@ -157,9 +157,6 @@ export class Brain2 extends DurableObject<Env> {
     const receipt = await this.submitCapture(this.store.getCapture(id));
     return { id, accepted: receipt.accepted };
   }
-  conversationSnapshot() {
-    return { messages: this.store.conversation() };
-  }
   /** Everything the browser shows, or null when nothing changed since `rev`. */
   stateSnapshot(rev?: number): StateResponse | null {
     const current = this.store.rev();

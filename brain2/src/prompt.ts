@@ -59,6 +59,29 @@ export function sections(
   ];
 }
 
+/**
+ * A timestamp as the user's local date, time and weekday, such as
+ * "2026-11-19 21:14 (Thursday)". The model dates things from this, so it must
+ * not be UTC, which is already tomorrow on a US evening.
+ */
+export function localTime(iso: string, timezone: string) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+      weekday: "long",
+    })
+      .formatToParts(new Date(iso))
+      .map((part) => [part.type, part.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute} (${parts.weekday})`;
+}
+
 /** The text handed to Pi for one message, with any records the user pointed at. */
 export function messageText(
   store: Store,
@@ -70,7 +93,7 @@ export function messageText(
     .filter((node) => node !== null)
     .map((node) => `Refers to: "${node.title}" (${node.id})`);
   return [
-    `Sent at: ${capture.created_at}`,
+    `Sent at: ${localTime(capture.created_at, timezone)}`,
     `Timezone: ${timezone}`,
     `Source: ${capture.source}`,
     ...refs,
