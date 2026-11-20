@@ -94,7 +94,10 @@ try {
           props: JSON.parse(node.props),
         })),
         links: await rows("SELECT * FROM links"),
-        changes: await rows("SELECT id, target_id, source_id FROM changes"),
+        // created is 1 when the change made a new record.
+        changes: await rows(
+          "SELECT id, target, target_id, source_id, before_data IS NULL AS created FROM changes",
+        ),
         entries: await rows(
           "SELECT e.*, group_concat(en.node_id) AS node_ids FROM entries e JOIN entry_nodes en ON en.entry_id = e.id WHERE e.deleted = 0 GROUP BY e.id",
         ),

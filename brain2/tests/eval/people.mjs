@@ -16,6 +16,19 @@ const linked = (state, from, rel, to) =>
 const entryNodes = (entry) => entry.node_ids.split(",");
 const entriesOn = (state, node) =>
   state.entries.filter((e) => node && entryNodes(e).includes(node.id));
+// Titles of records (not entries) the message with this reply index created.
+const created = (state, index) =>
+  state.changes
+    .filter(
+      (c) =>
+        c.source_id === state.replies.at(index).id &&
+        c.target === "node" &&
+        c.created,
+    )
+    .map(
+      (c) =>
+        state.nodes.find((n) => n.id === c.target_id)?.title ?? c.target_id,
+    );
 // True when the message with this reply index wrote anything.
 const wrote = (state, index) =>
   state.changes.some((c) => c.source_id === state.replies.at(index).id);
@@ -80,12 +93,8 @@ export const scenarios = [
     ],
     check(state) {
       const problems = [];
-      if (ofType(state, "person").length !== 4)
-        problems.push("people were added");
-      if (ofType(state, "group").length !== 2)
-        problems.push("groups were added");
-      if (ofType(state, "followup").length || ofType(state, "task").length)
-        problems.push("created a follow-up or task");
+      const added = created(state, -1);
+      if (added.length) problems.push(`created ${added.join(", ")}`);
       const kids = state.entries.filter((e) => /kids|children/i.test(e.text));
       if (kids.length !== 1 || !kids[0].occurred_on)
         problems.push(
@@ -148,13 +157,13 @@ export const scenarios = [
     messages: ["Ran into Jon and Jayne from next door"],
     check(state) {
       const problems = [];
-      if (ofType(state, "person").length !== 4)
-        problems.push(`people count is ${ofType(state, "person").length}`);
+      const added = created(state, -1);
+      if (added.length) problems.push(`created ${added.join(", ")}`);
       const aliases = (p) =>
         (p?.props.aliases ?? []).map((a) => a.toLowerCase());
-      if (!aliases(one(state, /^jo/i)).includes("jon"))
+      if (!aliases(one(state, /^john\b/i)).includes("jon"))
         problems.push("John has no Jon alias");
-      if (!aliases(one(state, /^ja/i)).includes("jayne"))
+      if (!aliases(one(state, /^jane\b/i)).includes("jayne"))
         problems.push("Jane has no Jayne alias");
       return problems;
     },
@@ -174,7 +183,9 @@ export const scenarios = [
   {
     name: "people 7: two records for one person are merged",
     setup: [park, "Add a new person named John M., someone I met at the gym."],
-    messages: ["Actually John M. and John Miller are the same person"],
+    messages: [
+      "Actually John M. is my neighbor John, Jane's husband. They're the same person.",
+    ],
     check(state) {
       const johns = named(state, /john/i);
       if (johns.length !== 1)
