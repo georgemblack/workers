@@ -11,7 +11,8 @@ export const scenarios = [
       const notes = nodes.filter((n) => n.type === "note");
       if (notes.length !== 1)
         problems.push(`expected 1 note, got ${notes.length}`);
-      if (!notes.some((n) => /wifi/i.test(n.title + n.body)))
+      // The model may write "Wi-Fi" with any hyphen.
+      if (!notes.some((n) => /wi\W?fi/i.test(n.title + n.body)))
         problems.push("note does not mention the wifi");
       if (nodes.some((n) => n.type !== "note" && n.type !== "profile"))
         problems.push("created something other than a note");
