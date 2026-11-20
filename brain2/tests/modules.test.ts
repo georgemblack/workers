@@ -78,6 +78,10 @@ it("generates the expected tools and schemas", () => {
     "create_note",
     "update_note",
     "update_profile",
+    "create_task",
+    "update_task",
+    "create_area",
+    "update_area",
   ]);
   // Schema changes should show up in review.
   expect(

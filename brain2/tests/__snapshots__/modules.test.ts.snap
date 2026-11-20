@@ -37,6 +37,30 @@ exports[`generates the expected tools and schemas 1`] = `
     ],
     "type": "object",
   },
+  "create_area": {
+    "properties": {
+      "body": {
+        "maxLength": 12000,
+        "type": "string",
+      },
+      "status": {
+        "enum": [
+          "active",
+          "archived",
+        ],
+        "type": "string",
+      },
+      "title": {
+        "maxLength": 300,
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "title",
+    ],
+    "type": "object",
+  },
   "create_note": {
     "properties": {
       "body": {
@@ -47,6 +71,90 @@ exports[`generates the expected tools and schemas 1`] = `
         "enum": [
           "active",
           "archived",
+        ],
+        "type": "string",
+      },
+      "title": {
+        "maxLength": 300,
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "title",
+    ],
+    "type": "object",
+  },
+  "create_task": {
+    "properties": {
+      "body": {
+        "maxLength": 12000,
+        "type": "string",
+      },
+      "due_date": {
+        "anyOf": [
+          {
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "type": "string",
+          },
+          {
+            "type": "null",
+          },
+        ],
+        "default": null,
+      },
+      "due_label": {
+        "anyOf": [
+          {
+            "maxLength": 40,
+            "type": "string",
+          },
+          {
+            "type": "null",
+          },
+        ],
+        "default": null,
+      },
+      "links": {
+        "properties": {
+          "about": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+          "in_area": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+          "parent": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+        },
+        "type": "object",
+      },
+      "priority": {
+        "default": "normal",
+        "enum": [
+          "high",
+          "normal",
+          "low",
+        ],
+        "type": "string",
+      },
+      "status": {
+        "enum": [
+          "open",
+          "waiting",
+          "someday",
+          "done",
+          "dropped",
         ],
         "type": "string",
       },
@@ -89,6 +197,8 @@ exports[`generates the expected tools and schemas 1`] = `
         "enum": [
           "note",
           "profile",
+          "task",
+          "area",
         ],
         "type": "string",
       },
@@ -127,6 +237,8 @@ exports[`generates the expected tools and schemas 1`] = `
           "enum": [
             "note",
             "profile",
+            "task",
+            "area",
           ],
           "type": "string",
         },
@@ -135,6 +247,40 @@ exports[`generates the expected tools and schemas 1`] = `
     },
     "required": [
       "query",
+    ],
+    "type": "object",
+  },
+  "update_area": {
+    "properties": {
+      "body": {
+        "maxLength": 12000,
+        "type": "string",
+      },
+      "id": {
+        "description": "A record ID from an index, search, get or list",
+        "type": "string",
+      },
+      "status": {
+        "enum": [
+          "active",
+          "archived",
+        ],
+        "type": "string",
+      },
+      "title": {
+        "maxLength": 300,
+        "minLength": 1,
+        "type": "string",
+      },
+      "version": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+    },
+    "required": [
+      "id",
+      "version",
     ],
     "type": "object",
   },
@@ -232,6 +378,100 @@ exports[`generates the expected tools and schemas 1`] = `
       "status": {
         "enum": [
           "active",
+        ],
+        "type": "string",
+      },
+      "title": {
+        "maxLength": 300,
+        "minLength": 1,
+        "type": "string",
+      },
+      "version": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+    },
+    "required": [
+      "id",
+      "version",
+    ],
+    "type": "object",
+  },
+  "update_task": {
+    "properties": {
+      "body": {
+        "maxLength": 12000,
+        "type": "string",
+      },
+      "due_date": {
+        "anyOf": [
+          {
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+            "type": "string",
+          },
+          {
+            "type": "null",
+          },
+        ],
+        "default": null,
+      },
+      "due_label": {
+        "anyOf": [
+          {
+            "maxLength": 40,
+            "type": "string",
+          },
+          {
+            "type": "null",
+          },
+        ],
+        "default": null,
+      },
+      "id": {
+        "description": "A record ID from an index, search, get or list",
+        "type": "string",
+      },
+      "links": {
+        "properties": {
+          "about": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+          "in_area": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+          "parent": {
+            "items": {
+              "type": "string",
+            },
+            "type": "array",
+          },
+        },
+        "type": "object",
+      },
+      "priority": {
+        "default": "normal",
+        "enum": [
+          "high",
+          "normal",
+          "low",
+        ],
+        "type": "string",
+      },
+      "status": {
+        "enum": [
+          "open",
+          "waiting",
+          "someday",
+          "done",
+          "dropped",
         ],
         "type": "string",
       },

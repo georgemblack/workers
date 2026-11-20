@@ -367,11 +367,12 @@ export class Store {
       source_id: row.source_id,
     };
   }
-  /** Nodes of one type, newest change first. */
+  /** Nodes of one type, newest change first (or oldest created first). */
   listNodes(q: {
     type: string;
     status?: string[];
     linkedTo?: string;
+    order?: "updated" | "created";
   }): NodeRecord[] {
     let query = "SELECT DISTINCT n.* FROM nodes n";
     const bindings: (string | number)[] = [];
@@ -385,7 +386,10 @@ export class Store {
       query += ` AND n.status IN (${q.status.map(() => "?").join(",")})`;
       bindings.push(...q.status);
     }
-    query += " ORDER BY n.updated_at DESC, n.rowid DESC";
+    query +=
+      q.order === "created"
+        ? " ORDER BY n.created_at, n.rowid"
+        : " ORDER BY n.updated_at DESC, n.rowid DESC";
     return this.sql
       .exec<NodeRow>(query, ...bindings)
       .toArray()

@@ -54,11 +54,32 @@ try {
       const rows = async (query) => [...(await storage.exec(query))];
       let n = 0;
       const replies = [];
-      const say = async (text) => {
+      // A message is text, or { text, ref } where ref is part of the title of
+      // a record the user tapped before sending (the shortest match wins).
+      const say = async (message) => {
+        const { text, ref } =
+          typeof message === "string" ? { text: message } : message;
         const id = `eval-${++n}`;
-        await app.send(id, text);
-        const message = await app.wait(id);
-        replies.push({ text, reply: message.result.text ?? "" });
+        const refs = ref
+          ? (await rows("SELECT id, title FROM nodes"))
+              .filter((node) =>
+                node.title.toLowerCase().includes(ref.toLowerCase()),
+              )
+              .sort((x, y) => x.title.length - y.title.length)
+              .slice(0, 1)
+              .map((node) => node.id)
+          : [];
+        if (ref && !refs.length)
+          throw new Error(`No record titled like "${ref}"`);
+        const response = await app.request("/api/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, text, source: "api", refs }),
+        });
+        if (response.status !== 202)
+          throw new Error(`Message rejected: ${response.status}`);
+        const result = await app.wait(id);
+        replies.push({ text, reply: result.result.text ?? "" });
       };
       for (const text of scenario.setup ?? []) await say(text);
       for (const text of scenario.messages) await say(text);
