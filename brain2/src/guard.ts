@@ -8,6 +8,11 @@ export const securityHeaders = {
   "Referrer-Policy": "same-origin",
 };
 
+/** Largest request body allowed: imports are bigger than messages. */
+export function maxBody(url: URL) {
+  return url.pathname === "/api/admin/import" ? 5_000_000 : 100_000;
+}
+
 /**
  * Checks Access and basic request rules before any route runs. Returns a
  * response to send back when the request is refused, otherwise null.
@@ -45,7 +50,7 @@ export async function guard(
       return new Response("Forbidden origin", { status: 403 });
     if (!request.headers.get("Content-Type")?.startsWith("application/json"))
       return Response.json({ error: "Use application/json" }, { status: 415 });
-    if (Number(request.headers.get("Content-Length") ?? 0) > 100000)
+    if (Number(request.headers.get("Content-Length") ?? 0) > maxBody(url))
       return new Response("Message too large", { status: 413 });
   }
   return null;

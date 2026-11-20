@@ -1,4 +1,6 @@
 import { render } from "preact";
 import { App } from "./components/App";
+import { ImportPage } from "./components/ImportPage";
 
-render(<App />, document.getElementById("app")!);
+const page = location.pathname === "/admin/import" ? <ImportPage /> : <App />;
+render(page, document.getElementById("app")!);

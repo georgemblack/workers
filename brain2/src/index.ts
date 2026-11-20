@@ -1,4 +1,4 @@
-import { guard, securityHeaders } from "./guard";
+import { guard, maxBody, securityHeaders } from "./guard";
 import { ZodError } from "zod";
 import { Brain2, type Env } from "./agent";
 import { script, styles } from "./generated/client";
@@ -36,7 +36,10 @@ export default {
     const headers = securityHeaders;
     const agent = env.BRAIN.getByName("personal");
     try {
-      if (request.method === "GET" && url.pathname === "/")
+      if (
+        request.method === "GET" &&
+        (url.pathname === "/" || url.pathname === "/admin/import")
+      )
         return new Response(shell, {
           headers: {
             ...headers,
@@ -81,6 +84,21 @@ export default {
           await agent.capture(captureInput.parse(JSON.parse(text))),
           { status: 202, headers },
         );
+      }
+      // One-time import of data from brain (plan 07). Browser identity only;
+      // the guard already keeps service tokens out.
+      if (request.method === "POST" && url.pathname === "/api/admin/import") {
+        const text = await request.text();
+        if (text.length > maxBody(url))
+          return new Response("Import too large", { status: 413 });
+        const result = await agent.importFile(
+          JSON.parse(text),
+          url.searchParams.get("dry_run") !== "0",
+        );
+        return Response.json(result, {
+          status: result.ok ? 200 : 400,
+          headers,
+        });
       }
       if (request.method === "POST" && url.pathname === "/api/retry")
         return Response.json(await agent.retry(), { headers });

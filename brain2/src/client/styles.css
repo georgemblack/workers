@@ -371,3 +371,26 @@ input:focus-visible {
   margin: 0;
   padding-left: 20px;
 }
+
+/* One-time import page (plan 07). */
+.import {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+.import h1 {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0;
+}
+.import .actions {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0 32px;
+}
+.import ul.error {
+  padding-left: 20px;
+}
+.import a {
+  color: inherit;
+}

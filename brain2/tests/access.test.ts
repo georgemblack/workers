@@ -89,6 +89,7 @@ it("rejects deployed requests without Access or with the wrong audience", async 
 it("limits service tokens to sending messages", async () => {
   expect(await guard(post("/api/messages"), env, as())).toBeNull();
   expect((await guard(post("/api/retry"), env, as()))!.status).toBe(403);
+  expect((await guard(post("/api/admin/import"), env, as()))!.status).toBe(403);
   expect(
     (await guard(new Request("https://brain2.example/api/state"), env, as()))!
       .status,

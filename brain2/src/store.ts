@@ -908,7 +908,34 @@ export class Store {
 
   /** Loads an export from brain in one transaction; any invalid record aborts all of it. */
   importAll(file: ImportFile, sourceId: string) {
-    return this.transaction(() => {
+    return this.transaction(() => this.importRecords(file, sourceId));
+  }
+
+  /**
+   * Imports a file under a new hidden source message, all in one transaction.
+   * A dry run does the same work and then rolls it back.
+   */
+  importFile(file: ImportFile, opts: { captureId: string; dryRun: boolean }) {
+    let result: { nodes: number; entries: number } | undefined;
+    try {
+      this.transaction(() => {
+        this.sql.exec(
+          "INSERT INTO captures (id,text,source,created_at,hidden) VALUES (?,?,'import',?,1)",
+          opts.captureId,
+          `Imported ${file.nodes?.length ?? 0} records`,
+          new Date().toISOString(),
+        );
+        result = this.importRecords(file, opts.captureId);
+        if (opts.dryRun) throw rollback;
+      });
+    } catch (error) {
+      if (error !== rollback) throw error;
+    }
+    return result!;
+  }
+
+  private importRecords(file: ImportFile, sourceId: string) {
+    {
       if (file.format !== "brain2-import" || file.version !== 1)
         throw new Error("Not a brain2 import file (version 1)");
       this.requireSource(sourceId);
@@ -997,7 +1024,7 @@ export class Store {
       }
       this.bumpRev();
       return { nodes: file.nodes.length, entries: file.entries.length };
-    });
+    }
   }
 
   // ---- Shared helpers ----
@@ -1053,6 +1080,9 @@ export class Store {
     );
   }
 }
+
+// Thrown to undo a dry-run import; never escapes the store.
+const rollback = new Error("Dry run");
 
 /** Parses a value, turning zod errors into one short, model-readable message. */
 function parse<T>(schema: z.ZodType<T>, value: unknown, field: string): T {

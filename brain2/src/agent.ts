@@ -13,6 +13,7 @@ import { messageText, sections, today } from "./prompt";
 import { renderMarkdown } from "./markdown";
 import type {
   ChatMessage,
+  ImportFile,
   NodeDetail,
   StateResponse,
 } from "./shared/contracts";
@@ -203,6 +204,23 @@ export class Brain2 extends DurableObject<Env> {
   }
   nodeDetail(id: string): NodeDetail | null {
     return nodeDetail(this.store, id);
+  }
+  /** Imports a brain2 import file (plan 07). Errors come back as data. */
+  importFile(file: ImportFile, dryRun: boolean) {
+    try {
+      const result = this.store.importFile(file, {
+        captureId: `import-${Date.now()}`,
+        dryRun,
+      });
+      return { ok: true, ...result, errors: [] as string[] };
+    } catch (error) {
+      return {
+        ok: false,
+        nodes: 0,
+        entries: 0,
+        errors: [error instanceof Error ? error.message : String(error)],
+      };
+    }
   }
   diagnostics() {
     return this.store.diagnostics();
