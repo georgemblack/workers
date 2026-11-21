@@ -17,10 +17,10 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "cf": "1.0.0-beta.5",
+    "cf": "1.0.0-rc.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
     "vite-plus": "0.2.8",
-    "wrangler": "^4.143.0"
+    "wrangler": "^4.165.0"
   },
   "devEngines": {
     "packageManager": {

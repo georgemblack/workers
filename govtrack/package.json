@@ -23,12 +23,12 @@
     "@cloudflare/workers-types": "latest",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^26.6.6",
-    "cf": "1.0.0-beta.26",
+    "cf": "1.0.0-rc.2",
     "esbuild": "0.28.2",
     "miniflare": "5.20261019.1-beta",
     "prettier": "^3.9.10",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5",
-    "wrangler": "^4.156.0"
+    "wrangler": "^4.165.0"
   }
 }

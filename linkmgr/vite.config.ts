@@ -26,8 +26,8 @@ const config = defineConfig({
       devtools(),
       cloudflare({
         viteEnvironment: { name: "ssr" },
-        // Read cloudflare.config.ts and write build output for the cf CLI.
-        experimental: { newConfig: { cfBuildOutput: true, types: { generate: false } } },
+        // Types come from `pnpm run typegen`, so skip auto-generating them here.
+        types: { generate: false },
       }),
       tailwindcss(),
       tanstackStart(),
