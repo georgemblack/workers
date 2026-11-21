@@ -1,2 +1,0 @@
-# Local only; never configure LOCAL_DEV on a deployed Worker.
-LOCAL_DEV=true
