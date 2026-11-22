@@ -93,39 +93,6 @@
       },
     ],
   },
-  "durable_objects": {
-    "bindings": [
-      {
-        "name": "DO",
-        "class_name": "TbdevDurableObject",
-        "script_name": "tbdev-do",
-      },
-      {
-        "name": "SQLITE_DO",
-        "class_name": "TbdevSqliteDurableObject",
-        "script_name": "tbdev-do",
-      },
-    ],
-  },
-  "workflows": [
-    {
-      "binding": "WORKFLOW",
-      "name": "tbdev-workflow",
-      "class_name": "TbdevWorkflow",
-      "script_name": "tbdev-workflow",
-    },
-  ],
-  "services": [
-    {
-      "binding": "RPC",
-      "service": "tbdev-rpc",
-    },
-  ],
-  "tail_consumers": [
-    {
-      "service": "tbdev-tail",
-    },
-  ],
   "mtls_certificates": [
     {
       "binding": "MTLS_CERT",
