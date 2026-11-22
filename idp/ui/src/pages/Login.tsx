@@ -39,6 +39,12 @@ function Login() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center px-4">
+      <div className="flow-bg" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
       <Button
         variant="primary"
         icon={<FingerprintIcon />}

@@ -5,3 +5,116 @@
 body {
   @apply bg-kumo-canvas text-base text-kumo-default;
 }
+
+/* Sign-in page background: soft colored blobs that slowly drift and blend. */
+.flow-bg {
+  --flow-base: #f6f4ff;
+  --flow-a: #ff9ecb;
+  --flow-b: #8fb6ff;
+  --flow-c: #8ee8c4;
+  --flow-d: #ffc98a;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: var(--flow-base);
+}
+
+[data-mode="dark"] .flow-bg {
+  --flow-base: #07070d;
+  --flow-a: #7c3aed;
+  --flow-b: #2563eb;
+  --flow-c: #0d9488;
+  --flow-d: #db2777;
+}
+
+.flow-bg span {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.95;
+  mix-blend-mode: normal;
+  will-change: transform;
+}
+
+[data-mode="dark"] .flow-bg span {
+  opacity: 0.8;
+}
+
+.flow-bg span:nth-child(1) {
+  background: radial-gradient(circle, var(--flow-a), transparent 70%);
+  top: -25vmax;
+  left: -20vmax;
+  animation: flow-1 26s ease-in-out infinite alternate;
+}
+.flow-bg span:nth-child(2) {
+  background: radial-gradient(circle, var(--flow-b), transparent 70%);
+  top: -15vmax;
+  right: -25vmax;
+  animation: flow-2 32s ease-in-out infinite alternate;
+}
+.flow-bg span:nth-child(3) {
+  background: radial-gradient(circle, var(--flow-c), transparent 70%);
+  bottom: -30vmax;
+  left: -10vmax;
+  animation: flow-3 29s ease-in-out infinite alternate;
+}
+.flow-bg span:nth-child(4) {
+  background: radial-gradient(circle, var(--flow-d), transparent 70%);
+  bottom: -25vmax;
+  right: -20vmax;
+  animation: flow-4 35s ease-in-out infinite alternate;
+}
+
+@keyframes flow-1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(25vw, 15vh) scale(1.15);
+  }
+  100% {
+    transform: translate(10vw, 35vh) scale(0.9);
+  }
+}
+@keyframes flow-2 {
+  0% {
+    transform: translate(0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate(-30vw, 20vh) scale(0.9);
+  }
+  100% {
+    transform: translate(-15vw, 40vh) scale(1.2);
+  }
+}
+@keyframes flow-3 {
+  0% {
+    transform: translate(0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate(30vw, -20vh) scale(1.2);
+  }
+  100% {
+    transform: translate(45vw, -5vh) scale(1);
+  }
+}
+@keyframes flow-4 {
+  0% {
+    transform: translate(0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate(-25vw, -25vh) scale(0.85);
+  }
+  100% {
+    transform: translate(-40vw, -10vh) scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-bg span {
+    animation: none;
+  }
+}
