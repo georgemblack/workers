@@ -1,7 +1,7 @@
 import { Banner, Link, Loader } from "@cloudflare/kumo";
 import { useCallback, useEffect, useState } from "react";
 import {
-  getAuthState,
+  ApiError,
   listClients,
   listCredentials,
   signOut,
@@ -10,6 +10,7 @@ import {
 } from "../api";
 import { ClientsSection } from "../admin/ClientsSection";
 import { PasskeysSection } from "../admin/PasskeysSection";
+import type { Notify } from "../admin/shared";
 import { mount } from "../mount";
 
 interface Data {
@@ -33,17 +34,14 @@ function Admin() {
         credentials: credentials.credentials,
       });
     } catch (e) {
-      setStatus({ kind: "error", message: (e as Error).message });
+      // Signed out: go sign in, then come back here.
+      if (e instanceof ApiError && e.status === 401) location.replace("/login?next=/admin");
+      else setStatus({ kind: "error", message: (e as Error).message });
     }
   }, []);
 
   useEffect(() => {
-    getAuthState()
-      .then((state) => {
-        if (state.authenticated) return load();
-        location.replace("/login?next=/admin");
-      })
-      .catch((e: Error) => setStatus({ kind: "error", message: e.message }));
+    void load();
   }, [load]);
 
   async function handleSignOut() {
@@ -51,8 +49,7 @@ function Admin() {
     location.replace("/login");
   }
 
-  const showError = (message: string) => setStatus({ kind: "error", message });
-  const showSuccess = (message: string) => setStatus({ kind: "success", message });
+  const notify: Notify = (kind, message) => setStatus({ kind, message });
 
   return (
     <div className="min-h-screen">
@@ -89,14 +86,9 @@ function Admin() {
               clients={data.clients}
               defaultEmail={data.defaultEmail}
               onChange={load}
-              onError={showError}
+              notify={notify}
             />
-            <PasskeysSection
-              credentials={data.credentials}
-              onChange={load}
-              onError={showError}
-              onSuccess={showSuccess}
-            />
+            <PasskeysSection credentials={data.credentials} onChange={load} notify={notify} />
           </>
         ) : (
           !status && (

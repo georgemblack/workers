@@ -9,8 +9,9 @@ import {
   Select,
   Text,
 } from "@cloudflare/kumo";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createClient, type CreatedClient } from "../api";
+import { DialogActions, DialogHeader, LabeledValue } from "./shared";
 
 type Kind = "access" | "other";
 
@@ -36,8 +37,7 @@ function accessCallback(team: string): string {
   return `https://${name}.cloudflareaccess.com/cdn-cgi/access/callback`;
 }
 
-// The "New client" form. Access clients only need team names; other apps
-// need full redirect URIs. Clients can't be edited once created.
+// The "New client" dialog. Clients can't be edited once created.
 export function NewClientDialog({
   open,
   defaultEmail,
@@ -49,9 +49,41 @@ export function NewClientDialog({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  // A new key each time the dialog opens starts the form over from scratch.
+  const [formKey, setFormKey] = useState(0);
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setFormKey((key) => key + 1);
+  }
+
+  return (
+    <Dialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
+      <Dialog size="lg" className="px-6 py-5">
+        <NewClientForm
+          key={formKey}
+          defaultEmail={defaultEmail}
+          onCreated={onCreated}
+          onDone={onClose}
+        />
+      </Dialog>
+    </Dialog.Root>
+  );
+}
+
+// Access clients only need team names; other apps need full redirect URIs.
+function NewClientForm({
+  defaultEmail,
+  onCreated,
+  onDone,
+}: {
+  defaultEmail: string;
+  onCreated: () => void;
+  onDone: () => void;
+}) {
   const [kind, setKind] = useState<Kind>("access");
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
   const [teams, setTeams] = useState("");
   const [redirects, setRedirects] = useState("");
   const [logoutRedirects, setLogoutRedirects] = useState("");
@@ -60,33 +92,10 @@ export function NewClientDialog({
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<CreatedClient | null>(null);
 
-  // Start the email field with the default email each time the form opens.
-  useEffect(() => {
-    if (open) setEmail((current) => current || defaultEmail);
-  }, [open, defaultEmail]);
-
-  function reset() {
-    setKind("access");
-    setName("");
-    setEmail("");
-    setTeams("");
-    setRedirects("");
-    setLogoutRedirects("");
-    setMethod("client_secret_basic");
-    setError(null);
-    setCreated(null);
-  }
-
-  function close() {
-    onClose();
-    reset();
-  }
-
   async function submit() {
     const isAccess = kind === "access";
     const redirectUris = isAccess ? lines(teams).map(accessCallback) : lines(redirects);
-    const clientEmail = email.trim();
-    if (!name.trim() || !clientEmail || redirectUris.length === 0) {
+    if (!name.trim() || !email.trim() || redirectUris.length === 0) {
       const what = isAccess ? "team name" : "redirect URI";
       setError(`Name, email and at least one ${what} are required.`);
       return;
@@ -97,7 +106,7 @@ export function NewClientDialog({
       setCreated(
         await createClient({
           name: name.trim(),
-          email: clientEmail,
+          email: email.trim(),
           redirect_uris: redirectUris,
           post_logout_redirect_uris: isAccess ? [] : lines(logoutRedirects),
           token_endpoint_auth_method: method,
@@ -111,131 +120,130 @@ export function NewClientDialog({
     }
   }
 
-  const origin = location.origin;
+  if (created) return <CreatedClientDetails kind={kind} client={created} onDone={onDone} />;
 
   return (
-    <Dialog.Root open={open} onOpenChange={(next) => !next && close()}>
-      <Dialog className="grid max-h-[90vh] w-full max-w-lg gap-4 overflow-y-auto px-6 py-5">
-        <Dialog.Title className="text-base font-semibold">
-          {created ? "Client created" : "New client"}
-        </Dialog.Title>
-
-        {created ? (
-          <div className="grid gap-4">
-            <Setting label="Client ID" value={created.client_id} />
-            {created.client_secret && (
-              <div className="grid gap-1.5">
-                <Setting label="Client secret" value={created.client_secret} />
-                <Text variant="secondary" size="sm">
-                  Save this now. It won't be shown again.
-                </Text>
-              </div>
-            )}
-            {kind === "access" ? (
-              <>
-                <Setting label="Auth URL" value={`${origin}/authorize`} />
-                <Setting label="Token URL" value={`${origin}/token`} />
-                <Setting label="Certificate URL" value={`${origin}/.well-known/jwks.json`} />
-              </>
-            ) : (
-              <>
-                <Setting label="Issuer" value={origin} />
-                <Setting
-                  label="Discovery URL"
-                  value={`${origin}/.well-known/openid-configuration`}
-                />
-                <Text variant="secondary" size="sm">
-                  The app must support PKCE (S256).
-                </Text>
-              </>
-            )}
-            <div className="flex justify-end">
-              <Button variant="primary" onClick={close}>
-                Done
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {error && <Banner variant="error" description={error} />}
-            <Radio.Group
-              legend="Type"
-              appearance="segmented"
-              value={kind}
-              onValueChange={(value) => setKind(value as Kind)}
-            >
-              <Radio.Item label="Cloudflare Access" value="access" />
-              <Radio.Item label="Other app" value="other" />
-            </Radio.Group>
-            <Input
-              label="Name"
-              placeholder="e.g. linkmgr"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            {kind === "access" ? (
-              <InputArea
-                label="Access team names"
-                description="One per line."
-                placeholder="george"
-                value={teams}
-                onValueChange={setTeams}
-              />
-            ) : (
-              <>
-                <InputArea
-                  label="Redirect URIs"
-                  description="One per line."
-                  placeholder="https://example.com/callback"
-                  value={redirects}
-                  onValueChange={setRedirects}
-                />
-                <InputArea
-                  label="Post-logout redirect URIs"
-                  description="One per line. Optional."
-                  placeholder="https://example.com/"
-                  value={logoutRedirects}
-                  onValueChange={setLogoutRedirects}
-                />
-              </>
-            )}
-            <Select
-              label="Token endpoint auth method"
-              value={method}
-              onValueChange={(value) =>
-                setMethod((value as string | null) ?? "client_secret_basic")
-              }
-              items={AUTH_METHODS}
-            />
-            <div className="flex justify-end gap-2">
-              <Button variant="secondary" onClick={close}>
-                Cancel
-              </Button>
-              <Button variant="primary" loading={busy} onClick={submit}>
-                Create
-              </Button>
-            </div>
-          </div>
-        )}
-      </Dialog>
-    </Dialog.Root>
+    <div className="grid gap-4">
+      <DialogHeader title="New client" />
+      {error && <Banner variant="error" description={error} />}
+      <Radio.Group
+        legend="Type"
+        appearance="segmented"
+        value={kind}
+        onValueChange={(value) => setKind(value as Kind)}
+      >
+        <Radio.Item label="Cloudflare Access" value="access" />
+        <Radio.Item label="Other app" value="other" />
+      </Radio.Group>
+      <Input
+        label="Name"
+        placeholder="e.g. linkmgr"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <Input
+        label="Email"
+        type="email"
+        placeholder="you@example.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      {kind === "access" ? (
+        <InputArea
+          label="Access team names"
+          description="One per line."
+          placeholder="george"
+          value={teams}
+          onValueChange={setTeams}
+        />
+      ) : (
+        <>
+          <InputArea
+            label="Redirect URIs"
+            description="One per line."
+            placeholder="https://example.com/callback"
+            value={redirects}
+            onValueChange={setRedirects}
+          />
+          <InputArea
+            label="Post-logout redirect URIs"
+            description="One per line. Optional."
+            placeholder="https://example.com/"
+            value={logoutRedirects}
+            onValueChange={setLogoutRedirects}
+          />
+        </>
+      )}
+      <Select
+        label="Token endpoint auth method"
+        className="w-full"
+        value={method}
+        onValueChange={(value) => setMethod((value as string | null) ?? "client_secret_basic")}
+        items={AUTH_METHODS}
+      />
+      <DialogActions>
+        <Button variant="primary" loading={busy} onClick={submit}>
+          Create
+        </Button>
+      </DialogActions>
+    </div>
   );
 }
 
-function Setting({ label, value }: { label: string; value: string }) {
+// What to copy into the app after creating a client. The secret is only
+// shown here, once.
+function CreatedClientDetails({
+  kind,
+  client,
+  onDone,
+}: {
+  kind: Kind;
+  client: CreatedClient;
+  onDone: () => void;
+}) {
+  const origin = location.origin;
+  const values: [string, string][] = [["Client ID", client.client_id]];
+  if (client.client_secret) values.push(["Client secret", client.client_secret]);
+  if (kind === "access") {
+    values.push(
+      ["Auth URL", `${origin}/authorize`],
+      ["Token URL", `${origin}/token`],
+      ["Certificate URL", `${origin}/.well-known/jwks.json`],
+    );
+  } else {
+    values.push(
+      ["Issuer", origin],
+      ["Discovery URL", `${origin}/.well-known/openid-configuration`],
+    );
+  }
+
   return (
-    <div className="grid gap-1.5">
-      <Text variant="secondary" size="sm">
-        {label}
-      </Text>
-      <ClipboardText size="sm" text={value} />
+    <div className="grid gap-4">
+      <DialogHeader
+        title="Client created"
+        description={
+          client.client_secret
+            ? "Save the client secret now. It won't be shown again."
+            : "This is a public client, so there's no secret."
+        }
+      />
+      <dl className="grid gap-3">
+        {values.map(([label, value]) => (
+          <LabeledValue key={label} label={label}>
+            <ClipboardText size="sm" text={value} />
+          </LabeledValue>
+        ))}
+      </dl>
+      {kind === "other" && (
+        <Text variant="secondary" size="sm">
+          The app must support PKCE (S256).
+        </Text>
+      )}
+      <div className="flex justify-end">
+        <Button variant="primary" onClick={onDone}>
+          Done
+        </Button>
+      </div>
     </div>
   );
 }

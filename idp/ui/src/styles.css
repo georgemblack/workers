@@ -3,5 +3,5 @@
 @import "tailwindcss";
 
 body {
-  @apply bg-kumo-canvas text-kumo-default;
+  @apply bg-kumo-canvas text-base text-kumo-default;
 }

@@ -1,4 +1,9 @@
-import { startAuthentication, startRegistration } from "@simplewebauthn/browser";
+import {
+  startAuthentication,
+  startRegistration,
+  type PublicKeyCredentialCreationOptionsJSON,
+  type PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/browser";
 
 // Thin wrappers around the worker's JSON API. All of the real security checks
 // happen on the server; these only send requests and surface errors.
@@ -19,7 +24,7 @@ export interface Client {
   has_secret: boolean;
 }
 
-export interface NewClient {
+interface NewClient {
   name: string;
   email: string;
   redirect_uris: string[];
@@ -51,12 +56,23 @@ const ERROR_MESSAGES: Record<string, string> = {
   cannot_delete_last_credential: "You can't delete your only passkey.",
 };
 
+// An error from the API. `status` is the HTTP status, so callers can tell
+// "signed out" (401) apart from other failures.
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     const code = typeof body.error === "string" ? body.error : `HTTP ${response.status}`;
-    throw new Error(ERROR_MESSAGES[code] ?? code);
+    throw new ApiError(ERROR_MESSAGES[code] ?? code, response.status);
   }
   return body as T;
 }
@@ -94,9 +110,7 @@ interface Challenge<T> {
 
 export async function signInWithPasskey() {
   const { options, challengeId } =
-    await postJson<Challenge<Parameters<typeof startAuthentication>[0]["optionsJSON"]>>(
-      "/api/auth/login/options",
-    );
+    await postJson<Challenge<PublicKeyCredentialRequestOptionsJSON>>("/api/auth/login/options");
   const response = await startAuthentication({ optionsJSON: options });
   await postJson("/api/auth/login/verify", { challengeId, response });
 }
@@ -113,7 +127,7 @@ export async function registerPasskey({
     ? { "x-bootstrap-secret": bootstrapSecret }
     : {};
   const { options, challengeId } = await postJson<
-    Challenge<Parameters<typeof startRegistration>[0]["optionsJSON"]>
+    Challenge<PublicKeyCredentialCreationOptionsJSON>
   >("/api/auth/register/options", undefined, headers);
   const response = await startRegistration({ optionsJSON: options });
   await postJson("/api/auth/register/verify", { challengeId, label, response }, headers);

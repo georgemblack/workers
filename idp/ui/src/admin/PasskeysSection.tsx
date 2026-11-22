@@ -1,21 +1,27 @@
-import { Badge, Button, Dialog, Input, LayerCard, Table, Text } from "@cloudflare/kumo";
+import { Badge, Button, Dialog, Input, LayerCard, Text } from "@cloudflare/kumo";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { deleteCredential, registerPasskey, type Credential } from "../api";
 import { ConfirmDialog } from "./ConfirmDialog";
+import {
+  DialogActions,
+  DialogHeader,
+  RowText,
+  SectionHeader,
+  formatDate,
+  type Notify,
+} from "./shared";
 
-// The passkeys table, plus adding and deleting passkeys. Adding one only works
+// The list of passkeys, plus adding and deleting them. Adding one only works
 // while registration is open (see the README).
 export function PasskeysSection({
   credentials,
   onChange,
-  onError,
-  onSuccess,
+  notify,
 }: {
   credentials: Credential[];
   onChange: () => void;
-  onError: (message: string) => void;
-  onSuccess: (message: string) => void;
+  notify: Notify;
 }) {
   const [adding, setAdding] = useState(false);
   const [label, setLabel] = useState("");
@@ -26,99 +32,81 @@ export function PasskeysSection({
     setBusy(true);
     try {
       await registerPasskey({ label: label.trim() || undefined });
-      setAdding(false);
       setLabel("");
-      onSuccess("Passkey added.");
+      notify("success", "Passkey added.");
       onChange();
     } catch (e) {
-      setAdding(false);
-      onError(`Couldn't add the passkey: ${(e as Error).message}`);
+      notify("error", `Couldn't add the passkey: ${(e as Error).message}`);
     } finally {
+      setAdding(false);
       setBusy(false);
     }
   }
 
-  async function confirmDelete() {
-    if (!deleting) return;
-    const id = deleting.credential_id;
-    setDeleting(null);
+  async function remove(cred: Credential) {
     try {
-      await deleteCredential(id);
+      await deleteCredential(cred.credential_id);
       onChange();
     } catch (e) {
-      onError(`Couldn't delete the passkey: ${(e as Error).message}`);
+      notify("error", `Couldn't delete the passkey: ${(e as Error).message}`);
     }
   }
 
   return (
-    <section className="grid gap-3">
-      <div className="flex items-center justify-between gap-4">
-        <Text variant="heading" as="h2">
-          Passkeys
-        </Text>
-        <Button size="sm" icon={<PlusIcon />} onClick={() => setAdding(true)}>
-          Add passkey
-        </Button>
-      </div>
+    <section className="grid gap-4">
+      <SectionHeader
+        title="Passkeys"
+        description="Devices and security keys that can sign in."
+        action={
+          <Button size="sm" icon={<PlusIcon />} onClick={() => setAdding(true)}>
+            Add passkey
+          </Button>
+        }
+      />
 
-      <LayerCard className="overflow-hidden p-0">
-        <Table>
-          <Table.Header>
-            <Table.Row>
-              <Table.Head>Label</Table.Head>
-              <Table.Head className="hidden sm:table-cell">Created</Table.Head>
-              <Table.Head>Last used</Table.Head>
-              <Table.Head />
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {credentials.map((cred) => (
-              <Table.Row key={cred.credential_id}>
-                <Table.Cell>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {cred.label || <Text variant="secondary">Unlabeled</Text>}
-                    {cred.backed_up && <Badge variant="secondary">Synced</Badge>}
-                  </div>
-                </Table.Cell>
-                <Table.Cell className="hidden sm:table-cell">{cred.created_at}</Table.Cell>
-                <Table.Cell>{cred.last_used_at ?? "Never"}</Table.Cell>
-                <Table.Cell className="text-right">
-                  <Button
-                    size="sm"
-                    variant="secondary-destructive"
-                    onClick={() => setDeleting(cred)}
-                  >
-                    Delete
-                  </Button>
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
+      <LayerCard className="divide-y divide-kumo-line overflow-hidden p-0">
+        {credentials.map((cred) => (
+          <div key={cred.credential_id} className="flex items-center gap-4 px-4 py-3">
+            <RowText
+              title={
+                <>
+                  <Text bold truncate>
+                    {cred.label || "Unlabeled passkey"}
+                  </Text>
+                  {cred.backed_up && <Badge variant="secondary">Synced</Badge>}
+                </>
+              }
+              subtitle={`Added ${formatDate(cred.created_at)} · Last used ${formatDate(cred.last_used_at)}`}
+            />
+            <Button size="sm" variant="secondary-destructive" onClick={() => setDeleting(cred)}>
+              Delete
+            </Button>
+          </div>
+        ))}
       </LayerCard>
 
-      <Dialog.Root open={adding} onOpenChange={(next) => !next && setAdding(false)}>
+      <Dialog.Root open={adding} onOpenChange={setAdding}>
         <Dialog className="grid gap-4 px-6 py-5">
-          <div className="grid gap-1.5">
-            <Dialog.Title className="text-base font-semibold">Add passkey</Dialog.Title>
-            <Dialog.Description className="text-kumo-subtle">
-              Registration must be open first: run `pnpm run registration:open`.
-            </Dialog.Description>
-          </div>
+          <DialogHeader
+            title="Add passkey"
+            description={
+              <>
+                Registration must be open first. Run{" "}
+                <Text variant="mono">pnpm run registration:open</Text>.
+              </>
+            }
+          />
           <Input
             label="Label"
             placeholder="e.g. YubiKey 5C"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
           />
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setAdding(false)}>
-              Cancel
-            </Button>
+          <DialogActions>
             <Button variant="primary" loading={busy} onClick={add}>
               Add passkey
             </Button>
-          </div>
+          </DialogActions>
         </Dialog>
       </Dialog.Root>
       <ConfirmDialog
@@ -126,7 +114,7 @@ export function PasskeysSection({
         title="Delete passkey?"
         description={`${deleting?.label || "This passkey"} won't be able to sign in anymore. This can't be undone.`}
         confirmLabel="Delete passkey"
-        onConfirm={confirmDelete}
+        onConfirm={() => remove(deleting!)}
         onClose={() => setDeleting(null)}
       />
     </section>
