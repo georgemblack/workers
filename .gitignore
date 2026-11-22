@@ -39,4 +39,4 @@ lerna-debug.log*
 !.env.example
 
 # cf build output
-.cloudflare/output
+**/.cloudflare/output/
