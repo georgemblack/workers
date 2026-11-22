@@ -21,14 +21,12 @@
           <h2 style="margin: 0">OIDC Clients</h2>
           <button id="new-client-btn" class="sm">New client</button>
         </div>
-        <table id="clients-table">
+        <table id="clients-table" class="expandable">
           <thead>
             <tr>
               <th>Name</th>
               <th>Client ID</th>
-              <th>Redirect URIs</th>
-              <th>Auth method</th>
-              <th></th>
+              <th>Email</th>
             </tr>
           </thead>
           <tbody id="clients-body"></tbody>
@@ -53,6 +51,10 @@
           <div class="field">
             <label>Name</label>
             <input id="client-name" type="text" placeholder="e.g. linkmgr" />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="client-email" type="email" placeholder="you@example.com" />
           </div>
           <div class="field" data-for="access">
             <label>Access team names (one per line)</label>
@@ -121,16 +123,55 @@
         const r = await fetch("/api/admin/clients").then((r) => r.json());
         const tbody = document.getElementById("clients-body");
         tbody.innerHTML = "";
+        // Fill in the default email, unless something was already typed.
+        const emailInput = document.getElementById("client-email");
+        if (!emailInput.value) emailInput.value = r.default_email ?? "";
+        const codeList = (urls) =>
+          urls.length
+            ? urls.map((u) => `<div><code>${escape(u)}</code></div>`).join("")
+            : `<span class="subtle">None</span>`;
         for (const c of r.clients) {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${escape(c.name)}</td>
+          // Older clients have no email and get the default one.
+          const email = c.email
+            ? escape(c.email)
+            : `${escape(r.default_email)} <span class="subtle">(default)</span>`;
+
+          // A short summary row, plus a hidden row with everything else that
+          // opens when the summary row is clicked.
+          const row = document.createElement("tr");
+          row.className = "client-row";
+          row.innerHTML = `
+            <td><button class="row-toggle" aria-expanded="false">${escape(c.name)}</button></td>
             <td><code>${escape(c.client_id)}</code></td>
-            <td>${c.redirect_uris.map((u) => `<div><code>${escape(u)}</code></div>`).join("")}</td>
-            <td>${escape(c.token_endpoint_auth_method)}</td>
-            <td><button class="danger" data-id="${escape(c.client_id)}">Delete</button></td>
+            <td>${email}</td>
           `;
-          tbody.appendChild(tr);
+          const details = document.createElement("tr");
+          details.className = "client-details";
+          details.hidden = true;
+          details.innerHTML = `
+            <td colspan="3">
+              <dl>
+                <dt class="narrow-only">Client ID</dt>
+                <dd class="narrow-only"><code>${escape(c.client_id)}</code></dd>
+                <dt>Redirect URIs</dt>
+                <dd>${codeList(c.redirect_uris)}</dd>
+                <dt>Post-logout redirect URIs</dt>
+                <dd>${codeList(c.post_logout_redirect_uris)}</dd>
+                <dt>Auth method</dt>
+                <dd>${escape(c.token_endpoint_auth_method)}</dd>
+                <dt>Client secret</dt>
+                <dd>${c.has_secret ? "Set (shown only when created)" : "None (public client)"}</dd>
+                <dt>Created</dt>
+                <dd>${escape(c.created_at)}</dd>
+              </dl>
+              <button class="danger" data-id="${escape(c.client_id)}">Delete client</button>
+            </td>
+          `;
+          row.addEventListener("click", () => {
+            details.hidden = !details.hidden;
+            row.querySelector(".row-toggle").setAttribute("aria-expanded", String(!details.hidden));
+          });
+          tbody.append(row, details);
         }
         tbody.querySelectorAll("button.danger").forEach((btn) => {
           btn.addEventListener("click", async () => {
@@ -224,6 +265,7 @@
 
       document.getElementById("save-client-btn").addEventListener("click", async () => {
         const name = document.getElementById("client-name").value.trim();
+        const email = document.getElementById("client-email").value.trim();
         const method = document.getElementById("client-auth-method").value;
         const isAccess = clientKind() === "access";
         const redirects = isAccess
@@ -233,9 +275,9 @@
 
         const resultEl = document.getElementById("new-client-result");
         resultEl.className = "status";
-        if (!name || redirects.length === 0) {
+        if (!name || !email || redirects.length === 0) {
           const what = isAccess ? "team name" : "redirect URI";
-          showStatus(resultEl, `Name and at least one ${what} required.`, "error");
+          showStatus(resultEl, `Name, email and at least one ${what} required.`, "error");
           return;
         }
         const resp = await fetch("/api/admin/clients", {
@@ -246,6 +288,7 @@
             redirect_uris: redirects,
             post_logout_redirect_uris: logoutRedirects,
             token_endpoint_auth_method: method,
+            email,
           }),
         });
         const body = await resp.json();
