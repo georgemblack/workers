@@ -11,8 +11,6 @@ pnpm run check
 pnpm run deploy
 ```
 
-If the change includes a new database migration, apply it **before** deploying (see below), so the new code never runs against an old database.
-
 ## Changing the database
 
 1. Add a new file to `migrations/`, numbered after the last one (e.g. `0005_something.sql`).
@@ -23,8 +21,6 @@ If the change includes a new database migration, apply it **before** deploying (
    ```
 
 3. Then deploy the code that uses it.
-
-Migrations run once, in order, and can't be undone automatically. If you need to reverse one, write a new migration that does it.
 
 ## Adding a passkey
 
@@ -42,8 +38,6 @@ Registration is closed by default, even while signed in. To add a passkey (a new
    ```sh
    pnpm run registration:close
    ```
-
-You can remove old passkeys from the same page, but never the last one.
 
 ## Connecting a new app
 
