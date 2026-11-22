@@ -1,12 +1,13 @@
-import { Banner, Button, Link, Text } from "@cloudflare/kumo";
+import { Button, Text } from "@cloudflare/kumo";
 import { FingerprintIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { getAuthState, safeNext, signInWithPasskey } from "../api";
-import { AuthCard } from "../AuthCard";
 import { mount } from "../mount";
 
 const next = safeNext(new URLSearchParams(location.search).get("next"));
 
+// Just the sign-in button in the middle of the page. A short message appears
+// under it only when something goes wrong.
 function Login() {
   const [busy, setBusy] = useState(false);
   const [canSignIn, setCanSignIn] = useState(true);
@@ -18,7 +19,7 @@ function Login() {
         if (state.authenticated) location.replace(next);
         else if (!state.has_credential) {
           setCanSignIn(false);
-          setError("No passkeys are registered yet. Register one first.");
+          setError("No passkeys are registered yet.");
         }
       })
       .catch((e: Error) => setError(e.message));
@@ -37,8 +38,7 @@ function Login() {
   }
 
   return (
-    <AuthCard title="Sign in" description="Use your passkey to continue.">
-      {error && <Banner variant="error" description={error} />}
+    <main className="relative flex min-h-screen items-center justify-center px-4">
       <Button
         variant="primary"
         icon={<FingerprintIcon />}
@@ -48,10 +48,15 @@ function Login() {
       >
         Sign in with passkey
       </Button>
-      <Text variant="secondary" size="sm">
-        No passkey yet? <Link href="/register">Register one</Link>.
-      </Text>
-    </AuthCard>
+      {error && (
+        // Positioned below the button so it doesn't shift the button around.
+        <div className="absolute inset-x-4 top-1/2 mt-8 text-center" role="alert">
+          <Text variant="error" size="sm">
+            {error}
+          </Text>
+        </div>
+      )}
+    </main>
   );
 }
 
