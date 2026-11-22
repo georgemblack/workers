@@ -30,6 +30,25 @@ pnpm run dryrun
 pnpm run deploy
 ```
 
+## Package setup
+
+There is no root workspace or root `package.json`. Each worker is its own standalone pnpm project with its own `package.json`, `pnpm-lock.yaml`, and `pnpm-workspace.yaml` (used only for pnpm settings such as `allowBuilds`). Run `pnpm install` from inside the worker's directory.
+
+Every worker pins the same pnpm and Node versions in two places:
+
+* `package.json`, under `devEngines`, so pnpm downloads and uses the right versions automatically:
+
+  ```json
+  "devEngines": {
+    "packageManager": { "name": "pnpm", "version": "11.24.0", "onFail": "download" },
+    "runtime": { "name": "node", "version": "26.13.1", "onFail": "download" }
+  }
+  ```
+
+* `.node-version`, containing just `26.13.1`, for version managers and Cloudflare Workers Builds (which doesn't read the Node version from `devEngines`).
+
+When creating a new worker, copy this setup. When upgrading pnpm or Node, update every worker at once and run `pnpm install` in each to refresh its lockfile.
+
 ## Rules
 
 You MUST follow the rules in this list.
