@@ -94,14 +94,6 @@ Normally there's no way to register a passkey without already being signed in. T
    pnpm run deploy
    ```
 
-## Cloudflare protections
-
-On top of the code, the `george.black` zone has:
-
-- **A country block.** Requests from outside the US are blocked, except the few routes that apps call from their own servers. When traveling, add the country to the **IdP Country Block** rule under Security rules in the dashboard, and remove it when you're back.
-- **A rate limit.** 60 requests per minute per IP across the whole idp, then a 10-minute block.
-- **Cloudflare Access** in front of the passkey registration routes.
-
 ## Setting it up from scratch
 
 Only needed if the idp is ever rebuilt somewhere new.
