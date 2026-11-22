@@ -7,6 +7,8 @@ export interface Client {
   redirect_uris: string[];
   post_logout_redirect_uris: string[];
   token_endpoint_auth_method: "client_secret_basic" | "client_secret_post" | "none";
+  // Null for clients created before emails were stored per client.
+  email: string | null;
   created_at: string;
 }
 
@@ -17,6 +19,7 @@ interface ClientRow {
   redirect_uris: string;
   post_logout_redirect_uris: string;
   token_endpoint_auth_method: string;
+  email: string | null;
   created_at: string;
 }
 
@@ -29,6 +32,7 @@ function rowToClient(row: ClientRow): Client {
     post_logout_redirect_uris: JSON.parse(row.post_logout_redirect_uris),
     token_endpoint_auth_method:
       row.token_endpoint_auth_method as Client["token_endpoint_auth_method"],
+    email: row.email,
     created_at: row.created_at,
   };
 }
@@ -57,12 +61,13 @@ export async function createClient(
     redirect_uris: string[];
     post_logout_redirect_uris: string[];
     token_endpoint_auth_method: Client["token_endpoint_auth_method"];
+    email: string;
   },
 ): Promise<void> {
   await db
     .prepare(
-      `INSERT INTO clients (client_id, client_secret_hash, name, redirect_uris, post_logout_redirect_uris, token_endpoint_auth_method)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO clients (client_id, client_secret_hash, name, redirect_uris, post_logout_redirect_uris, token_endpoint_auth_method, email)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.client_id,
@@ -71,6 +76,7 @@ export async function createClient(
       JSON.stringify(input.redirect_uris),
       JSON.stringify(input.post_logout_redirect_uris),
       input.token_endpoint_auth_method,
+      input.email,
     )
     .run();
 }

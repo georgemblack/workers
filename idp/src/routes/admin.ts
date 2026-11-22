@@ -3,6 +3,9 @@ import { createClient, deleteClient, hashSecret, listClients } from "../storage"
 import { getSession } from "../session";
 import { randomToken } from "../util";
 
+// A loose check: something@something.something, with no spaces.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const admin = new Hono<{ Bindings: Cloudflare.Env }>();
 
 admin.use("/api/admin/*", async (c, next) => {
@@ -20,9 +23,12 @@ admin.get("/api/admin/clients", async (c) => {
       redirect_uris: cl.redirect_uris,
       post_logout_redirect_uris: cl.post_logout_redirect_uris,
       token_endpoint_auth_method: cl.token_endpoint_auth_method,
+      email: cl.email,
       created_at: cl.created_at,
       has_secret: !!cl.client_secret_hash,
     })),
+    // Pre-fills the email field when creating a client.
+    default_email: c.env.USER_EMAIL,
   });
 });
 
@@ -32,10 +38,15 @@ admin.post("/api/admin/clients", async (c) => {
     redirect_uris: string[];
     post_logout_redirect_uris?: string[];
     token_endpoint_auth_method?: "client_secret_basic" | "client_secret_post" | "none";
+    email: string;
   };
 
   if (!body.name || !Array.isArray(body.redirect_uris) || body.redirect_uris.length === 0) {
     return c.json({ error: "name and redirect_uris required" }, 400);
+  }
+  const email = typeof body.email === "string" ? body.email.trim() : "";
+  if (!EMAIL_PATTERN.test(email)) {
+    return c.json({ error: "a valid email is required" }, 400);
   }
   for (const uri of body.redirect_uris) {
     try {
@@ -68,6 +79,7 @@ admin.post("/api/admin/clients", async (c) => {
     redirect_uris: body.redirect_uris,
     post_logout_redirect_uris: body.post_logout_redirect_uris ?? [],
     token_endpoint_auth_method: method,
+    email,
   });
 
   return c.json({

@@ -7,6 +7,7 @@ import {
   putAuthCode,
   putRefreshToken,
   type AuthCodeRecord,
+  type Client,
 } from "../storage";
 import { loadSigningKey, signJwt } from "../keys";
 import { destroySession, getSession, setTxCookie, readTxCookie, clearTxCookie } from "../session";
@@ -236,7 +237,7 @@ oidc.post("/token", async (c) => {
     }
 
     return await issueTokens(c, {
-      client_id: client.client_id,
+      client,
       sub: record.sub,
       scope: record.scope,
       auth_time: record.auth_time,
@@ -261,7 +262,7 @@ oidc.post("/token", async (c) => {
       }
     }
     return await issueTokens(c, {
-      client_id: client.client_id,
+      client,
       sub: record.sub,
       scope: requestedScope,
       auth_time: record.auth_time,
@@ -315,7 +316,7 @@ async function authenticateClient(
 async function issueTokens(
   c: Ctx,
   args: {
-    client_id: string;
+    client: Client;
     sub: string;
     scope: string;
     auth_time: number;
@@ -327,7 +328,7 @@ async function issueTokens(
     {
       iss: ISSUER,
       sub: args.sub,
-      aud: args.client_id,
+      aud: args.client.client_id,
       scope: args.scope,
       token_use: "access",
     },
@@ -337,11 +338,11 @@ async function issueTokens(
   const id_token_payload: Record<string, unknown> = {
     iss: ISSUER,
     sub: args.sub,
-    aud: args.client_id,
+    aud: args.client.client_id,
     auth_time: args.auth_time,
   };
   if (args.nonce) id_token_payload.nonce = args.nonce;
-  for (const [k, v] of Object.entries(claimsForScope(c.env, args.scope))) {
+  for (const [k, v] of Object.entries(claimsForScope(c.env, args.scope, args.client))) {
     id_token_payload[k] = v;
   }
   const id_token = await signJwt(c.env, id_token_payload, ID_TOKEN_TTL_SECONDS);
@@ -360,7 +361,7 @@ async function issueTokens(
       c.env.DB,
       refresh_token,
       {
-        client_id: args.client_id,
+        client_id: args.client.client_id,
         scope: args.scope,
         sub: args.sub,
         auth_time: args.auth_time,
@@ -380,7 +381,11 @@ async function issueTokens(
   });
 }
 
-function claimsForScope(env: Cloudflare.Env, scope: string): Record<string, unknown> {
+function claimsForScope(
+  env: Cloudflare.Env,
+  scope: string,
+  client: Client,
+): Record<string, unknown> {
   const scopes = new Set(scope.split(" "));
   const out: Record<string, unknown> = {};
   if (scopes.has("profile")) {
@@ -394,7 +399,8 @@ function claimsForScope(env: Cloudflare.Env, scope: string): Record<string, unkn
     out.website = USER_WEBSITE;
   }
   if (scopes.has("email")) {
-    out.email = env.USER_EMAIL;
+    // Older clients have no email of their own and get the default one.
+    out.email = client.email ?? env.USER_EMAIL;
     out.email_verified = true;
   }
   if (scopes.has("groups")) {
@@ -428,7 +434,8 @@ async function userinfo(c: Ctx): Promise<Response> {
     return invalidToken("not an access token");
   }
   const aud = typeof payload.aud === "string" ? payload.aud : null;
-  if (!aud || !(await getClient(c.env.DB, aud))) {
+  const client = aud ? await getClient(c.env.DB, aud) : null;
+  if (!client) {
     return invalidToken("unknown audience");
   }
 
@@ -436,7 +443,7 @@ async function userinfo(c: Ctx): Promise<Response> {
   const scope = stringValue(payload.scope);
   return c.json({
     sub,
-    ...claimsForScope(c.env, scope),
+    ...claimsForScope(c.env, scope, client),
   });
 }
 
