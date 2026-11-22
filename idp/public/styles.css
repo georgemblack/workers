@@ -248,6 +248,52 @@ label {
   margin-bottom: 1rem;
 }
 
+/* Two-option switch made from radio buttons, used to pick the client type. */
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--fill);
+  border-radius: var(--radius);
+}
+
+.segmented label {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  margin: 0;
+  padding: 0 0.75rem;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+
+.segmented label:hover,
+.segmented label:has(:checked) {
+  color: var(--text-strong);
+}
+
+.segmented label:has(:checked) {
+  background: var(--base);
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-xs);
+}
+
+.segmented label:has(:focus-visible) {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Keeps the radio focusable for keyboard use, but invisible. */
+.segmented input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
 .row {
   display: flex;
   gap: 0.5rem;

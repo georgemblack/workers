@@ -36,23 +36,33 @@
 
         <div
           id="new-client-form"
-          style="
-            display: none;
-            margin-top: 1.5rem;
-            border-top: 1px solid var(--hairline);
-            padding-top: 1.5rem;
-          "
+          hidden
+          style="margin-top: 1.5rem; border-top: 1px solid var(--hairline); padding-top: 1.5rem"
         >
           <h2 style="margin-top: 0">Register new client</h2>
+          <div class="field">
+            <label>Type</label>
+            <div class="segmented">
+              <label
+                ><input type="radio" name="client-kind" value="access" checked />Cloudflare
+                Access</label
+              >
+              <label><input type="radio" name="client-kind" value="other" />Other app</label>
+            </div>
+          </div>
           <div class="field">
             <label>Name</label>
             <input id="client-name" type="text" placeholder="e.g. linkmgr" />
           </div>
-          <div class="field">
-            <label>Access Auth Domains (one per line)</label>
+          <div class="field" data-for="access">
+            <label>Access team names (one per line)</label>
             <textarea id="client-auth-domains" placeholder="george"></textarea>
           </div>
-          <div class="field">
+          <div class="field" data-for="other" hidden>
+            <label>Redirect URIs (one per line)</label>
+            <textarea id="client-redirects" placeholder="https://example.com/callback"></textarea>
+          </div>
+          <div class="field" data-for="other" hidden>
             <label>Post-logout redirect URIs (one per line, optional)</label>
             <textarea id="client-logout-redirects" placeholder="https://example.com/"></textarea>
           </div>
@@ -181,30 +191,51 @@
       // Wire up "new client" form
       const newClientForm = document.getElementById("new-client-form");
       document.getElementById("new-client-btn").addEventListener("click", () => {
-        newClientForm.style.display = "block";
+        newClientForm.hidden = false;
       });
       document.getElementById("cancel-client-btn").addEventListener("click", () => {
-        newClientForm.style.display = "none";
+        newClientForm.hidden = true;
       });
-      document.getElementById("save-client-btn").addEventListener("click", async () => {
-        const name = document.getElementById("client-name").value.trim();
-        const redirects = document
-          .getElementById("client-auth-domains")
-          .value.split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .map((d) => `https://${d}.cloudflareaccess.com/cdn-cgi/access/callback`);
-        const logoutRedirects = document
-          .getElementById("client-logout-redirects")
+      // Client type switch. Access clients only need team names; other apps
+      // need full redirect URIs.
+      const clientKind = () => newClientForm.querySelector("[name=client-kind]:checked").value;
+      newClientForm.querySelector(".segmented").addEventListener("change", () => {
+        newClientForm.querySelectorAll("[data-for]").forEach((el) => {
+          el.hidden = el.dataset.for !== clientKind();
+        });
+      });
+
+      function lines(id) {
+        return document
+          .getElementById(id)
           .value.split("\n")
           .map((s) => s.trim())
           .filter(Boolean);
+      }
+
+      // Accepts "george", "george.cloudflareaccess.com" or a full URL.
+      function accessCallback(team) {
+        const name = team
+          .replace(/^https?:\/\//, "")
+          .split("/")[0]
+          .replace(/\.cloudflareaccess\.com$/, "");
+        return `https://${name}.cloudflareaccess.com/cdn-cgi/access/callback`;
+      }
+
+      document.getElementById("save-client-btn").addEventListener("click", async () => {
+        const name = document.getElementById("client-name").value.trim();
         const method = document.getElementById("client-auth-method").value;
+        const isAccess = clientKind() === "access";
+        const redirects = isAccess
+          ? lines("client-auth-domains").map(accessCallback)
+          : lines("client-redirects");
+        const logoutRedirects = isAccess ? [] : lines("client-logout-redirects");
 
         const resultEl = document.getElementById("new-client-result");
         resultEl.className = "status";
         if (!name || redirects.length === 0) {
-          showStatus(resultEl, "Name and at least one auth domain required.", "error");
+          const what = isAccess ? "team name" : "redirect URI";
+          showStatus(resultEl, `Name and at least one ${what} required.`, "error");
           return;
         }
         const resp = await fetch("/api/admin/clients", {
@@ -226,9 +257,16 @@
         if (body.client_secret) {
           html += `<br>client_secret: <code>${escape(body.client_secret)}</code><br><strong>Save this — it will not be shown again.</strong>`;
         }
-        html += `<br><br>Authorization URL: <code>https://idp.george.black/authorize</code>`;
-        html += `<br>Token URL: <code>https://idp.george.black/token</code>`;
-        html += `<br>JWKS URL: <code>https://idp.george.black/.well-known/jwks.json</code>`;
+        const origin = location.origin;
+        if (isAccess) {
+          html += `<br><br>Auth URL: <code>${origin}/authorize</code>`;
+          html += `<br>Token URL: <code>${origin}/token</code>`;
+          html += `<br>Certificate URL: <code>${origin}/.well-known/jwks.json</code>`;
+        } else {
+          html += `<br><br>Issuer: <code>${origin}</code>`;
+          html += `<br>Discovery URL: <code>${origin}/.well-known/openid-configuration</code>`;
+          html += `<br>The app must support PKCE (S256).`;
+        }
         resultEl.innerHTML = html;
         resultEl.className = "status show success";
         await loadClients();
