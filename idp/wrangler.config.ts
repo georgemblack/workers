@@ -6,5 +6,6 @@ export default defineWranglerConfig({
   types: {
     generate: false,
   },
-  assetsDirectory: "./public",
+  // Built from ui/ by `pnpm run build:ui`.
+  assetsDirectory: "./dist/client",
 });

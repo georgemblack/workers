@@ -2,25 +2,36 @@
   "name": "idp",
   "type": "module",
   "scripts": {
-    "dev": "cf dev",
-    "deploy": "cf deploy",
-    "dryrun": "cf deploy --dry-run",
+    "dev": "pnpm run build:ui && cf dev",
+    "deploy": "pnpm run build:ui && cf deploy",
+    "dryrun": "pnpm run build:ui && cf deploy --dry-run",
     "check": "vp check",
     "typegen": "cf workers types",
     "db:migrate:local": "cf d1 migrations apply 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407 --local",
     "db:migrate": "cf d1 migrations apply 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407",
     "keygen": "node scripts/keygen.mjs",
     "registration:open": "cf d1 query 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407 --sql \"UPDATE settings SET value = unixepoch() + 900 WHERE key = 'registration_open_until' RETURNING datetime(value, 'unixepoch') AS open_until_utc\"",
-    "registration:close": "cf d1 query 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407 --sql \"UPDATE settings SET value = 0 WHERE key = 'registration_open_until' RETURNING value\""
+    "registration:close": "cf d1 query 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407 --sql \"UPDATE settings SET value = 0 WHERE key = 'registration_open_until' RETURNING value\"",
+    "build:ui": "vp build ui"
   },
   "dependencies": {
+    "@cloudflare/kumo": "2.19.0",
+    "@phosphor-icons/react": "2.1.10",
+    "@simplewebauthn/browser": "13.3.0",
     "@simplewebauthn/server": "^13.2.2",
     "hono": "^4.12.16",
-    "jose": "^6.2.2"
+    "jose": "^6.2.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "4.3.5",
     "@types/node": "^25.6.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.3.0",
     "cf": "1.0.0-rc.2",
+    "tailwindcss": "4.3.5",
     "vite": "npm:@voidzero-dev/vite-plus-core@0.2.8",
     "vite-plus": "0.2.8",
     "wrangler": "^4.165.0"
