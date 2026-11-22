@@ -1,14 +1,40 @@
+/*
+ * Colors, sizes and component styles modeled after Cloudflare's Kumo design
+ * system. Each color pairs a light and dark value with light-dark(), so the
+ * pages follow the visitor's system theme.
+ */
 :root {
-  --bg: #0e1116;
-  --panel: #161b22;
-  --border: #30363d;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --accent: #58a6ff;
-  --accent-hover: #79b8ff;
-  --danger: #f85149;
-  --success: #3fb950;
+  color-scheme: light dark;
+
+  --canvas: light-dark(oklch(98.75% 0 0), oklch(10% 0 0));
+  --base: light-dark(#fff, oklch(17% 0 0));
+  --elevated: light-dark(oklch(98% 0 0), oklch(12% 0 0));
+  --tint: light-dark(oklch(97% 0 0), oklch(26.9% 0 0));
+  --control: light-dark(#fff, oklch(21% 0.006 285.885));
+  --fill: light-dark(oklch(92.2% 0 0), oklch(26.9% 0 0));
+  --line: light-dark(oklch(14.5% 0 0 / 0.1), oklch(32% 0 0));
+  --hairline: light-dark(oklch(93.5% 0 0), oklch(26.9% 0 0));
+  --focus: light-dark(oklch(15% 0 0), oklch(93.5% 0 0));
+  --shadow-xs: 0 1px 2px 0 light-dark(oklch(0% 0 0 / 0.05), oklch(0% 0 0 / 0.3));
+
+  --text: light-dark(oklch(21% 0.006 285.885), oklch(97% 0 0));
+  --text-strong: light-dark(oklch(14.5% 0 0), oklch(98.5% 0 0));
+  --text-subtle: light-dark(oklch(55.6% 0 0), oklch(70.8% 0 0));
+  --text-placeholder: light-dark(oklch(70.8% 0 0), oklch(55.6% 0 0));
+  --text-link: light-dark(oklch(42.4% 0.199 265.638), oklch(70.7% 0.165 254.624));
+  --text-danger: light-dark(oklch(50.5% 0.213 27.518), oklch(70.4% 0.191 22.216));
+  --text-success: light-dark(oklch(43.2% 0.095 166.913), oklch(90.5% 0.093 164.15));
+
+  --brand: light-dark(
+    oklch(0.5772 0.2324 260),
+    color-mix(in oklch, oklch(0.5772 0.2324 260), black 10%)
+  );
+  --danger: light-dark(oklch(63.7% 0.237 25.331), oklch(57.7% 0.245 27.325));
+  --danger-tint: light-dark(oklch(93.6% 0.032 17.7 / 0.42), oklch(42.9% 0.176 28.7 / 0.17));
+  --success-tint: light-dark(oklch(96.2% 0.043 156.7 / 0.57), oklch(39.3% 0.096 152.3 / 0.2));
+
   --radius: 8px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 * {
@@ -19,20 +45,27 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
+  background: var(--canvas);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   font-size: 14px;
   line-height: 1.5;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
-  color: var(--accent);
+  color: var(--text-link);
   text-decoration: none;
 }
 a:hover {
-  color: var(--accent-hover);
   text-decoration: underline;
 }
 
@@ -51,44 +84,77 @@ main {
 }
 
 .card {
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--base);
   border-radius: var(--radius);
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-xs);
   padding: 2rem;
   width: 100%;
   max-width: 420px;
 }
 
 h1 {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-strong);
   margin: 0 0 0.5rem;
 }
 
 h2 {
-  font-size: 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-strong);
   margin: 1.5rem 0 0.5rem;
 }
 
 p.muted {
-  color: var(--muted);
+  color: var(--text-subtle);
   margin: 0 0 1.5rem;
 }
 
+/* Buttons: the default is Kumo's "primary" style, a brand-colored gradient. */
 button {
   appearance: none;
-  background: var(--accent);
-  color: #0e1116;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 100%;
+  height: 36px;
+  padding: 0 0.75rem;
   border: 0;
   border-radius: var(--radius);
-  padding: 0.6rem 1rem;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
   cursor: pointer;
-  width: 100%;
+  user-select: none;
+  color: #fff;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--brand), white 15%),
+    var(--brand)
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--brand), black 10%),
+    inset 0 1px 0 0 color-mix(in oklch, var(--brand), white 30%),
+    var(--shadow-xs);
 }
 
-button:hover {
-  background: var(--accent-hover);
+button:hover:not(:disabled) {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--brand), white 30%),
+    var(--brand)
+  );
+}
+
+button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
 
 button:disabled {
@@ -96,38 +162,86 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Small buttons used in toolbars and table rows. */
+button.sm,
 button.danger {
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
   width: auto;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
+  height: 26px;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+button.secondary,
+button.danger {
+  background: var(--base);
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-xs);
 }
 
 button.secondary {
-  background: transparent;
   color: var(--text);
-  border: 1px solid var(--border);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: var(--tint);
+}
+
+button.danger {
+  color: var(--text-danger);
+}
+
+button.danger:hover:not(:disabled) {
+  background: var(--base);
+  box-shadow:
+    0 0 0 1px color-mix(in oklch, var(--danger), transparent 70%),
+    var(--shadow-xs);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  background: var(--control);
+  color: var(--text);
+  border: 0;
+  border-radius: var(--radius);
+  box-shadow: 0 0 0 1px var(--line);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
 }
 
 input,
 select {
-  width: 100%;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.55rem 0.7rem;
-  font-size: 0.95rem;
-  font-family: inherit;
+  height: 36px;
+  padding: 0 0.75rem;
+}
+
+textarea {
+  padding: 0.5rem 0.75rem;
+  font-family: var(--mono);
+  font-size: 13px;
+  min-height: 80px;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: 0 0 0 1.5px color-mix(in oklch, var(--focus), transparent 50%);
+}
+
+::placeholder {
+  color: var(--text-placeholder);
 }
 
 label {
   display: block;
-  margin-bottom: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--muted);
+  margin-bottom: 0.375rem;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .field {
@@ -140,11 +254,15 @@ label {
   align-items: center;
 }
 
+.row button {
+  width: auto;
+}
+
+/* Status messages, styled like Kumo banners. */
 .status {
   margin-top: 1rem;
-  padding: 0.6rem 0.8rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--radius);
-  font-size: 0.9rem;
   display: none;
 }
 
@@ -153,57 +271,63 @@ label {
 }
 
 .status.error {
-  background: rgba(248, 81, 73, 0.1);
-  border: 1px solid var(--danger);
-  color: var(--danger);
+  background: var(--danger-tint);
+  color: var(--text-danger);
 }
 
 .status.success {
-  background: rgba(63, 185, 80, 0.1);
-  border: 1px solid var(--success);
-  color: var(--success);
+  background: var(--success-tint);
+  color: var(--text-success);
 }
 
+/* Tables sit in a rounded, outlined container like a Kumo card. */
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   margin-top: 1rem;
-  font-size: 0.9rem;
+  background: var(--base);
+  border-radius: var(--radius);
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-xs);
+  overflow: hidden;
 }
 
 th,
 td {
   text-align: left;
-  padding: 0.6rem 0.5rem;
-  border-bottom: 1px solid var(--border);
-  vertical-align: top;
+  padding: 0.75rem;
+  vertical-align: middle;
 }
 
 th {
-  color: var(--muted);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-strong);
+  border-bottom: 1px solid var(--fill);
+}
+
+tbody tr:nth-child(even) td {
+  background: var(--elevated);
+}
+
+tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--hairline);
 }
 
 code {
-  font-family: "SF Mono", Menlo, monospace;
-  font-size: 0.85em;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.1em 0.35em;
+  font-family: var(--mono);
+  font-size: 0.875em;
+  font-weight: 500;
+  background: var(--base);
+  border: 1px solid var(--hairline);
+  padding: 0.125rem 0.375rem;
   border-radius: 4px;
   word-break: break-all;
 }
 
-textarea {
-  width: 100%;
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.55rem 0.7rem;
-  font-family: "SF Mono", Menlo, monospace;
-  font-size: 0.85rem;
-  min-height: 80px;
-  resize: vertical;
+td code {
+  background: var(--tint);
 }
 
 .toolbar {
@@ -214,8 +338,9 @@ textarea {
 }
 
 nav {
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 1.5rem;
+  background: var(--base);
+  border-bottom: 1px solid var(--hairline);
+  padding: 0.875rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -223,13 +348,15 @@ nav {
 
 nav .brand {
   font-weight: 600;
+  color: var(--text-strong);
 }
 
 nav .links a {
   margin-left: 1rem;
-  color: var(--muted);
+  color: var(--text-subtle);
 }
 
 nav .links a:hover {
   color: var(--text);
+  text-decoration: none;
 }
