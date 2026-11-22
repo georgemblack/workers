@@ -37,6 +37,19 @@
         "8792"
       ],
       "port": 8792
+    },
+    {
+      "name": "idp",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--dir",
+        "idp",
+        "run",
+        "dev",
+        "--port",
+        "8793"
+      ],
+      "port": 8793
     }
   ]
 }
