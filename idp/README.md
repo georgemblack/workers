@@ -1,148 +1,113 @@
 # IdP
 
-Single-user OpenID Connect identity provider, deployed to Cloudflare Workers
-at `https://idp.george.black`.
+My personal identity provider: I sign in here once with a passkey, and my other apps trust it to know it's me.
 
-## One-time setup
+It lives at [idp.george.black](https://idp.george.black). Everything below is how to look after it.
+
+## Deploying a change
 
 ```sh
-# 1. Create the D1 database (paste the returned id into wrangler.jsonc)
-pnpx wrangler d1 create idp
-
-# 2. Generate types now that bindings are in place
-pnpm run typegen
-
-# 3. Apply migrations
-pnpm run db:migrate          # remote
-pnpm run db:migrate:local    # local dev
-
-# 4. Generate the signing key and store it as a secret
-pnpm -s run keygen | pnpx wrangler secret put SIGNING_JWK
-
-# 5. Set the bootstrap secret used to enroll the first passkey
-#    (also add it to `env` in cloudflare.config.ts; see "Bootstrap secret" below)
-echo "$(openssl rand -hex 32)" | pnpx wrangler secret put BOOTSTRAP_SECRET
-
-# 6. Set the cookie-signing secret
-echo "$(openssl rand -hex 32)" | pnpx wrangler secret put SESSION_SECRET
-
-# 7. Set the email address returned in the `email` claim
-echo "you@example.com" | pnpx wrangler secret put USER_EMAIL
-
-# 8. Deploy
+pnpm run check
 pnpm run deploy
-
-# 9. Open passkey registration for 15 minutes
-pnpm run registration:open
 ```
 
-Then visit `https://idp.george.black/register`, paste the bootstrap secret,
-and enroll your first passkey. Once a credential exists, the bootstrap path is
-locked and further passkeys can only be added from `/admin` while signed in.
+If the change includes a new database migration, apply it **before** deploying (see below), so the new code never runs against an old database.
 
-## Registering a new passkey
+## Changing the database
 
-Passkey registration is closed by default. The register endpoints
-(`/api/auth/register/*`) return `403 registration_closed` unless it has been
-opened by hand. When it's open, you still need to be signed in (or, before any
-passkey exists, have the bootstrap secret). Opening registration adds an extra
-lock; it doesn't replace the others.
+1. Add a new file to `migrations/`, numbered after the last one (e.g. `0005_something.sql`).
+2. Apply it to the live database:
 
-To add a passkey:
+   ```sh
+   pnpm run db:migrate
+   ```
 
-1. Open registration for 15 minutes:
+3. Then deploy the code that uses it.
+
+Migrations run once, in order, and can't be undone automatically. If you need to reverse one, write a new migration that does it.
+
+## Adding a passkey
+
+Registration is closed by default, even while signed in. To add a passkey (a new device, for example):
+
+1. Open registration. It closes by itself after 15 minutes.
 
    ```sh
    pnpm run registration:open
    ```
 
-   It prints the time (UTC) when registration closes again.
-
-2. Sign in at `https://idp.george.black/admin` and click "Add passkey".
-3. Close registration right away instead of waiting for it to expire:
+2. Sign in at [/admin](https://idp.george.black/admin) and click **Add passkey**.
+3. Close it again when you're done:
 
    ```sh
    pnpm run registration:close
    ```
 
-Both commands change the `registration_open_until` row in the D1 `settings`
-table (a Unix timestamp; `0` means closed). They take effect immediately, with
-no redeploy needed.
+You can remove old passkeys from the same page, but never the last one.
 
-### Bootstrap secret
+## Connecting a new app
 
-`BOOTSTRAP_SECRET` is only used to enroll the very first passkey, so it's
-normally **not set** on the deployed worker. Without it, the bootstrap path
-can't be used at all.
+1. Sign in at [/admin](https://idp.george.black/admin) and click **New client**.
+2. Give it a name and the app's redirect URL(s).
+3. Copy the client ID and secret into the app. The secret is only shown once; if you lose it, delete the client and make a new one.
 
-`cf deploy` fails if a secret listed in `cloudflare.config.ts` doesn't exist,
-so the secret is also left out of that file. If you ever need to bootstrap
-again (for example, after wiping the passkey table):
+## Secrets
 
-1. Add `BOOTSTRAP_SECRET: bindings.secret(),` back to `env` in
-   `cloudflare.config.ts`.
-2. Set the secret and deploy (steps 5 and 8 above), then open registration and
-   enroll at `/register`.
-3. Remove the line from `cloudflare.config.ts`, delete the secret, and deploy
-   again:
+These are set on the worker, not stored in the repo. Changing one takes effect right away, with no deploy needed.
+
+| Secret           | What it is                        | Changing it means…                                                           |
+| ---------------- | --------------------------------- | ---------------------------------------------------------------------------- |
+| `SIGNING_JWK`    | The key that signs sign-in tokens | Tokens already handed out stop working, so apps may ask you to sign in again |
+| `SESSION_SECRET` | Signs your browser session        | You're signed out of the idp                                                 |
+| `USER_EMAIL`     | The email address apps receive    | Apps see the new email next sign-in                                          |
+
+To set or change one:
+
+```sh
+# Signing key
+cf workers secrets update SIGNING_JWK --worker idp --type secret_text --text "$(pnpm -s run keygen)"
+
+# Session secret
+cf workers secrets update SESSION_SECRET --worker idp --type secret_text --text "$(openssl rand -hex 32)"
+
+# Email
+cf workers secrets update USER_EMAIL --worker idp --type secret_text --text "you@example.com"
+```
+
+## Getting back in if every passkey is lost
+
+Normally there's no way to register a passkey without already being signed in. To get back in, temporarily turn on the bootstrap secret:
+
+1. Add `BOOTSTRAP_SECRET: bindings.secret(),` to `env` in `cloudflare.config.ts`.
+2. Set it and deploy:
 
    ```sh
-   pnpx wrangler secret delete BOOTSTRAP_SECRET
+   cf workers secrets update BOOTSTRAP_SECRET --worker idp --type secret_text --text "$(openssl rand -hex 32)"
+   pnpm run deploy
    ```
 
-## OIDC endpoints
+3. Open registration (`pnpm run registration:open`), go to [/register](https://idp.george.black/register), paste the secret, and add your passkey. This only works while no passkeys exist, so delete old ones from the `credentials` table first if needed.
+4. Turn it back off: remove the line from `cloudflare.config.ts`, then delete the secret and deploy.
 
-| Purpose              | Path                                |
-| -------------------- | ----------------------------------- |
-| Discovery            | `/.well-known/openid-configuration` |
-| JWKS                 | `/.well-known/jwks.json`            |
-| Authorization        | `/authorize`                        |
-| Token                | `/token`                            |
-| UserInfo             | `/userinfo`                         |
-| End session (logout) | `/logout`                           |
+   ```sh
+   cf workers secrets delete BOOTSTRAP_SECRET --worker idp
+   pnpm run deploy
+   ```
 
-Supported scopes: `openid`, `profile`, `email`, `offline_access`.
+## Cloudflare protections
 
-PKCE (`S256`) is **required** for `/authorize` requests.
+On top of the code, the `george.black` zone has:
 
-## Registering a relying party
+- **A country block.** Requests from outside the US are blocked, except the few routes that apps call from their own servers. When traveling, add the country to the **IdP Country Block** rule under Security rules in the dashboard, and remove it when you're back.
+- **A rate limit.** 60 requests per minute per IP across the whole idp, then a 10-minute block.
+- **Cloudflare Access** in front of the passkey registration routes.
 
-1. Sign in at `https://idp.george.black/admin`.
-2. Click "New client", fill in name, redirect URIs, and pick an auth method.
-3. Copy the `client_id` (and `client_secret` for confidential clients) — the
-   secret is shown only once.
+## Setting it up from scratch
 
-## Local development
+Only needed if the idp is ever rebuilt somewhere new.
 
-```sh
-pnpm install
-pnpm run db:migrate:local
-pnpx wrangler secret put SIGNING_JWK --local       # paste output of `pnpm -s run keygen`
-pnpx wrangler secret put BOOTSTRAP_SECRET --local
-pnpx wrangler secret put SESSION_SECRET --local
-pnpx wrangler secret put USER_EMAIL --local
-pnpm run dev
-```
-
-The `registration:*` scripts only work against the remote database. To open
-registration locally, edit the local D1 file directly:
-
-```sh
-sqlite3 .cloudflare/state/v3/d1/miniflare-D1DatabaseObject/<hash>.sqlite \
-  "UPDATE settings SET value = unixepoch() + 900 WHERE key = 'registration_open_until'"
-```
-
-Note: WebAuthn requires a secure context. For local dev, use `http://localhost`
-(treated as secure by browsers) and set `RP_ID=localhost` / `ISSUER=http://localhost:8787`
-via a wrangler `--env` or by editing `wrangler.jsonc` temporarily.
-
-## Architecture notes
-
-- `src/routes/oidc.ts` — discovery, JWKS, authorize, token, userinfo, logout
-- `src/routes/auth.ts` — passkey login / register / credential management
-- `src/routes/admin.ts` — OIDC client CRUD
-- `src/webauthn.ts` — wraps `@simplewebauthn/server`
-- `src/keys.ts` — JWT signing via `jose`
-- `src/session.ts` — HMAC-signed cookie sessions (`idp_session`, 12h)
-- `src/storage.ts` — D1 + KV access
-- `public/` — static front-end (login / register / admin)
+1. Create a D1 database, and put its ID in `cloudflare.config.ts` and the `db:*` / `registration:*` scripts in `package.json`.
+2. Apply the migrations: `pnpm run db:migrate`
+3. Set `SIGNING_JWK`, `SESSION_SECRET` and `USER_EMAIL` (see [Secrets](#secrets)).
+4. Deploy: `pnpm run deploy`
+5. Add your first passkey with the bootstrap secret (see [Getting back in](#getting-back-in-if-every-passkey-is-lost)).
