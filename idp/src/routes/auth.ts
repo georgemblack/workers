@@ -1,5 +1,10 @@
 import { Hono } from "hono";
-import { countCredentials, deleteCredential, listCredentials } from "../storage";
+import {
+  countCredentials,
+  deleteCredential,
+  isRegistrationOpen,
+  listCredentials,
+} from "../storage";
 import {
   finishAuthentication,
   finishRegistration,
@@ -44,6 +49,15 @@ auth.post("/api/auth/login/verify", async (c) => {
 auth.post("/api/auth/logout", async (c) => {
   destroySession(c);
   return c.json({ ok: true });
+});
+
+// Passkey registration is closed unless it was opened by hand (see README).
+// This runs before the session and bootstrap checks below, not instead of them.
+auth.use("/api/auth/register/*", async (c, next) => {
+  if (!(await isRegistrationOpen(c.env.DB))) {
+    return c.json({ error: "registration_closed" }, 403);
+  }
+  await next();
 });
 
 auth.post("/api/auth/register/options", async (c) => {

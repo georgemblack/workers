@@ -275,3 +275,12 @@ export async function consumeWebauthnChallenge(db: D1Database, id: string): Prom
     .first<{ challenge: string }>();
   return row?.challenge ?? null;
 }
+
+// Registration is only allowed until the time stored in `registration_open_until`.
+// It's changed by hand with `pnpm run registration:open` / `registration:close`.
+export async function isRegistrationOpen(db: D1Database): Promise<boolean> {
+  const row = await db
+    .prepare("SELECT value FROM settings WHERE key = 'registration_open_until'")
+    .first<{ value: number }>();
+  return !!row && row.value > Math.floor(Date.now() / 1000);
+}

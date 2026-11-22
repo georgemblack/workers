@@ -9,7 +9,9 @@
     "typegen": "cf workers types",
     "db:migrate:local": "cf d1 migrations apply 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407 --local",
     "db:migrate": "cf d1 migrations apply 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407",
-    "keygen": "node scripts/keygen.mjs"
+    "keygen": "node scripts/keygen.mjs",
+    "registration:open": "cf d1 query 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407 --sql \"UPDATE settings SET value = unixepoch() + 900 WHERE key = 'registration_open_until' RETURNING datetime(value, 'unixepoch') AS open_until_utc\"",
+    "registration:close": "cf d1 query 8bd2f6a9-bf22-4d19-aba5-a387aa9d3407 --sql \"UPDATE settings SET value = 0 WHERE key = 'registration_open_until' RETURNING value\""
   },
   "dependencies": {
     "@simplewebauthn/server": "^13.2.2",

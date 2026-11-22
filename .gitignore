@@ -40,3 +40,6 @@ lerna-debug.log*
 
 # cf build output
 **/.cloudflare/output/
+
+# cf local dev state
+**/.cloudflare/state/
