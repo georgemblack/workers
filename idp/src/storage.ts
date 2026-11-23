@@ -266,11 +266,15 @@ export async function putWebauthnChallenge(
   challenge: string,
   ttl = 300,
 ): Promise<void> {
-  const expiresAt = Math.floor(Date.now() / 1000) + ttl;
-  await db
-    .prepare("INSERT INTO webauthn_challenges (id, challenge, expires_at) VALUES (?, ?, ?)")
-    .bind(id, challenge, expiresAt)
-    .run();
+  const now = Math.floor(Date.now() / 1000);
+  // Challenges from abandoned sign-in attempts are never consumed, so clear out
+  // any expired ones whenever a new one is added.
+  await db.batch([
+    db.prepare("DELETE FROM webauthn_challenges WHERE expires_at <= ?").bind(now),
+    db
+      .prepare("INSERT INTO webauthn_challenges (id, challenge, expires_at) VALUES (?, ?, ?)")
+      .bind(id, challenge, now + ttl),
+  ]);
 }
 
 export async function consumeWebauthnChallenge(db: D1Database, id: string): Promise<string | null> {
