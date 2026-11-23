@@ -54,6 +54,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   bootstrap_required: "The bootstrap secret is missing or wrong.",
   no_credentials_registered: "No passkeys are registered yet.",
   cannot_delete_last_credential: "You can't delete your only passkey.",
+  challenge_expired: "That took too long. Try again.",
+  passkey_verification_failed: "That passkey couldn't be verified. Try again.",
+  server_error: "Something went wrong. Try again.",
 };
 
 // An error from the API. `status` is the HTTP status, so callers can tell

@@ -20,7 +20,7 @@ app.notFound((c) => c.env.ASSETS.fetch(c.req.raw));
 
 app.onError((err, c) => {
   console.error("unhandled", err);
-  return c.json({ error: "server_error", message: err.message }, 500);
+  return c.json({ error: "server_error" }, 500);
 });
 
 export default app;

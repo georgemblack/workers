@@ -21,6 +21,17 @@ import {
 import { randomToken } from "./util";
 import { ISSUER, RP_ID, RP_NAME, USER_DISPLAY_NAME, USER_HANDLE, USER_NAME } from "./constants";
 
+// Error codes sent to the browser. They're kept vague on purpose so they don't
+// reveal which check failed or whether a passkey exists.
+type PasskeyError = "challenge_expired" | "passkey_verification_failed";
+
+// The library's reason for rejecting a passkey can hint at which check failed,
+// so it's only logged, never sent back.
+function logVerificationError(e: unknown): null {
+  console.error("passkey verification failed", e);
+  return null;
+}
+
 export async function startRegistration(env: Cloudflare.Env): Promise<{
   options: PublicKeyCredentialCreationOptionsJSON;
   challengeId: string;
@@ -53,25 +64,20 @@ export async function finishRegistration(
   challengeId: string,
   response: RegistrationResponseJSON,
   label: string | null,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: true } | { ok: false; error: PasskeyError }> {
   const expectedChallenge = await consumeWebauthnChallenge(env.DB, `reg:${challengeId}`);
-  if (!expectedChallenge) return { ok: false, error: "Challenge not found or expired" };
+  if (!expectedChallenge) return { ok: false, error: "challenge_expired" };
 
-  let verification;
-  try {
-    verification = await verifyRegistrationResponse({
-      response,
-      expectedChallenge,
-      expectedOrigin: ISSUER,
-      expectedRPID: RP_ID,
-      requireUserVerification: true,
-    });
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
+  const verification = await verifyRegistrationResponse({
+    response,
+    expectedChallenge,
+    expectedOrigin: ISSUER,
+    expectedRPID: RP_ID,
+    requireUserVerification: true,
+  }).catch(logVerificationError);
 
-  if (!verification.verified || !verification.registrationInfo) {
-    return { ok: false, error: "Verification failed" };
+  if (!verification?.verified || !verification.registrationInfo) {
+    return { ok: false, error: "passkey_verification_failed" };
   }
 
   const info = verification.registrationInfo;
@@ -110,33 +116,28 @@ export async function finishAuthentication(
   env: Cloudflare.Env,
   challengeId: string,
   response: AuthenticationResponseJSON,
-): Promise<{ ok: true; sub: string } | { ok: false; error: string }> {
+): Promise<{ ok: true; sub: string } | { ok: false; error: PasskeyError }> {
   const expectedChallenge = await consumeWebauthnChallenge(env.DB, `auth:${challengeId}`);
-  if (!expectedChallenge) return { ok: false, error: "Challenge not found or expired" };
+  if (!expectedChallenge) return { ok: false, error: "challenge_expired" };
 
   const cred = await getCredential(env.DB, response.id);
-  if (!cred) return { ok: false, error: "Unknown credential" };
+  if (!cred) return { ok: false, error: "passkey_verification_failed" };
 
-  let verification;
-  try {
-    verification = await verifyAuthenticationResponse({
-      response,
-      expectedChallenge,
-      expectedOrigin: ISSUER,
-      expectedRPID: RP_ID,
-      credential: {
-        id: cred.credential_id,
-        publicKey: cred.public_key as Uint8Array<ArrayBuffer>,
-        counter: cred.counter,
-        transports: cred.transports as AuthenticatorTransportFuture[],
-      },
-      requireUserVerification: true,
-    });
-  } catch (e) {
-    return { ok: false, error: (e as Error).message };
-  }
+  const verification = await verifyAuthenticationResponse({
+    response,
+    expectedChallenge,
+    expectedOrigin: ISSUER,
+    expectedRPID: RP_ID,
+    credential: {
+      id: cred.credential_id,
+      publicKey: cred.public_key as Uint8Array<ArrayBuffer>,
+      counter: cred.counter,
+      transports: cred.transports as AuthenticatorTransportFuture[],
+    },
+    requireUserVerification: true,
+  }).catch(logVerificationError);
 
-  if (!verification.verified) return { ok: false, error: "Verification failed" };
+  if (!verification?.verified) return { ok: false, error: "passkey_verification_failed" };
 
   await updateCredentialCounter(
     env.DB,
