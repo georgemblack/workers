@@ -1,0 +1,6 @@
+# Headers for the static pages, which are served without running the worker.
+# The worker adds the same headers to its own responses in src/index.ts.
+
+# Stop other sites from showing these pages inside a frame (clickjacking).
+/*
+  Content-Security-Policy: frame-ancestors 'none'
