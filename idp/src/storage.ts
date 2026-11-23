@@ -206,11 +206,15 @@ export async function putAuthCode(
   data: AuthCodeRecord,
   ttl: number,
 ): Promise<void> {
-  const expiresAt = Math.floor(Date.now() / 1000) + ttl;
-  await db
-    .prepare("INSERT INTO auth_codes (code, payload, expires_at) VALUES (?, ?, ?)")
-    .bind(code, JSON.stringify(data), expiresAt)
-    .run();
+  const now = Math.floor(Date.now() / 1000);
+  // Codes an app never exchanged would otherwise stay forever, so clear out
+  // expired ones whenever a new one is added.
+  await db.batch([
+    db.prepare("DELETE FROM auth_codes WHERE expires_at <= ?").bind(now),
+    db
+      .prepare("INSERT INTO auth_codes (code, payload, expires_at) VALUES (?, ?, ?)")
+      .bind(code, JSON.stringify(data), now + ttl),
+  ]);
 }
 
 export async function consumeAuthCode(
@@ -240,11 +244,15 @@ export async function putRefreshToken(
   data: RefreshTokenRecord,
   ttl: number,
 ): Promise<void> {
-  const expiresAt = Math.floor(Date.now() / 1000) + ttl;
-  await db
-    .prepare("INSERT INTO refresh_tokens (token, payload, expires_at) VALUES (?, ?, ?)")
-    .bind(token, JSON.stringify(data), expiresAt)
-    .run();
+  const now = Math.floor(Date.now() / 1000);
+  // Tokens from apps that stopped refreshing would otherwise stay forever, so
+  // clear out expired ones whenever a new one is added.
+  await db.batch([
+    db.prepare("DELETE FROM refresh_tokens WHERE expires_at <= ?").bind(now),
+    db
+      .prepare("INSERT INTO refresh_tokens (token, payload, expires_at) VALUES (?, ?, ?)")
+      .bind(token, JSON.stringify(data), now + ttl),
+  ]);
 }
 
 export async function consumeRefreshToken(
