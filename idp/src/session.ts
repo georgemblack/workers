@@ -3,8 +3,10 @@ import type { Context } from "hono";
 import { SESSION_TTL_SECONDS } from "./constants";
 import { base64urlDecode, base64urlEncode, constantTimeEqual } from "./util";
 
-const SESSION_COOKIE = "idp_session";
-const TX_COOKIE_PREFIX = "idp_tx_";
+// The "__Host-" prefix tells the browser to only accept these cookies over HTTPS
+// from this exact domain, so other george.black sites can't set or overwrite them.
+const SESSION_COOKIE = "__Host-idp_session";
+const TX_COOKIE_PREFIX = "__Host-idp_tx_";
 
 async function hmacKey(secret: string): Promise<CryptoKey> {
   return await crypto.subtle.importKey(
@@ -82,7 +84,7 @@ export async function getSession(
 }
 
 export function destroySession(c: Context<{ Bindings: Cloudflare.Env }>): void {
-  deleteCookie(c, SESSION_COOKIE, { path: "/" });
+  deleteCookie(c, SESSION_COOKIE, { path: "/", secure: true });
 }
 
 export async function setTxCookie(
@@ -110,5 +112,5 @@ export async function readTxCookie<T = unknown>(
 }
 
 export function clearTxCookie(c: Context<{ Bindings: Cloudflare.Env }>, name: string): void {
-  deleteCookie(c, TX_COOKIE_PREFIX + name, { path: "/" });
+  deleteCookie(c, TX_COOKIE_PREFIX + name, { path: "/", secure: true });
 }
