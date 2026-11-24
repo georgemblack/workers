@@ -79,22 +79,23 @@ function Activity() {
               <Loader />
             </div>
           )
+        ) : entries.length === 0 ? (
+          // Empty is a box of its own, so it replaces the card rather than going inside it.
+          <Empty
+            size="sm"
+            icon={<ClockCounterClockwiseIcon size={32} className="text-kumo-inactive" />}
+            title="No activity"
+            description={
+              filter === "all"
+                ? "Sign-ins and changes will show up here."
+                : "Nothing of this kind in the last 90 days."
+            }
+          />
         ) : (
           <LayerCard className="divide-y divide-kumo-line overflow-hidden p-0">
-            {entries.length === 0 ? (
-              <Empty
-                size="sm"
-                icon={<ClockCounterClockwiseIcon size={32} className="text-kumo-inactive" />}
-                title="No activity"
-                description={
-                  filter === "all"
-                    ? "Sign-ins and changes will show up here."
-                    : "Nothing of this kind in the last 90 days."
-                }
-              />
-            ) : (
-              entries.map((entry) => <ActivityRow key={entry.id} entry={entry} />)
-            )}
+            {entries.map((entry) => (
+              <ActivityRow key={entry.id} entry={entry} />
+            ))}
           </LayerCard>
         )}
 

@@ -43,25 +43,26 @@ export function ClientsSection({
         }
       />
 
-      <LayerCard className="divide-y divide-kumo-line overflow-hidden p-0">
-        {clients.length === 0 ? (
-          <Empty
-            size="sm"
-            icon={<PlugsConnectedIcon size={32} className="text-kumo-inactive" />}
-            title="No clients yet"
-            description="Create one for each app that signs in through this idp."
-          />
-        ) : (
-          clients.map((client) => (
+      {/* Empty is a box of its own, so it replaces the card rather than going inside it. */}
+      {clients.length === 0 ? (
+        <Empty
+          size="sm"
+          icon={<PlugsConnectedIcon size={32} className="text-kumo-inactive" />}
+          title="No clients yet"
+          description="Create one for each app that signs in through this idp."
+        />
+      ) : (
+        <LayerCard className="divide-y divide-kumo-line overflow-hidden p-0">
+          {clients.map((client) => (
             <ClientRow
               key={client.client_id}
               client={client}
               defaultEmail={defaultEmail}
               onDelete={() => setDeleting(client)}
             />
-          ))
-        )}
-      </LayerCard>
+          ))}
+        </LayerCard>
+      )}
 
       <NewClientDialog
         open={creating}
