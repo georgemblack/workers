@@ -6,13 +6,17 @@ import { requireAccess } from "./access";
 
 const app = new Hono<{ Bindings: Cloudflare.Env }>();
 
-// Stop other sites from showing any page inside a frame (clickjacking). Static
-// pages served without the worker get the same header from ui/public/_headers.
+// Security headers for every response. Static pages served without the worker
+// get the same headers from ui/public/_headers, which explains each one.
 app.use("*", async (c, next) => {
   await next();
   // Copy the response first, since some (redirects, static files) can't be changed.
   c.res = new Response(c.res.body, c.res);
-  c.res.headers.set("Content-Security-Policy", "frame-ancestors 'none'");
+  c.res.headers.set(
+    "Content-Security-Policy",
+    "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'",
+  );
+  c.res.headers.set("X-Content-Type-Options", "nosniff");
 });
 
 // Must run before every route. See access.ts.
