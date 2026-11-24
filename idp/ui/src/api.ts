@@ -46,6 +46,35 @@ export interface Credential {
   last_used_at: string | null;
 }
 
+// One entry in the activity log. Matches AuditEvent in src/audit.ts.
+export type ActivityEvent =
+  | { event: "sign_in"; details: { passkey: string | null; credential_id: string } }
+  | {
+      event: "app_sign_in";
+      details: { client_id: string; client_name: string | null; scope: string };
+    }
+  | { event: "sign_out"; details: { client_id: string | null } }
+  | { event: "sign_out_everywhere"; details: { reason: "button" | "passkey_deleted" } }
+  | { event: "passkey_added"; details: { passkey: string | null; credential_id: string } }
+  | { event: "passkey_deleted"; details: { passkey: string | null; credential_id: string } }
+  | { event: "client_created"; details: { client_id: string; name: string } }
+  | { event: "client_deleted"; details: { client_id: string; name: string } };
+
+export type ActivityEntry = ActivityEvent & {
+  id: number;
+  // Unix seconds.
+  created_at: number;
+  // Where the request came from, according to Cloudflare. Any can be missing.
+  ip: string | null;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  asn: number | null;
+  as_org: string | null;
+  user_agent: string | null;
+  ray_id: string | null;
+};
+
 // Turns the API's error codes into something readable.
 const ERROR_MESSAGES: Record<string, string> = {
   registration_closed:
@@ -100,6 +129,23 @@ export const deleteClient = (id: string) =>
   request(`/api/admin/clients/${encodeURIComponent(id)}`, { method: "DELETE" });
 
 export const signOutEverywhere = () => postJson("/api/admin/sign-out-everywhere");
+
+// A page of the activity log, newest first. Pass the previous page's `next`
+// as `before` to get the page after it; `next` is null on the last page.
+export function listActivity({
+  event,
+  before,
+}: {
+  event: ActivityEvent["event"] | null;
+  before: number | null;
+}) {
+  const params = new URLSearchParams();
+  if (event) params.set("event", event);
+  if (before !== null) params.set("before", String(before));
+  return request<{ entries: ActivityEntry[]; next: number | null }>(
+    `/api/admin/activity?${params.toString()}`,
+  );
+}
 
 export const listCredentials = () => request<{ credentials: Credential[] }>("/api/credentials");
 

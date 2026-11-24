@@ -18,3 +18,5 @@ export const AUTH_CODE_TTL_SECONDS = 60;
 export const ACCESS_TOKEN_TTL_SECONDS = 3600;
 export const REFRESH_TOKEN_TTL_SECONDS = 2592000;
 export const ID_TOKEN_TTL_SECONDS = 3600;
+// How long activity log entries are kept: 90 days.
+export const AUDIT_LOG_RETENTION_SECONDS = 7776000;

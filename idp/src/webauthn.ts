@@ -64,7 +64,7 @@ export async function finishRegistration(
   challengeId: string,
   response: RegistrationResponseJSON,
   label: string | null,
-): Promise<{ ok: true } | { ok: false; error: PasskeyError }> {
+): Promise<{ ok: true; credentialId: string } | { ok: false; error: PasskeyError }> {
   const expectedChallenge = await consumeWebauthnChallenge(env.DB, `reg:${challengeId}`);
   if (!expectedChallenge) return { ok: false, error: "challenge_expired" };
 
@@ -91,7 +91,7 @@ export async function finishRegistration(
     label,
   });
 
-  return { ok: true };
+  return { ok: true, credentialId: info.credential.id };
 }
 
 export async function startAuthentication(env: Cloudflare.Env): Promise<{
@@ -116,7 +116,10 @@ export async function finishAuthentication(
   env: Cloudflare.Env,
   challengeId: string,
   response: AuthenticationResponseJSON,
-): Promise<{ ok: true; sub: string } | { ok: false; error: PasskeyError }> {
+): Promise<
+  | { ok: true; sub: string; credentialId: string; label: string | null }
+  | { ok: false; error: PasskeyError }
+> {
   const expectedChallenge = await consumeWebauthnChallenge(env.DB, `auth:${challengeId}`);
   if (!expectedChallenge) return { ok: false, error: "challenge_expired" };
 
@@ -145,7 +148,7 @@ export async function finishAuthentication(
     verification.authenticationInfo.newCounter,
   );
 
-  return { ok: true, sub: USER_HANDLE };
+  return { ok: true, sub: USER_HANDLE, credentialId: cred.credential_id, label: cred.label };
 }
 
 type AuthenticatorTransportFuture =

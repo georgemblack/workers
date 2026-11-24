@@ -45,6 +45,12 @@ Registration is closed by default, even while signed in. To add a passkey (a new
 2. Give it a name and the app's redirect URL(s).
 3. Copy the client ID and secret into the app. The secret is only shown once; if you lose it, delete the client and make a new one.
 
+## Activity log
+
+[/admin/activity](https://idp.george.black/admin/activity) lists successful sign-ins (with a passkey, and into each app), sign-outs, and changes to passkeys and clients, newest first. Click an entry to see where it came from: IP address, approximate location, network, and browser. Entries are kept for 90 days.
+
+Opening registration with `pnpm run registration:open` changes the database directly, so it doesn't show up here.
+
 ## Secrets
 
 These are set on the worker, not stored in the repo. Changing one takes effect right away, with no deploy needed.

@@ -6,6 +6,15 @@ body {
   @apply bg-kumo-canvas text-base text-kumo-default;
 }
 
+/* Hides the scrollbar inside dropdowns. Base UI would normally add this itself
+   in a <style> tag, which our Content-Security-Policy blocks (see mount.tsx). */
+.base-ui-disable-scrollbar {
+  scrollbar-width: none;
+}
+.base-ui-disable-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Sign-in page background: soft colored blobs that slowly drift and blend. */
 .flow-bg {
   --flow-base: #f6f4ff;

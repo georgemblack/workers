@@ -1,3 +1,4 @@
+import { AUDIT_LOG_RETENTION_SECONDS } from "./constants";
 import { base64urlEncode, sha256 } from "./util";
 
 export interface Client {
@@ -321,4 +322,70 @@ export async function isRegistrationOpen(db: D1Database): Promise<boolean> {
     .prepare("SELECT value FROM settings WHERE key = 'registration_open_until'")
     .first<{ value: number }>();
   return !!row && row.value > Math.floor(Date.now() / 1000);
+}
+
+// One row of the activity log. `details` is the event-specific JSON, already
+// parsed. See src/audit.ts for the events and their details.
+export interface AuditEntry {
+  id: number;
+  created_at: number;
+  event: string;
+  ip: string | null;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  asn: number | null;
+  as_org: string | null;
+  user_agent: string | null;
+  ray_id: string | null;
+  details: unknown;
+}
+
+export async function insertAuditEntry(
+  db: D1Database,
+  entry: Omit<AuditEntry, "id" | "created_at">,
+): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  // Old entries are cleared out whenever a new one is added.
+  await db.batch([
+    db
+      .prepare("DELETE FROM audit_log WHERE created_at < ?")
+      .bind(now - AUDIT_LOG_RETENTION_SECONDS),
+    db
+      .prepare(
+        `INSERT INTO audit_log
+          (created_at, event, ip, country, region, city, asn, as_org, user_agent, ray_id, details)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        now,
+        entry.event,
+        entry.ip,
+        entry.country,
+        entry.region,
+        entry.city,
+        entry.asn,
+        entry.as_org,
+        entry.user_agent,
+        entry.ray_id,
+        JSON.stringify(entry.details),
+      ),
+  ]);
+}
+
+// Newest first. `event` limits it to one kind of event, and `before` (an entry
+// id) fetches the page after one already shown.
+export async function listAuditEntries(
+  db: D1Database,
+  { event, before, limit }: { event: string | null; before: number | null; limit: number },
+): Promise<AuditEntry[]> {
+  const { results } = await db
+    .prepare(
+      `SELECT * FROM audit_log
+        WHERE (?1 IS NULL OR event = ?1) AND (?2 IS NULL OR id < ?2)
+        ORDER BY id DESC LIMIT ?3`,
+    )
+    .bind(event, before, limit)
+    .all<Omit<AuditEntry, "details"> & { details: string }>();
+  return results.map((row) => ({ ...row, details: JSON.parse(row.details) as unknown }));
 }

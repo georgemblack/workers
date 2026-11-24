@@ -1,4 +1,5 @@
 import { Hono, type Context } from "hono";
+import { logEvent } from "../audit";
 import {
   consumeAuthCode,
   consumeRefreshToken,
@@ -173,6 +174,15 @@ async function issueCodeAndRedirect(
     auth_time: authTime,
   };
   await putAuthCode(c.env.DB, code, record, AUTH_CODE_TTL_SECONDS);
+  const client = await getClient(c.env.DB, pending.client_id);
+  await logEvent(c, {
+    event: "app_sign_in",
+    details: {
+      client_id: pending.client_id,
+      client_name: client?.name ?? null,
+      scope: pending.scope,
+    },
+  });
 
   const url = new URL(pending.redirect_uri);
   url.searchParams.set("code", code);
@@ -488,6 +498,9 @@ oidc.on(["GET", "POST"], "/logout", async (c) => {
   }
 
   destroySession(c);
+  if (session) {
+    await logEvent(c, { event: "sign_out", details: { client_id: trusted ? clientId : null } });
+  }
 
   const redirectUri = params.get("post_logout_redirect_uri");
   if (trusted && clientId && redirectUri) {

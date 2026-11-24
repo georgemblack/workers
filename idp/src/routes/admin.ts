@@ -1,5 +1,14 @@
 import { Hono } from "hono";
-import { createClient, deleteClient, endAllSessions, hashSecret, listClients } from "../storage";
+import { isAuditEventName, logEvent } from "../audit";
+import {
+  createClient,
+  deleteClient,
+  endAllSessions,
+  getClient,
+  hashSecret,
+  listAuditEntries,
+  listClients,
+} from "../storage";
 import { getSession } from "../session";
 import { randomToken } from "../util";
 
@@ -81,6 +90,7 @@ admin.post("/api/admin/clients", async (c) => {
     token_endpoint_auth_method: method,
     email,
   });
+  await logEvent(c, { event: "client_created", details: { client_id, name: body.name } });
 
   return c.json({
     client_id,
@@ -95,12 +105,44 @@ admin.post("/api/admin/clients", async (c) => {
 
 admin.delete("/api/admin/clients/:id", async (c) => {
   const id = c.req.param("id");
+  const client = await getClient(c.env.DB, id);
+  if (!client) return c.json({ ok: true });
   await deleteClient(c.env.DB, id);
+  await logEvent(c, { event: "client_deleted", details: { client_id: id, name: client.name } });
   return c.json({ ok: true });
 });
 
 // Signs out every device, including this one.
 admin.post("/api/admin/sign-out-everywhere", async (c) => {
   await endAllSessions(c.env.DB);
+  await logEvent(c, { event: "sign_out_everywhere", details: { reason: "button" } });
   return c.json({ ok: true });
+});
+
+const ACTIVITY_PAGE_SIZE = 50;
+
+// The activity log, newest first, a page at a time. `?event=` shows one kind
+// of event, and `?before=` takes the `next` value from the previous page.
+admin.get("/api/admin/activity", async (c) => {
+  const event = c.req.query("event") || null;
+  if (event !== null && !isAuditEventName(event)) {
+    return c.json({ error: "unknown_event" }, 400);
+  }
+  const beforeParam = c.req.query("before");
+  const before = beforeParam ? Number(beforeParam) : null;
+  if (before !== null && !Number.isSafeInteger(before)) {
+    return c.json({ error: "invalid_before" }, 400);
+  }
+
+  // Fetch one extra entry to find out whether there's another page.
+  const entries = await listAuditEntries(c.env.DB, {
+    event,
+    before,
+    limit: ACTIVITY_PAGE_SIZE + 1,
+  });
+  const page = entries.slice(0, ACTIVITY_PAGE_SIZE);
+  return c.json({
+    entries: page,
+    next: entries.length > ACTIVITY_PAGE_SIZE ? page[page.length - 1].id : null,
+  });
 });

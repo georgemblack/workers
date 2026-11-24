@@ -1,3 +1,4 @@
+import { CSPProvider } from "@cloudflare/kumo/primitives/csp-provider";
 import { StrictMode, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
@@ -16,5 +17,11 @@ function followSystemTheme() {
 // Every page calls this once to render itself into #root.
 export function mount(page: ReactNode) {
   followSystemTheme();
-  createRoot(document.getElementById("root")!).render(<StrictMode>{page}</StrictMode>);
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      {/* Our Content-Security-Policy blocks inline <style> tags, so Base UI (which
+          Kumo is built on) mustn't add any. styles.css has the rule it would add. */}
+      <CSPProvider disableStyleElements>{page}</CSPProvider>
+    </StrictMode>,
+  );
 }

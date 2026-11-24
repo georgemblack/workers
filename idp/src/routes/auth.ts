@@ -1,8 +1,10 @@
 import { Hono } from "hono";
+import { logEvent } from "../audit";
 import {
   countCredentials,
   deleteCredential,
   endAllSessions,
+  getCredential,
   isRegistrationOpen,
   listCredentials,
 } from "../storage";
@@ -44,6 +46,10 @@ auth.post("/api/auth/login/verify", async (c) => {
   const result = await finishAuthentication(c.env, body.challengeId, body.response);
   if (!result.ok) return c.json({ error: result.error }, 400);
   await createSession(c, result.sub);
+  await logEvent(c, {
+    event: "sign_in",
+    details: { passkey: result.label, credential_id: result.credentialId },
+  });
   return c.json({ ok: true });
 });
 
@@ -99,6 +105,10 @@ auth.post("/api/auth/register/verify", async (c) => {
     body.label ?? null,
   );
   if (!result.ok) return c.json({ error: result.error }, 400);
+  await logEvent(c, {
+    event: "passkey_added",
+    details: { passkey: body.label ?? null, credential_id: result.credentialId },
+  });
 
   if (credentialCount === 0) {
     await createSession(c, USER_HANDLE);
@@ -130,9 +140,16 @@ auth.delete("/api/credentials/:id", async (c) => {
   if ((await countCredentials(c.env.DB)) <= 1) {
     return c.json({ error: "cannot_delete_last_credential" }, 400);
   }
+  const credential = await getCredential(c.env.DB, id);
+  if (!credential) return c.json({ ok: true });
   await deleteCredential(c.env.DB, id);
+  await logEvent(c, {
+    event: "passkey_deleted",
+    details: { passkey: credential.label, credential_id: id },
+  });
   // A passkey is usually deleted because a device was lost, so sign out
   // everywhere too, in case that device is still signed in.
   await endAllSessions(c.env.DB);
+  await logEvent(c, { event: "sign_out_everywhere", details: { reason: "passkey_deleted" } });
   return c.json({ ok: true });
 });

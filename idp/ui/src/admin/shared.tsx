@@ -3,6 +3,9 @@ import type { ReactNode } from "react";
 
 // Shared building blocks for the admin page.
 
+// A message for the banner at the top of an admin page.
+export type Status = { kind: "error" | "success"; message: string } | null;
+
 // Shows a message in the banner at the top of the admin page.
 export type Notify = (kind: "error" | "success", message: string) => void;
 
@@ -81,4 +84,16 @@ export function formatDate(value: string | null): string {
   const date = new Date(`${value.replace(" ", "T")}Z`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+// Activity log times are unix seconds. Shown in your own time zone.
+export function formatDateTime(seconds: number, { withSeconds = false } = {}): string {
+  return new Date(seconds * 1000).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: withSeconds ? "2-digit" : undefined,
+  });
 }
