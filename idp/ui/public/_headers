@@ -4,9 +4,11 @@
 # Content-Security-Policy:
 #   - Only load scripts, styles, images and API calls from this site, so
 #     injected code won't run.
+#   - style-src: inline styles are allowed too, because Kumo adds some. If the
+#     policy ever gets in the way of Kumo, loosen it rather than work around it.
 #   - frame-ancestors: stop other sites from showing these pages inside a
 #     frame (clickjacking).
 # X-Content-Type-Options: stop browsers guessing a file's type.
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff

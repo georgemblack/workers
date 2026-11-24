@@ -14,7 +14,7 @@ app.use("*", async (c, next) => {
   c.res = new Response(c.res.body, c.res);
   c.res.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'",
+    "default-src 'self'; style-src 'self' 'unsafe-inline'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'",
   );
   c.res.headers.set("X-Content-Type-Options", "nosniff");
 });
