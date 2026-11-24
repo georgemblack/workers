@@ -26,9 +26,10 @@ app.route("/", oidc);
 app.route("/", auth);
 app.route("/", admin);
 
-// The /admin and /register pages are static files, but the worker runs first
-// for them (see `runWorkerFirst` in cloudflare.config.ts) so the Access check
-// above applies. Anything not handled by a route is passed on to the files.
+// Anything not handled by a route is passed on to the static files. Pages
+// like /admin are usually served straight from them without the worker running
+// at all; they show no data until the APIs above (which check Access and the
+// session) return some.
 app.notFound((c) => c.env.ASSETS.fetch(c.req.raw));
 
 app.onError((err, c) => {

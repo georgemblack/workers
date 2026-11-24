@@ -3,8 +3,9 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 
 // Cloudflare Access sits in front of the admin pages and APIs (the "IdP Admin"
 // Access app). As a second lock, the worker also checks the token Access adds
-// to each request it lets through, so a misconfigured or deleted Access app
-// doesn't expose these routes.
+// to each API request it lets through, so a misconfigured or deleted Access app
+// doesn't expose any data. The admin pages themselves are static files served
+// without the worker; they hold no data, so they aren't checked here.
 //
 // `ctx.access` can't be used instead: Cloudflare doesn't pass it to Workers
 // that serve static assets, which this one does.
@@ -13,15 +14,10 @@ const ACCESS_TEAM_DOMAIN = "https://georgeblack.cloudflareaccess.com";
 // The "IdP Admin" Access app's audience (AUD) tag. Not a secret.
 const ACCESS_AUD = "d83546ca9716bd403fdff8cf62a7dbeb60ad04a8d7752bd31c456eebb85ff9cb";
 
-// Paths the IdP Admin Access app protects. Keep in sync with the app's
-// destinations in Zero Trust > Access > Applications.
-const PROTECTED_PATHS = [
-  "/admin",
-  "/register",
-  "/api/admin",
-  "/api/credentials",
-  "/api/auth/register",
-];
+// The admin APIs, which the IdP Admin Access app also protects. Any new admin
+// API path needs adding here and to the app's destinations in
+// Zero Trust > Access > Applications.
+const PROTECTED_PATHS = ["/api/admin", "/api/credentials", "/api/auth/register"];
 
 // Access's public signing keys, fetched once and cached by jose.
 const accessKeys = createRemoteJWKSet(new URL(`${ACCESS_TEAM_DOMAIN}/cdn-cgi/access/certs`));

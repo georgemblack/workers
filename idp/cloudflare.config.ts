@@ -24,8 +24,6 @@ export default defineConfig({
     assets: {
       htmlHandling: "auto-trailing-slash",
       notFoundHandling: "none",
-      // Run the worker (and its Access check) before serving these pages.
-      runWorkerFirst: ["/admin", "/admin/*", "/register", "/register/*"],
     },
     domains: ["idp.george.black"],
     env: {
