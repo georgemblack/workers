@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import {
   countCredentials,
   deleteCredential,
+  endAllSessions,
   isRegistrationOpen,
   listCredentials,
 } from "../storage";
@@ -130,5 +131,8 @@ auth.delete("/api/credentials/:id", async (c) => {
     return c.json({ error: "cannot_delete_last_credential" }, 400);
   }
   await deleteCredential(c.env.DB, id);
+  // A passkey is usually deleted because a device was lost, so sign out
+  // everywhere too, in case that device is still signed in.
+  await endAllSessions(c.env.DB);
   return c.json({ ok: true });
 });

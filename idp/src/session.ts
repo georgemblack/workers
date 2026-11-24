@@ -1,6 +1,7 @@
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import type { Context } from "hono";
 import { SESSION_TTL_SECONDS } from "./constants";
+import { getSessionsValidAfter } from "./storage";
 import { base64urlDecode, base64urlEncode, constantTimeEqual } from "./util";
 
 // The "__Host-" prefix tells the browser to only accept these cookies over HTTPS
@@ -80,6 +81,8 @@ export async function getSession(
   const data = await decodeSigned<SessionData>(c.env.SESSION_SECRET, token);
   if (!data) return null;
   if (data.exp < Math.floor(Date.now() / 1000)) return null;
+  // Ended by "sign out everywhere".
+  if (data.iat < (await getSessionsValidAfter(c.env.DB))) return null;
   return data;
 }
 

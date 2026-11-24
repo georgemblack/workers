@@ -46,7 +46,8 @@ export function PasskeysSection({
   async function remove(cred: Credential) {
     try {
       await deleteCredential(cred.credential_id);
-      onChange();
+      // Deleting a passkey signs out every device, including this one.
+      location.replace("/login?next=/admin");
     } catch (e) {
       notify("error", `Couldn't delete the passkey: ${(e as Error).message}`);
     }
@@ -112,7 +113,7 @@ export function PasskeysSection({
       <ConfirmDialog
         open={deleting !== null}
         title="Delete passkey?"
-        description={`${deleting?.label || "This passkey"} won't be able to sign in anymore. This can't be undone.`}
+        description={`${deleting?.label || "This passkey"} won't be able to sign in anymore, and every device will be signed out, including this one. This can't be undone.`}
         confirmLabel="Delete passkey"
         onConfirm={() => remove(deleting!)}
         onClose={() => setDeleting(null)}

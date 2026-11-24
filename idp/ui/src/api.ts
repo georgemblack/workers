@@ -99,6 +99,8 @@ export const createClient = (client: NewClient) =>
 export const deleteClient = (id: string) =>
   request(`/api/admin/clients/${encodeURIComponent(id)}`, { method: "DELETE" });
 
+export const signOutEverywhere = () => postJson("/api/admin/sign-out-everywhere");
+
 export const listCredentials = () => request<{ credentials: Credential[] }>("/api/credentials");
 
 export const deleteCredential = (id: string) =>

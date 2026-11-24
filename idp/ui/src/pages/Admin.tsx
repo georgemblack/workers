@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError, listClients, listCredentials, type Client, type Credential } from "../api";
 import { ClientsSection } from "../admin/ClientsSection";
 import { PasskeysSection } from "../admin/PasskeysSection";
+import { SessionsSection } from "../admin/SessionsSection";
 import type { Notify } from "../admin/shared";
 import { mount } from "../mount";
 
@@ -69,6 +70,7 @@ function Admin() {
               notify={notify}
             />
             <PasskeysSection credentials={data.credentials} onChange={load} notify={notify} />
+            <SessionsSection notify={notify} />
           </>
         ) : (
           !status && (

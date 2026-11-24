@@ -294,6 +294,26 @@ export async function consumeWebauthnChallenge(db: D1Database, id: string): Prom
   return row?.challenge ?? null;
 }
 
+// Browser sessions created before this time are treated as signed out.
+export async function getSessionsValidAfter(db: D1Database): Promise<number> {
+  const row = await db
+    .prepare("SELECT value FROM settings WHERE key = 'sessions_valid_after'")
+    .first<{ value: number }>();
+  return row?.value ?? 0;
+}
+
+// Signs out every device: ends all browser sessions created up to now, and
+// deletes every refresh token so apps can't get new tokens without you
+// signing in again.
+export async function endAllSessions(db: D1Database): Promise<void> {
+  await db.batch([
+    db.prepare(
+      "INSERT OR REPLACE INTO settings (key, value) VALUES ('sessions_valid_after', unixepoch())",
+    ),
+    db.prepare("DELETE FROM refresh_tokens"),
+  ]);
+}
+
 // Registration is only allowed until the time stored in `registration_open_until`.
 // It's changed by hand with `pnpm run registration:open` / `registration:close`.
 export async function isRegistrationOpen(db: D1Database): Promise<boolean> {

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createClient, deleteClient, hashSecret, listClients } from "../storage";
+import { createClient, deleteClient, endAllSessions, hashSecret, listClients } from "../storage";
 import { getSession } from "../session";
 import { randomToken } from "../util";
 
@@ -96,5 +96,11 @@ admin.post("/api/admin/clients", async (c) => {
 admin.delete("/api/admin/clients/:id", async (c) => {
   const id = c.req.param("id");
   await deleteClient(c.env.DB, id);
+  return c.json({ ok: true });
+});
+
+// Signs out every device, including this one.
+admin.post("/api/admin/sign-out-everywhere", async (c) => {
+  await endAllSessions(c.env.DB);
   return c.json({ ok: true });
 });
