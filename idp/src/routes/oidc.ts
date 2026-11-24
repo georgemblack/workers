@@ -456,57 +456,70 @@ function invalidToken(description: string): Response {
   });
 }
 
-oidc.get("/logout", async (c) => {
-  const url = new URL(c.req.url);
-  const post_logout_redirect_uri = url.searchParams.get("post_logout_redirect_uri");
-  const state = url.searchParams.get("state");
-  const id_token_hint = url.searchParams.get("id_token_hint");
+// Sign-out, following OpenID Connect RP-Initiated Logout. Apps send you here
+// (by GET or POST) to sign out, and can ask to be sent back afterwards.
+oidc.on(["GET", "POST"], "/logout", async (c) => {
+  const params =
+    c.req.method === "POST"
+      ? new URLSearchParams((await c.req.parseBody()) as Record<string, string>)
+      : new URL(c.req.url).searchParams;
 
-  let allowedRedirect: string | null = null;
-  if (post_logout_redirect_uri && id_token_hint) {
-    try {
-      const { jwtVerify, errors } = await import("jose");
-      const key = await loadSigningKey(c.env);
-      let claims: Record<string, unknown>;
-      try {
-        ({ payload: claims } = await jwtVerify(id_token_hint, key.publicKey, {
-          issuer: ISSUER,
-        }));
-      } catch (e) {
-        // ID token hints are by definition stale — accept an expired token
-        // as long as the signature and issuer are valid.
-        if (e instanceof errors.JWTExpired) {
-          claims = e.payload;
-        } else {
-          throw e;
-        }
-      }
-      const rawAud = claims.aud;
-      const aud =
-        typeof rawAud === "string"
-          ? rawAud
-          : Array.isArray(rawAud) && typeof rawAud[0] === "string"
-            ? rawAud[0]
-            : null;
-      if (aud) {
-        const client = await getClient(c.env.DB, aud);
-        if (client && client.post_logout_redirect_uris.includes(post_logout_redirect_uri)) {
-          allowedRedirect = post_logout_redirect_uri;
-        }
-      }
-    } catch {
-      // ignore
-    }
+  const hint = await checkIdTokenHint(c.env, params.get("id_token_hint"));
+  const validHint = hint === "invalid" ? null : hint;
+  const clientIdParam = params.get("client_id");
+  // A bad hint, or a client_id that doesn't match the hint, means we can't
+  // trust where the request came from, so we won't redirect anywhere.
+  const trusted =
+    hint !== "invalid" && !(validHint && clientIdParam && clientIdParam !== validHint.aud);
+  const clientId = validHint?.aud ?? clientIdParam;
+
+  // Without a valid hint for the signed-in user, anyone could link here, so
+  // ask first. The confirmation page posts back here with confirm=1, which is
+  // only accepted from this site's own pages.
+  const session = await getSession(c);
+  const hintMatchesSession = trusted && validHint !== null && validHint.sub === session?.sub;
+  const confirmed =
+    c.req.method === "POST" &&
+    params.get("confirm") === "1" &&
+    c.req.header("origin") === new URL(c.req.url).origin;
+  if (session && !hintMatchesSession && !confirmed) {
+    params.delete("confirm");
+    return c.redirect(`/signout?${params.toString()}`, 303);
   }
 
   destroySession(c);
 
-  if (allowedRedirect) {
-    const u = new URL(allowedRedirect);
-    if (state) u.searchParams.set("state", state);
-    return c.redirect(u.toString());
+  const redirectUri = params.get("post_logout_redirect_uri");
+  if (trusted && clientId && redirectUri) {
+    const client = await getClient(c.env.DB, clientId);
+    if (client?.post_logout_redirect_uris.includes(redirectUri)) {
+      const url = new URL(redirectUri);
+      const state = params.get("state");
+      if (state) url.searchParams.set("state", state);
+      return c.redirect(url.toString(), 303);
+    }
   }
-  return c.html(
-    `<!doctype html><meta charset="utf-8"><title>Signed out</title><body style="font-family:system-ui;padding:2rem"><h1>Signed out</h1><p>You have been signed out.</p></body>`,
-  );
+  return c.redirect("/signout?done=1", 303);
 });
+
+// Checks an ID token we issued earlier, passed as a hint about who is signing
+// out. Expired tokens are fine, since apps often keep them long after.
+async function checkIdTokenHint(
+  env: Cloudflare.Env,
+  token: string | null,
+): Promise<{ sub: string; aud: string } | "invalid" | null> {
+  if (!token) return null;
+  const { jwtVerify, errors } = await import("jose");
+  const key = await loadSigningKey(env);
+  let claims: Record<string, unknown>;
+  try {
+    ({ payload: claims } = await jwtVerify(token, key.publicKey, { issuer: ISSUER }));
+  } catch (e) {
+    if (!(e instanceof errors.JWTExpired)) return "invalid";
+    claims = e.payload;
+  }
+  if (claims.iss !== ISSUER) return "invalid";
+  const aud = Array.isArray(claims.aud) ? claims.aud[0] : claims.aud;
+  if (typeof claims.sub !== "string" || typeof aud !== "string") return "invalid";
+  return { sub: claims.sub, aud };
+}

@@ -11,7 +11,7 @@ import {
   startAuthentication,
   startRegistration,
 } from "../webauthn";
-import { createSession, destroySession, getSession } from "../session";
+import { createSession, getSession } from "../session";
 import { constantTimeEqual } from "../util";
 import { USER_HANDLE } from "../constants";
 
@@ -43,11 +43,6 @@ auth.post("/api/auth/login/verify", async (c) => {
   const result = await finishAuthentication(c.env, body.challengeId, body.response);
   if (!result.ok) return c.json({ error: result.error }, 400);
   await createSession(c, result.sub);
-  return c.json({ ok: true });
-});
-
-auth.post("/api/auth/logout", async (c) => {
-  destroySession(c);
   return c.json({ ok: true });
 });
 

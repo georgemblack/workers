@@ -1,13 +1,6 @@
 import { Banner, Link, Loader } from "@cloudflare/kumo";
 import { useCallback, useEffect, useState } from "react";
-import {
-  ApiError,
-  listClients,
-  listCredentials,
-  signOut,
-  type Client,
-  type Credential,
-} from "../api";
+import { ApiError, listClients, listCredentials, type Client, type Credential } from "../api";
 import { ClientsSection } from "../admin/ClientsSection";
 import { PasskeysSection } from "../admin/PasskeysSection";
 import type { Notify } from "../admin/shared";
@@ -44,11 +37,6 @@ function Admin() {
     void load();
   }, [load]);
 
-  async function handleSignOut() {
-    await signOut();
-    location.replace("/login");
-  }
-
   const notify: Notify = (kind, message) => setStatus({ kind, message });
 
   return (
@@ -60,15 +48,7 @@ function Admin() {
             <Link href="/.well-known/openid-configuration" target="_blank">
               Discovery
             </Link>
-            <Link
-              href="/login"
-              onClick={(e) => {
-                e.preventDefault();
-                void handleSignOut();
-              }}
-            >
-              Sign out
-            </Link>
+            <Link href="/logout">Sign out</Link>
           </nav>
         </div>
       </header>

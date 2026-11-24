@@ -90,8 +90,6 @@ function postJson<T>(url: string, data?: unknown, headers: Record<string, string
 
 export const getAuthState = () => request<AuthState>("/api/auth/state");
 
-export const signOut = () => postJson("/api/auth/logout");
-
 export const listClients = () =>
   request<{ clients: Client[]; default_email: string }>("/api/admin/clients");
 

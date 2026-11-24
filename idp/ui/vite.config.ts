@@ -15,6 +15,7 @@ export default defineConfig({
         login: "login.html",
         register: "register.html",
         admin: "admin.html",
+        signout: "signout.html",
       },
     },
   },
