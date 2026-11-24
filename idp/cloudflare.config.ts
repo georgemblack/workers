@@ -8,6 +8,7 @@ import { bindings, defineConfig } from "cf/config";
  *                        set, so it's left out of `env`. See the README.
  *  - SESSION_SECRET      HMAC key for signing session cookies
  *  - USER_EMAIL          Email address returned in the `email` claim
+ *  - BRRR_URL            Brrr webhook URL for sign-in push notifications
  */
 export default defineConfig({
   accountId: "bc4564dd499c0a9b8a7bb79c9bd5ea6d",
@@ -35,6 +36,7 @@ export default defineConfig({
       SIGNING_JWK: bindings.secret(),
       SESSION_SECRET: bindings.secret(),
       USER_EMAIL: bindings.secret(),
+      BRRR_URL: bindings.secret(),
     },
   },
 });

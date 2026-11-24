@@ -60,6 +60,7 @@ These are set on the worker, not stored in the repo. Changing one takes effect r
 | `SIGNING_JWK`    | The key that signs sign-in tokens | Tokens already handed out stop working, so apps may ask you to sign in again |
 | `SESSION_SECRET` | Signs your browser session        | You're signed out of the idp                                                 |
 | `USER_EMAIL`     | The email address apps receive    | Apps see the new email next sign-in                                          |
+| `BRRR_URL`       | Brrr webhook for sign-in alerts   | Sign-in push notifications go to the new URL                                 |
 
 To set or change one:
 
@@ -72,6 +73,9 @@ cf workers secrets update SESSION_SECRET --worker idp --type secret_text --text 
 
 # Email
 cf workers secrets update USER_EMAIL --worker idp --type secret_text --text "you@example.com"
+
+# Brrr webhook for sign-in push notifications
+cf workers secrets update BRRR_URL --worker idp --type secret_text --text "https://api.brrr.now/v1/br_usr_..."
 ```
 
 ## Getting back in if every passkey is lost

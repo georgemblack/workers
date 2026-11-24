@@ -9,6 +9,21 @@ import { base64urlDecode, base64urlEncode, constantTimeEqual } from "./util";
 const SESSION_COOKIE = "__Host-idp_session";
 const TX_COOKIE_PREFIX = "__Host-idp_tx_";
 
+// Set by /authorize when an app sends you to sign in, so the request can pick up
+// where it left off afterwards. Also read to say which app a sign-in was for.
+export const PENDING_AUTH_COOKIE = "pending_auth";
+
+export interface PendingAuth {
+  client_id: string;
+  redirect_uri: string;
+  response_type: string;
+  scope: string;
+  state?: string;
+  nonce?: string;
+  code_challenge: string;
+  code_challenge_method: string;
+}
+
 async function hmacKey(secret: string): Promise<CryptoKey> {
   return await crypto.subtle.importKey(
     "raw",

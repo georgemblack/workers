@@ -5,5 +5,7 @@ declare namespace Cloudflare {
     BOOTSTRAP_SECRET?: string;
     SESSION_SECRET: string;
     USER_EMAIL: string;
+    // Brrr webhook URL for sign-in push notifications. Notifications are skipped if unset.
+    BRRR_URL?: string;
   }
 }

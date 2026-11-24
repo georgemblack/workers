@@ -11,7 +11,15 @@ import {
   type Client,
 } from "../storage";
 import { loadSigningKey, signJwt } from "../keys";
-import { destroySession, getSession, setTxCookie, readTxCookie, clearTxCookie } from "../session";
+import {
+  clearTxCookie,
+  destroySession,
+  getSession,
+  PENDING_AUTH_COOKIE,
+  readTxCookie,
+  setTxCookie,
+  type PendingAuth,
+} from "../session";
 import { constantTimeEqual, nowSeconds, randomToken, sha256Base64url } from "../util";
 import {
   ACCESS_TOKEN_TTL_SECONDS,
@@ -31,8 +39,6 @@ import {
 } from "../constants";
 
 type Ctx = Context<{ Bindings: Cloudflare.Env }>;
-
-const PENDING_AUTH_COOKIE = "pending_auth";
 
 export const oidc = new Hono<{ Bindings: Cloudflare.Env }>();
 
@@ -80,17 +86,6 @@ oidc.get("/.well-known/jwks.json", async (c) => {
   const key = await loadSigningKey(c.env);
   return c.json({ keys: [key.publicJwk] });
 });
-
-interface PendingAuth {
-  client_id: string;
-  redirect_uri: string;
-  response_type: string;
-  scope: string;
-  state?: string;
-  nonce?: string;
-  code_challenge: string;
-  code_challenge_method: string;
-}
 
 oidc.get("/authorize", async (c) => {
   const url = new URL(c.req.url);

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { logEvent } from "../audit";
+import { notifySignIn } from "../notify";
 import {
   countCredentials,
   deleteCredential,
@@ -50,6 +51,7 @@ auth.post("/api/auth/login/verify", async (c) => {
     event: "sign_in",
     details: { passkey: result.label, credential_id: result.credentialId },
   });
+  notifySignIn(c);
   return c.json({ ok: true });
 });
 
