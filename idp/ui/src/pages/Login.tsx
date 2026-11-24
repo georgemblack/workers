@@ -2,6 +2,7 @@ import { Button, Text } from "@cloudflare/kumo";
 import { FingerprintIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { getAuthState, safeNext, signInWithPasskey } from "../api";
+import { FlowPage } from "../FlowPage";
 import { mount } from "../mount";
 
 const next = safeNext(new URLSearchParams(location.search).get("next"));
@@ -38,13 +39,7 @@ function Login() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center px-4">
-      <div className="flow-bg" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
+    <FlowPage>
       <Button
         variant="primary"
         icon={<FingerprintIcon />}
@@ -62,7 +57,7 @@ function Login() {
           </Text>
         </div>
       )}
-    </main>
+    </FlowPage>
   );
 }
 

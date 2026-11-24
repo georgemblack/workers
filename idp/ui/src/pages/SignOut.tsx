@@ -1,5 +1,6 @@
 import { Button, Text } from "@cloudflare/kumo";
 import { SignOutIcon } from "@phosphor-icons/react";
+import { FlowPage } from "../FlowPage";
 import { mount } from "../mount";
 
 const params = new URLSearchParams(location.search);
@@ -12,13 +13,7 @@ params.delete("done");
 // back to itself afterwards.
 function SignOut() {
   return (
-    <main className="relative flex min-h-screen items-center justify-center px-4">
-      <div className="flow-bg" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
+    <FlowPage>
       {done ? (
         <Text>You're signed out.</Text>
       ) : (
@@ -32,7 +27,7 @@ function SignOut() {
           </Button>
         </form>
       )}
-    </main>
+    </FlowPage>
   );
 }
 
